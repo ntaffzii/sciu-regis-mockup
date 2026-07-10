@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายละเอียดกิจกรรม — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+        colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+      } },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+      <a href="event-list.html" class="hover:text-blue-600 transition inline-flex items-center gap-1">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        หน้ากิจกรรมทั้งหมด
+      </a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">รายละเอียดกิจกรรม</span>
+    </nav>
+
+    <div id="detail-content" class="space-y-6">
+      <div class="text-center py-16 text-slate-400 text-sm">กำลังโหลด...</div>
+    </div>
+
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ active: '', title: 'รายละเอียดกิจกรรม' });
+
+  var EVENTS = [
+    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ' },
+    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม' },
+    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่' },
+    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม' },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ' },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU' },
+  ];
+
+  function loadDetail() {
+    var q = window.location.search + window.location.hash;
+    var match = q.match(/[?&]id=(\d+)/);
+    var id = match ? parseInt(match[1], 10) : parseInt(Store.get('eventId', 0), 10);
+    if (!id) { showError('ไม่พบรหัสกิจกรรม'); return; }
+
+    var ev = null;
+    for (var i = 0; i < EVENTS.length; i++) {
+      if (EVENTS[i].id === id) { ev = EVENTS[i]; break; }
+    }
+    if (!ev) { showError('ไม่พบข้อมูลกิจกรรม'); return; }
+
+    render(ev);
+  }
+
+  function showError(msg) {
+    document.getElementById('detail-content').innerHTML = '<div class="text-center py-16 text-slate-400 text-sm">' + msg + '</div>';
+  }
+
+  function render(ev) {
+    var img = ev.image_url
+      ? '<img src="' + ev.image_url + '" class="w-full h-56 sm:h-72 object-cover rounded-2xl">'
+      : '<div class="w-full h-56 sm:h-72 bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center text-blue-600/20 rounded-2xl">' + icon('calendar', 'w-16 h-16') + '</div>';
+
+    var badges = '';
+    if (ev.open) badges += '<span class="bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded">' + icon('unlock', 'w-3.5 h-3.5 inline mr-1') + 'กิจกรรมเปิดกว้าง</span>';
+    if (ev.gps) badges += '<span class="bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded inline-flex items-center gap-1 ml-2">' + icon('map-pin', 'w-3.5 h-3.5') + ' GPS Check-in</span>';
+
+    var role = getSessionRole();
+    var registerBtn = role === 'student'
+      ? '<button onclick="showToast(\'ลงทะเบียนเข้าร่วมกิจกรรมเรียบร้อยแล้ว (จำลอง)\')" class="w-full py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">' + icon('check', 'w-4 h-4 inline mr-1') + 'ลงทะเบียนร่วมกิจกรรม</button>'
+      : '<button onclick="window.location.href=\'login.html\'" class="w-full py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">' + icon('log-in', 'w-4 h-4 inline mr-1') + 'เข้าสู่ระบบเพื่อลงทะเบียน</button>';
+
+    var html = '<div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">' +
+      '<div class="relative">' + img + '</div>' +
+      '<div class="p-6 space-y-6">' +
+        '<div class="flex flex-wrap gap-2">' + badges + '</div>' +
+
+        '<div>' +
+          '<span class="text-xs font-semibold uppercase tracking-wider text-blue-600">' + (ev.subcategory || 'กิจกรรมทั่วไป') + '</span>' +
+          '<h2 class="text-xl font-bold text-slate-900 mt-1">' + ev.name + '</h2>' +
+        '</div>' +
+
+        '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl">' +
+          '<div class="text-center"><p class="text-xs text-slate-400">วันที่</p><p class="text-sm font-semibold text-slate-800 mt-1">' + thDate(ev.date) + '</p></div>' +
+          '<div class="text-center"><p class="text-xs text-slate-400">จำนวนวัน</p><p class="text-sm font-semibold text-slate-800 mt-1">' + ev.days + ' วัน</p></div>' +
+          '<div class="text-center"><p class="text-xs text-slate-400">หน่วยกิต</p><p class="text-sm font-semibold font-mono text-slate-800 mt-1">' + ev.credits.toFixed(1) + '</p></div>' +
+          '<div class="text-center"><p class="text-xs text-slate-400">ผู้เข้าร่วม</p><p class="text-sm font-semibold text-slate-800 mt-1">' + (ev.checkedIn || 0) + '/' + (ev.participants || '-') + '</p></div>' +
+        '</div>';
+
+    if (ev.objectives) {
+      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('book-open', 'w-4 h-4') + 'วัตถุประสงค์</h4><p class="text-sm text-slate-600 leading-relaxed">' + ev.objectives + '</p></div>';
+    }
+    if (ev.description) {
+      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('file-text', 'w-4 h-4') + 'รายละเอียดกิจกรรม</h4><p class="text-sm text-slate-600 leading-relaxed">' + ev.description + '</p></div>';
+    }
+    if (ev.schedule) {
+      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('calendar', 'w-4 h-4') + 'กำหนดการ</h4><pre class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm text-slate-600 font-sans whitespace-pre-line leading-relaxed">' + ev.schedule + '</pre></div>';
+    }
+
+    html += '<div class="border-t border-slate-100 pt-4 space-y-3">' +
+      '<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('info', 'w-4 h-4') + 'ข้อมูลกิจกรรม</h4>' +
+      '<div class="space-y-3 text-sm">' +
+        '<div class="flex items-start gap-3">' +
+          '<span class="text-slate-400 mt-0.5">' + icon('map-pin', 'w-4 h-4') + '</span>' +
+          '<div><p class="font-medium text-slate-700">สถานที่</p><p class="text-slate-500">' + (ev.location || 'คณะวิทยาศาสตร์ ม.อุบลราชธานี') + '</p></div>' +
+        '</div>' +
+        '<div class="flex items-start gap-3">' +
+          '<span class="text-slate-400 mt-0.5">' + icon('users', 'w-4 h-4') + '</span>' +
+          '<div><p class="font-medium text-slate-700">กลุ่มเป้าหมาย</p><p class="text-slate-500">' + (ev.eligible_participants || 'ทุกชั้นปี') + '</p></div>' +
+        '</div>';
+
+    if (ev.registration_deadline) {
+      html += '<div class="flex items-start gap-3">' +
+        '<span class="text-slate-400 mt-0.5">' + icon('clock', 'w-4 h-4') + '</span>' +
+        '<div><p class="font-medium text-slate-700">วันปิดรับสมัคร</p><p class="text-slate-500">' + thDate(ev.registration_deadline) + '</p></div>' +
+      '</div>';
+    }
+    if (ev.contact_info) {
+      html += '<div class="flex items-start gap-3">' +
+        '<span class="text-slate-400 mt-0.5">' + icon('phone', 'w-4 h-4') + '</span>' +
+        '<div><p class="font-medium text-slate-700">ผู้ติดต่อ</p><p class="text-slate-500">' + ev.contact_info + '</p></div>' +
+      '</div>';
+    }
+    html += '</div></div>';
+
+    if (ev.gps) {
+      html += '<div class="border-t border-slate-100 pt-4 space-y-2">' +
+        '<a href="event-gps.html?id=' + ev.id + '" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm font-semibold rounded-xl hover:from-blue-700 hover:to-blue-600 transition shadow-lg shadow-blue-600/20">' +
+          icon('map-pin', 'w-4 h-4') + 'ดูแผนที่ GPS' +
+        '</a>' +
+        '<p class="text-[11px] text-slate-400 text-center">' + ev.lat + ', ' + ev.lng + ' · รัศมี ' + ev.radius + ' เมตร</p>' +
+      '</div>';
+    }
+
+    html += '<div class="border-t border-slate-100 pt-4 space-y-3">' +
+      registerBtn +
+      '<a href="event-list.html" class="block w-full py-2.5 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition text-center">กลับไปหน้ากิจกรรมทั้งหมด</a>' +
+    '</div>';
+
+    html += '</div></div>';
+
+    document.getElementById('detail-content').innerHTML = html;
+    document.title = ev.name + ' — SciU-Regis';
+  }
+
+  loadDetail();
+</script>
+</body>
+</html>

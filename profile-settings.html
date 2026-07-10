@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าบัญชีของฉัน — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+        colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+      } },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="index.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">ตั้งค่าบัญชีผู้ใช้</span>
+    </nav>
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตั้งค่าบัญชีของฉัน</h1>
+      <p class="text-sm text-slate-500 mt-1">จัดการข้อมูลส่วนตัว บัญชีนำส่งข้อมูล และการเชื่อมต่อบัญชีโซเชียลเพื่อรับแจ้งเตือน (LINE / Slack)</p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- ซ้าย 1/3: บัตรโปรไฟล์สรุป -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center space-y-4">
+          <div class="w-20 h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-3xl font-bold" id="profile-avatar"></div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800" id="profile-sum-name">โหลดข้อมูล...</h2>
+            <p class="text-xs text-slate-400 mt-0.5" id="profile-sum-role">บทบาทระบบ</p>
+          </div>
+          
+          <div class="border-t border-slate-100 pt-4 text-xs text-left space-y-2.5 text-slate-500">
+            <div class="flex justify-between"><span class="font-medium">รหัสประจำตัว:</span> <span class="font-mono text-slate-700" id="profile-sum-code">-</span></div>
+            <div class="flex justify-between"><span class="font-medium">สังกัด/สาขา:</span> <span class="text-slate-700" id="profile-sum-major">-</span></div>
+            <div class="flex justify-between"><span class="font-medium">สถานะบัญชี:</span> <span class="text-green-600 font-semibold flex items-center gap-1">🟢 Active</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ขวา 2/3: ฟอร์มตั้งค่าโปรไฟล์ & การผูกบัญชี LINE/Slack -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- ฟอร์มข้อมูลส่วนตัว -->
+        <form id="profile-form" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5" onsubmit="saveProfile(event)">
+          <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <span id="ic-form-user" class="text-blue-600"></span> ข้อมูลรายละเอียดส่วนตัว
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-prefix">คำนำหน้าชื่อ</label>
+              <input id="prof-prefix" type="text" placeholder="เช่น นาย, นางสาว, ดร." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-phone">เบอร์โทรศัพท์ติดต่อ</label>
+              <input id="prof-phone" type="text" placeholder="เช่น 081-234-xxxx" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-name">ชื่อจริง</label>
+              <input id="prof-name" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-lastname">นามสกุล</label>
+              <input id="prof-lastname" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-email">อีเมลสำรองสำหรับติดต่อ</label>
+              <input id="prof-email" type="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div id="student-major-box" class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="prof-major">สาขาวิชา</label>
+              <select id="prof-major" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+                <option value="เคมี">สาขาวิชาเคมี</option>
+                <option value="เทคโนโลยียางและพอลิเมอร์">สาขาวิชาเทคโนโลยียางและพอลิเมอร์</option>
+                <option value="ฟิสิกส์ชีวการแพทย์">สาขาวิชาฟิสิกส์ชีวการแพทย์</option>
+                <option value="คณิตศาสตร์">สาขาวิชาคณิตศาสตร์</option>
+                <option value="วิทยาการข้อมูลและนวัตกรรมซอฟต์แวร์">สาขาวิชาวิทยาการข้อมูลและนวัตกรรมซอฟต์แวร์</option>
+                <option value="เทคโนโลยีสารสนเทศและการสื่อสาร">สาขาวิชาเทคโนโลยีสารสนเทศและการสื่อสาร</option>
+                <option value="ชีววิทยา">สาขาวิชาชีววิทยา</option>
+                <option value="จุลชีววิทยา">สาขาวิชาจุลชีววิทยา</option>
+                <option value="วิทยาศาสตร์สิ่งแวดล้อม">สาขาวิชาวิทยาศาสตร์สิ่งแวดล้อม</option>
+                <option value="อาชีวอนามัยและความปลอดภัย">สาขาวิชาอาชีวอนามัยและความปลอดภัย</option>
+                <option value="นวัตกรรมเทคโนโลยีวัสดุ">สาขาวิชานวัตกรรมเทคโนโลยีวัสดุ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
+              บันทึกข้อมูลส่วนตัว
+            </button>
+          </div>
+        </form>
+
+        <!-- การเชื่อมต่อ LINE Integration (ผูกบัญชี LINE) -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <span id="ic-line-heading" class="text-emerald-600"></span> เชื่อมโยง LINE เพื่อรับแจ้งเตือน & สอบถามบอท
+          </h2>
+
+          <div id="line-connected-view" class="hidden space-y-4">
+            <!-- สถานะ: ผูกแล้ว -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <span class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0" id="ic-line-badge"></span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-slate-800" id="line-user-name">LINE User</p>
+                    <span class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded-full">เชื่อมต่อแล้ว</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1 font-mono">LINE User ID: <span id="line-user-id">Uxxxxx</span></p>
+                </div>
+              </div>
+              <button onclick="disconnectLINE()" class="text-xs text-red-600 hover:text-red-800 font-semibold hover:underline">ยกเลิกผูกบัญชี</button>
+            </div>
+
+            <!-- Toggles สำหรับแจ้งเตือนและแชทบอท LINE -->
+            <div class="divide-y divide-slate-100 text-sm space-y-1">
+              <div class="flex items-center justify-between py-3">
+                <div>
+                  <p class="font-semibold text-slate-800">ส่งแจ้งเตือนชั่วโมงกิจกรรมผ่าน LINE (LINE Notify)</p>
+                  <p class="text-xs text-slate-400 mt-0.5">รับข้อความแจ้งเตือนอัตโนมัติทันทีที่งานทะเบียนกดยืนยันชั่วโมงลงระบบ UBU SAC</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="line-toggle-notif" class="sr-only peer" onchange="toggleLineOption('notif', this)">
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between py-3">
+                <div>
+                  <p class="font-semibold text-slate-800">แชทบอท SciU-Buddy บน LINE (LINE Chatbot)</p>
+                  <p class="text-xs text-slate-400 mt-0.5">เปิดใช้งานให้คุณสามารถแชทพิมพ์ถามข้อสงสัยกับ SciU-Buddy บนแอปพลิเคชัน LINE ได้โดยตรง</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="line-toggle-chat" class="sr-only peer" onchange="toggleLineOption('chat', this)">
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- สถานะ: ยังไม่ผูก -->
+          <div id="line-disconnected-view" class="space-y-4">
+            <div class="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex items-start gap-3">
+              <span class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0" id="ic-line-badge-off"></span>
+              <div class="space-y-1">
+                <p class="text-sm font-semibold text-slate-700">ยังไม่ได้เชื่อมต่อบัญชี LINE</p>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  การเชื่อมต่อบัญชี LINE จะอำนวยความสะดวกให้ระบบสามารถแจ้งผลการเข้าร่วมกิจกรรมและการบันทึกชั่วโมง UBU SAC ตรงถึงไลน์ของนิสิตทันที ไม่ต้องกดเข้ามาเช็คในระบบบ่อยๆ
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex justify-start">
+              <button onclick="connectLINE()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20">
+                <span id="ic-btn-line-con"></span> เชื่อมต่อบัญชี LINE ของฉัน
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- การเชื่อมต่อ Slack (แสดงเฉพาะ Registrar / Admin เท่านั้น) -->
+        <div id="slack-integration-box" class="hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <span id="ic-slack-heading" class="text-blue-600"></span> เชื่อมต่อ Slack สำหรับเจ้าหน้าที่ทะเบียน (Slack DM Alerts)
+          </h2>
+
+          <div id="slack-connected-view" class="hidden space-y-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <span class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0" id="ic-slack-badge"></span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-slate-800">พี่สมบัติ (sombat.w)</p>
+                    <span class="text-[9px] bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-full">เชื่อมต่อแล้ว</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1 font-mono">Slack User ID: U0612ABCDEF</p>
+                </div>
+              </div>
+              <button onclick="disconnectSlack()" class="text-xs text-red-600 hover:text-red-800 font-semibold hover:underline">ยกเลิกเชื่อมต่อ</button>
+            </div>
+
+            <!-- Toggles สำหรับ Slack -->
+            <div class="divide-y divide-slate-100 text-sm space-y-1">
+              <div class="flex items-center justify-between py-3">
+                <div>
+                  <p class="font-semibold text-slate-800">รับส่งแจ้งเตือนการยื่นหลักฐานเปิดกว้างใหม่</p>
+                  <p class="text-xs text-slate-400 mt-0.5">แจ้งเตือนทันทีเมื่อนักศึกษาอัปโหลดเกียรติบัตรบำเพ็ญประโยชน์เข้ามาในระบบ</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="slack-toggle-proof" class="sr-only peer" checked onchange="toggleSlackOption('proof')">
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="slack-disconnected-view" class="space-y-4">
+            <div class="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex items-start gap-3">
+              <span class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0" id="ic-slack-badge-off"></span>
+              <div class="space-y-1">
+                <p class="text-sm font-semibold text-slate-700">ยังไม่ได้เชื่อมต่อกับ Slack Workspace คณะ</p>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  เชื่อมบัญชี Slack เพื่ออำนวยความสะดวกในการแจ้งเตือนคิวยื่นเอกสาร หรือรายการค้างส่งรายชื่อของสโมสรนักศึกษาตรงเข้า DM
+                </p>
+              </div>
+            </div>
+
+            <div class="flex justify-start">
+              <button onclick="connectSlack()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
+                <span id="ic-btn-slack-con"></span> เชื่อมบัญชี Slack ของฉัน
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Mock LINE Login Dialog Modal -->
+<div id="line-oauth-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-100 flex flex-col justify-between">
+    <div class="p-6 space-y-4">
+      <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+        <span id="ic-modal-line" class="text-emerald-500"></span>
+        <span class="text-sm font-bold text-slate-800">LINE Login (จำลองสิทธิ์)</span>
+      </div>
+      
+      <div class="text-center py-4 space-y-2">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto" id="ic-modal-app"></div>
+        <h3 class="text-sm font-bold text-slate-800">SciU-Regis ขออนุญาตเชื่อมบัญชี</h3>
+        <p class="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+          แอปพลิเคชันจะขอเข้าถึงข้อมูลโปรไฟล์ ชื่อ และต้องการส่งข้อความแจ้งเตือนผลกิจกรรมไปยังห้องแชท LINE ของคุณ
+        </p>
+      </div>
+
+      <div class="bg-slate-50 p-3 rounded-xl text-[11px] text-slate-400 leading-relaxed">
+        🔒 การเชื่อมต่อแบบ OAuth ปลอดภัย ข้อมูลรหัสผ่าน LINE จะไม่มีการจัดเก็บในระบบของคณะวิทยาศาสตร์
+      </div>
+    </div>
+    
+    <div class="bg-slate-50 px-6 py-4 flex gap-2 justify-end border-t border-slate-100">
+      <button onclick="closeLineOAuth()" class="px-4 py-2 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition">ยกเลิก</button>
+      <button onclick="approveLineOAuth()" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition">ยินยอม / ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/shared.js"></script>
+<script>
+  // Get active role from session (no longer relies on ?role= URL param)
+  const user = currentUser(getSessionRole());
+
+  renderShell({ active: 'profile-settings.html', title: 'ตั้งค่าบัญชี' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+
+  // Load Icons
+  document.getElementById('ic-form-user').innerHTML = icon('user', 'w-5 h-5');
+  document.getElementById('ic-line-heading').innerHTML = icon('message-circle', 'w-5 h-5');
+  document.getElementById('ic-line-badge').innerHTML = icon('check-circle', 'w-5 h-5');
+  document.getElementById('ic-line-badge-off').innerHTML = icon('alert-triangle', 'w-5 h-5');
+  document.getElementById('ic-btn-line-con').innerHTML = icon('message-circle', 'w-4 h-4');
+  
+  document.getElementById('ic-slack-heading').innerHTML = icon('slack', 'w-5 h-5');
+  document.getElementById('ic-slack-badge').innerHTML = icon('check-circle', 'w-5 h-5');
+  document.getElementById('ic-slack-badge-off').innerHTML = icon('alert-triangle', 'w-5 h-5');
+  document.getElementById('ic-btn-slack-con').innerHTML = icon('slack', 'w-4 h-4');
+  
+  document.getElementById('ic-modal-line').innerHTML = icon('message-circle', 'w-5 h-5');
+  document.getElementById('ic-modal-app').innerHTML = '<img src="img/sci-faculty-2569.png" class="w-7 h-7 object-contain" alt="SciU-Regis">';
+
+  // Render initial profile data
+  document.getElementById('profile-avatar').textContent = user.name.charAt(0);
+  document.getElementById('profile-sum-name').textContent = user.name;
+  document.getElementById('profile-sum-role').textContent = user.roleLabel;
+  document.getElementById('profile-sum-code').textContent = user.studentCode || '- (เจ้าหน้าที่)';
+  
+  const initialMajor = activeRole === 'student' ? 'เทคโนโลยีสารสนเทศและการสื่อสาร' : 'งานทะเบียนกลาง';
+  document.getElementById('profile-sum-major').textContent = initialMajor;
+
+  // Setup form values
+  document.getElementById('prof-prefix').value = activeRole === 'student' ? 'นาย' : 'ดร.';
+  document.getElementById('prof-name').value = user.name.split(' ')[0];
+  document.getElementById('prof-lastname').value = user.name.split(' ')[1] || '';
+  document.getElementById('prof-phone').value = activeRole === 'student' ? '089-765-4321' : '045-353-123';
+  document.getElementById('prof-email').value = activeRole === 'student' ? 'somchai.j@ubu.ac.th' : 'registrar@sci.ubu.ac.th';
+
+  if (activeRole !== 'student') {
+    document.getElementById('student-major-box').classList.add('hidden');
+  }
+
+  // Show Slack box for Registrar and Admin only
+  if (activeRole === 'registrar' || activeRole === 'admin') {
+    document.getElementById('slack-integration-box').classList.remove('hidden');
+  }
+
+  // Render integrations states
+  renderLineState();
+  renderSlackState();
+
+  /* LINE STATE FUNCTIONS */
+  function renderLineState() {
+    const isConnected = Store.get('line-connected', false);
+    const viewCon = document.getElementById('line-connected-view');
+    const viewDis = document.getElementById('line-disconnected-view');
+    
+    if (isConnected) {
+      viewCon.classList.remove('hidden');
+      viewDis.classList.add('hidden');
+      
+      const lineName = Store.get('line-user-name', user.name.split(' ')[0] + '.line');
+      const lineId = Store.get('line-user-id', 'Ue4a1122334455bbccddeeff001122');
+      
+      document.getElementById('line-user-name').textContent = lineName;
+      document.getElementById('line-user-id').textContent = lineId;
+      
+      document.getElementById('line-toggle-notif').checked = Store.get('line-notif-enabled', true);
+      document.getElementById('line-toggle-chat').checked = Store.get('line-chat-enabled', true);
+    } else {
+      viewCon.classList.add('hidden');
+      viewDis.classList.remove('hidden');
+    }
+  }
+
+  function connectLINE() {
+    document.getElementById('line-oauth-modal').classList.remove('hidden');
+  }
+
+  function closeLineOAuth() {
+    document.getElementById('line-oauth-modal').classList.add('hidden');
+  }
+
+  function approveLineOAuth() {
+    Store.set('line-connected', true);
+    Store.set('line-user-name', user.name.split(' ')[0] + '.ubu');
+    Store.set('line-user-id', 'U' + Math.random().toString(16).slice(2, 28));
+    Store.set('line-notif-enabled', true);
+    Store.set('line-chat-enabled', true);
+    
+    closeLineOAuth();
+    showToast('เชื่อมโยงบัญชี LINE สำเร็จแล้ว!');
+    renderLineState();
+    appendAudit('line_connected', 'ผูกบัญชี LINE สำเร็จ');
+  }
+
+  function disconnectLINE() {
+    if (confirm('คุณต้องการยกเลิกการเชื่อมต่อบัญชี LINE ใช่หรือไม่?')) {
+      Store.remove('line-connected');
+      Store.remove('line-user-name');
+      Store.remove('line-user-id');
+      Store.remove('line-notif-enabled');
+      Store.remove('line-chat-enabled');
+      
+      showToast('ยกเลิกการเชื่อมโยงบัญชี LINE แล้ว', 'info');
+      renderLineState();
+      appendAudit('line_disconnected', 'ยกเลิกการผูกบัญชี LINE');
+    }
+  }
+
+  function toggleLineOption(type, el) {
+    if (type === 'notif') {
+      Store.set('line-notif-enabled', el.checked);
+      showToast(`${el.checked ? 'เปิด' : 'ปิด'}การแจ้งเตือนชั่วโมงกิจกรรมผ่าน LINE สำเร็จ`, 'info');
+    } else if (type === 'chat') {
+      Store.set('line-chat-enabled', el.checked);
+      showToast(`${el.checked ? 'เปิด' : 'ปิด'}การแชทกับ SciU-Buddy ผ่าน LINE สำเร็จ`, 'info');
+    }
+  }
+
+  /* SLACK STATE FUNCTIONS (REGISTRAR/ADMIN) */
+  function renderSlackState() {
+    const isConnected = Store.get('slack-connected', false);
+    const viewCon = document.getElementById('slack-connected-view');
+    const viewDis = document.getElementById('slack-disconnected-view');
+    
+    if (isConnected) {
+      viewCon.classList.remove('hidden');
+      viewDis.classList.add('hidden');
+    } else {
+      viewCon.classList.add('hidden');
+      viewDis.classList.remove('hidden');
+    }
+  }
+
+  function connectSlack() {
+    // Re-use mock OAuth confirm dialog or auto connect
+    if (confirm('ต้องการเชื่อมโยงสิทธิ์การแจ้งเตือน Slack DM ไปยังบัญชีของคุณใน Workspace คณะวิทย์ ใช่หรือไม่?')) {
+      Store.set('slack-connected', true);
+      showToast('เชื่อมต่อบัญชี Slack สำเร็จ!');
+      renderSlackState();
+      appendAudit('slack_connected', 'เชื่อมต่อบัญชี Slack สำเร็จ');
+    }
+  }
+
+  function disconnectSlack() {
+    if (confirm('คุณต้องการยกเลิกการเชื่อมต่อ Slack ใช่หรือไม่?')) {
+      Store.remove('slack-connected');
+      showToast('ยกเลิกเชื่อมโยงบัญชี Slack แล้ว', 'info');
+      renderSlackState();
+      appendAudit('slack_disconnected', 'ยกเลิกเชื่อมต่อ Slack');
+    }
+  }
+
+  function toggleSlackOption(type) {
+    showToast('ปรับปรุงสิทธิ์ตั้งค่าแจ้งเตือน Slack สำเร็จ', 'info');
+  }
+
+  /* GENERAL ACCOUNT SETTINGS */
+  function saveProfile(e) {
+    e.preventDefault();
+    const prefix = document.getElementById('prof-prefix').value.trim();
+    const name = document.getElementById('prof-name').value.trim();
+    const lastname = document.getElementById('prof-lastname').value.trim();
+    const email = document.getElementById('prof-email').value.trim();
+    
+    // Save updated name to summary
+    const fullName = `${prefix} ${name} ${lastname}`.trim();
+    document.getElementById('profile-sum-name').textContent = fullName;
+    
+    if (activeRole === 'student') {
+      const major = document.getElementById('prof-major').value;
+      document.getElementById('profile-sum-major').textContent = `สาขา${major}`;
+    }
+    
+    showToast('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว');
+    appendAudit('profile_updated', `อัปเดตข้อมูลบัญชีผู้ใช้เป็น: ${fullName}`);
+  }
+
+  function appendAudit(action, detail) {
+    const logs = Store.get('audit-extra', []);
+    const actor = user.studentCode ? `student.${user.studentCode}` : `staff.${user.name.split(' ')[0]}`;
+    logs.unshift({ time: new Date().toISOString().slice(0, 16).replace('T', ' '), user: actor, action, detail, role: activeRole });
+    Store.set('audit-extra', logs);
+  }
+</script>
+</body>
+</html>

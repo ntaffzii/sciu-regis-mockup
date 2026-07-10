@@ -6,6 +6,7 @@
 
 /* ---------------- Icon Library (SVG inner markup, 24x24 stroke-based) ---- */
 const ICONS = {
+  info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
   home: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   'file-text': '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
@@ -79,6 +80,25 @@ const MOCK_USERS = {
 
 function currentUser(role) { return MOCK_USERS[role] || MOCK_USERS.guest; }
 
+/**
+ * getSessionRole() — Single source of truth for the active role.
+ * Priority: 1) Store (localStorage)  2) fallback argument  3) 'guest'
+ */
+function getSessionRole(fallback) {
+  const stored = Store.get('role', null);
+  const valid = ['registrar', 'student', 'admin', 'lead-org', 'field-staff', 'guest'];
+  if (stored && valid.includes(stored)) return stored;
+  if (fallback && valid.includes(fallback)) return fallback;
+  return 'guest';
+}
+
+/** mockLogout() — clears session and redirects to index */
+function mockLogout() {
+  Store.remove('role');
+  Store.remove('user');
+  window.location.href = 'index.html';
+}
+
 /* ---------------- Role-based navigation (docs/10 §4.3, §5.1) ------------- */
 const NAV_MENUS = {
   registrar: [
@@ -91,9 +111,12 @@ const NAV_MENUS = {
   ],
   student: [
     { label: 'หน้าแรก', icon: 'home', href: 'student-home.html' },
+    { label: 'รายการกิจกรรม', icon: 'calendar', href: 'event-list.html' },
+    { label: 'การช่วยเหลือนักศึกษา', icon: 'book-open', href: 'student-help.html' },
     { label: 'เช็คอิน', icon: 'map-pin', href: 'student-checkin.html' },
     { label: 'ส่งหลักฐาน', icon: 'upload-cloud', href: 'student-proof-upload.html' },
     { label: 'SciU-Buddy', icon: 'message-circle', href: 'student-chatbot.html' },
+    { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
   ],
   admin: [
     { label: 'แผงควบคุม', icon: 'home', href: 'admin-home.html' },
@@ -116,8 +139,10 @@ const NAV_MENUS = {
   ],
   guest: [
     { label: 'หน้าแรก', icon: 'home', href: 'index.html' },
-    { label: 'สอบถาม SciU-Buddy', icon: 'message-circle', href: 'student-chatbot.html?role=guest' },
-    { label: 'เข้าสู่ระบบ', icon: 'log-in', href: 'login.html' },
+    { label: 'รายการกิจกรรม', icon: 'calendar', href: 'event-list.html' },
+    { label: 'การช่วยเหลือนักศึกษา', icon: 'book-open', href: 'student-help.html' },
+    { label: 'สอบถาม SciU-Buddy', icon: 'message-circle', href: 'student-chatbot.html' },
+    { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
   ],
 };
 
@@ -128,38 +153,38 @@ const BOTTOM_NAVS = {
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'ตรวจ', icon: 'file-text', href: 'registrar-ocr-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
-    { label: 'บัญชี', icon: 'user', href: '#profile' },
+    { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   student: [
     { label: 'หน้าแรก', icon: 'home', href: 'student-home.html' },
     { label: 'เช็คอิน', icon: 'map-pin', href: 'student-checkin.html' },
     { label: 'หลักฐาน', icon: 'upload-cloud', href: 'student-proof-upload.html' },
     { label: 'แชทบอท', icon: 'message-circle', href: 'student-chatbot.html' },
-    { label: 'บัญชี', icon: 'user', href: '#profile' },
+    { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   admin: [
     { label: 'แผงควบคุม', icon: 'home', href: 'admin-home.html' },
     { label: 'ผู้ใช้', icon: 'users', href: 'admin-users.html' },
     { label: 'ตั้งค่า', icon: 'settings', href: 'admin-settings.html' },
     { label: 'Audit', icon: 'bar-chart', href: 'admin-audit.html' },
-    { label: 'บัญชี', icon: 'user', href: '#profile' },
+    { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   'lead-org': [
     { label: 'หน้าแรก', icon: 'home', href: 'lead-org-home.html' },
     { label: 'สร้างกิจกรรม', icon: 'plus', href: 'registrar-event-form.html' },
     { label: 'รายชื่อ', icon: 'file-text', href: 'lead-org-home.html#rosters' },
-    { label: 'บัญชี', icon: 'user', href: '#profile' },
+    { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   'field-staff': [
     { label: 'หน้าแรก', icon: 'home', href: 'field-staff-home.html' },
     { label: 'วันนี้', icon: 'calendar', href: 'field-staff-home.html#today' },
     { label: 'Code', icon: 'shield', href: 'field-staff-home.html#codes' },
-    { label: 'บัญชี', icon: 'user', href: '#profile' },
+    { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   guest: [
     { label: 'หน้าแรก', icon: 'home', href: 'index.html' },
-    { label: 'สอบถาม', icon: 'message-circle', href: 'student-chatbot.html?role=guest' },
-    { label: 'ติดต่อ', icon: 'phone', href: '#contact' },
+    { label: 'สอบถาม', icon: 'message-circle', href: 'student-chatbot.html' },
+    { label: 'ติดต่อ', icon: 'phone', href: 'contact.html' },
     { label: 'เข้าสู่ระบบ', icon: 'log-in', href: 'login.html' },
   ],
 };
@@ -182,7 +207,9 @@ const MOCK_NOTIFICATIONS = {
 
 /* ---------------- Shell renderer ----------------------------------------- */
 function renderShell(opts) {
-  const { role = 'guest', active = '', title = '' } = opts || {};
+  const { role: _roleHint = null, active = '', title = '' } = opts || {};
+  // getSessionRole() is the single source of truth — pages no longer need to hardcode role.
+  const role = getSessionRole(_roleHint);
   const user = currentUser(role);
   const menus = NAV_MENUS[role] || NAV_MENUS.guest;
   const bottoms = BOTTOM_NAVS[role] || BOTTOM_NAVS.guest;
@@ -209,7 +236,7 @@ function renderShell(opts) {
   <nav class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 lg:h-16 flex items-center justify-between gap-3">
       <a href="${homeHref}" class="flex items-center gap-2 shrink-0">
-        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center shadow-sm">${icon('atom', 'w-5 h-5')}</span>
+        <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm"><img src="img/sci-faculty-2569.png" class="w-8 h-8 object-contain" alt="SciU-Regis"></span>
         <span class="hidden sm:block leading-tight">
           <span class="block text-sm font-bold text-slate-900">SciU-Regis</span>
           <span class="block text-[10px] text-slate-400">Registrar Assistant</span>
@@ -244,10 +271,11 @@ function renderShell(opts) {
               <p class="text-xs text-slate-400 mt-0.5">${user.roleLabel}</p>
               ${user.roles.length > 1 ? `<p class="text-[10px] text-amber-600 mt-1 inline-flex items-center gap-1">${icon('shield', 'w-3 h-3')} ถือหลายบทบาท: ${user.roles.join(' + ')}</p>` : ''}
             </div>
+            <a href="profile-settings.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">${icon('user', 'w-4 h-4')} ตั้งค่าบัญชีของฉัน</a>
             ${role === 'registrar' ? `<a href="registrar-slack.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">${icon('bell', 'w-4 h-4')} ตั้งค่าการแจ้งเตือน</a>` : ''}
             ${role === 'admin' ? `<a href="admin-settings.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">${icon('settings', 'w-4 h-4')} ตั้งค่าระบบ</a>` : ''}
-            <a href="index.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">${icon('refresh', 'w-4 h-4')} สลับบทบาท (Mock)</a>
-            <a href="index.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-slate-100">${icon('log-out', 'w-4 h-4')} ออกจากระบบ</a>
+            <a href="login.html" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">${icon('refresh', 'w-4 h-4')} สลับบทบาท (Mock)</a>
+            <a href="#" onclick="mockLogout(); return false;" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-slate-100">${icon('log-out', 'w-4 h-4')} ออกจากระบบ</a>
           </div>
         </div>` : `
         <a href="login.html" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
@@ -279,7 +307,7 @@ function renderShell(opts) {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <span class="text-blue-600">${icon('atom', 'w-7 h-7')}</span>
+            <span class="text-blue-600"><img src="img/sci-faculty-2569.png" class="w-7 h-7 object-contain" alt="SciU-Regis"></span>
             <p class="text-sm font-bold text-slate-800">SciU-Regis</p>
           </div>
           <p class="text-xs text-slate-500 leading-relaxed">ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม<br/>คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</p>
@@ -322,6 +350,7 @@ function renderShell(opts) {
   const mobileMenu = document.getElementById('shell-mobile-menu');
   if (burger && mobileMenu) burger.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 
+  // Persist the resolved role to session so every subsequent page navigation is stable.
   Store.set('role', role);
 }
 

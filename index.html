@@ -17,73 +17,224 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css">
 </head>
-<body class="min-h-screen flex flex-col font-sans text-slate-900">
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
 
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
-  <!-- Hero: Guest landing (docs/09 §4.5.6) -->
-  <section class="bg-gradient-to-b from-blue-50/80 to-transparent border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center">
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center mx-auto shadow-xl shadow-blue-600/20" id="hero-logo"></div>
-      <h1 class="mt-5 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม</h1>
-      <p class="mt-2 text-sm md:text-base text-slate-500">Student Activity &amp; Registrar Assistant System — คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</p>
+  <!-- Hero Section -->
+  <section class="relative bg-gradient-to-b from-blue-50/80 to-transparent border-b border-slate-100 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center space-y-6">
+      <div id="hero-logo" class="flex justify-center"></div>
+      
+      <div class="space-y-2">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-950">ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม</h1>
+        <p class="text-sm md:text-lg text-slate-500 font-medium">คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี • SciU-Regis</p>
+      </div>
 
-      <!-- กล่องถาม SciU-Buddy -->
-      <div class="mt-8 max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm text-left">
+      <!-- Quick AI Ask Chatbot Widget -->
+      <div class="max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm text-left relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-24 h-24 bg-blue-500/5 rounded-full -translate-y-6 translate-x-6"></div>
         <div class="flex items-center gap-2.5 mb-3">
           <span class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 text-white flex items-center justify-center shadow-sm" id="buddy-icon"></span>
           <div>
-            <p class="text-sm font-semibold text-slate-800">สอบถาม SciU-Buddy</p>
-            <p class="text-xs text-slate-400">เรื่องกิจกรรม ชั่วโมงสะสม และระเบียบ UBU SAC — ไม่ต้องล็อกอิน</p>
+            <p class="text-sm font-semibold text-slate-800">สอบถามด่วนกับ SciU-Buddy</p>
+            <p class="text-xs text-slate-400">เรื่องระเบียบสะสมชั่วโมง ทุนการศึกษา กิจกรรมเด่น — ตอบด่วนทันที</p>
           </div>
         </div>
-        <form onsubmit="askBuddy(event)" class="flex gap-2">
-          <input id="guest-question" type="text" placeholder="พิมพ์คำถามของคุณ..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="คำถามถึง SciU-Buddy">
-          <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">ถาม</button>
+        <form onsubmit="askBuddy(event)" class="flex gap-2 relative z-10">
+          <input id="guest-question" type="text" placeholder="พิมพ์คำถามของคุณที่นี่..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="คำถามถึง SciU-Buddy">
+          <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5">
+            <span id="ic-btn-send"></span> ถามบอท
+          </button>
         </form>
         <div class="mt-3 flex flex-wrap gap-2" id="sample-questions"></div>
       </div>
 
-      <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="login.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" id="btn-student-login">เข้าสู่ระบบนักศึกษา</a>
-        <a href="login.html?tab=staff" class="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition" id="btn-staff-login">เข้าสู่ระบบบุคลากร</a>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="login.html" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
+          <span id="ic-login-stu"></span> เข้าสู่ระบบนักศึกษา
+        </a>
+        <a href="login.html?tab=staff" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 border border-slate-300 bg-white text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 transition">
+          <span id="ic-login-staff"></span> เข้าสู่ระบบทะเบียน / สโมสร
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Mockup Navigator -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <div class="flex items-end justify-between flex-wrap gap-3 mb-2">
-      <div>
-        <h2 class="text-xl md:text-2xl font-semibold text-slate-800">Mockup Navigator</h2>
-        <p class="text-sm text-slate-500 mt-1">หน้าจอทั้งหมดของระบบ แยกตามบทบาทผู้ใช้ — คลิกเพื่อเปิดดูแต่ละหน้า</p>
-      </div>
-      <span class="text-xs text-slate-400 border border-slate-200 rounded-full px-3 py-1 bg-white">22 หน้าจอ • อิง docs/05, 09, 10 + AGENTS.md §9</span>
+  <!-- Section: Core Highlights (จุดเด่นการช่วยเหลือนักศึกษา) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <div class="text-center space-y-1.5">
+      <h2 class="text-xl md:text-2xl font-bold text-slate-900">จุดเด่นและการช่วยเหลือนักศึกษา</h2>
+      <p class="text-sm text-slate-500 max-w-2xl mx-auto">ระบบผู้ช่วยอัจฉริยะแบบเบ็ดเสร็จ (All-in-One) ที่ช่วยให้นิสิต คณะผู้จัดกิจกรรม และทะเบียน เชื่อมต่อชั่วโมงสะสม UBU SAC ได้ง่าย ปลอดภัย และไร้รอยต่อ</p>
     </div>
-    <div id="navigator" class="mt-6 space-y-8"></div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Highlight 1: AI RAG -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold" id="hl-1-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">แชทบอท AI อัจฉริยะ (SciU-Buddy)</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">ตอบคำถามระเบียบกิจกรรม ทุนการศึกษา กยศ. และข้อมูลหน่วยกิตสะสมตลอด 24 ชั่วโมง ดึงข้อมูลจาก RAG PDF ของคณะอย่างถูกต้องแม่นยำ พร้อมระบบแจ้งเตือนเจ้าหน้าที่ผ่าน Slack DM เมื่อต้องการความช่วยเหลือเพิ่มเติม</p>
+      </div>
+      <!-- Highlight 2: GPS/Selfie/Master Code -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold" id="hl-2-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">เช็คอิน 3 โหมด ป้องกันทุจริต</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">อำนวยความสะดวกในการบันทึกเวลาเข้าร่วมผ่าน 3 วิธี: ปักหมุดตามพิกัดอาคาร (Geofencing GPS), อัปโหลดรูปภาพเซลฟี่จริงแบบโปร่งใส หรือการป้อนรหัส Master Code จากสตาฟหน้างาน</p>
+      </div>
+      <!-- Highlight 3: OCR scan -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold" id="hl-3-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">ตรวจเกียรติบัตรอัตโนมัติด้วย OCR</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">นักศึกษาส่งเกียรติบัตรจิตอาสาภายนอก (กิจกรรมเปิดกว้าง) ระบบใช้โมเดล OCR สแกนชื่อ วันที่ และจำนวนชั่วโมง หากข้อมูลมีจุดไม่ตรงกันระบบจะแจ้งเตือน (Mismatch Flag) เพื่อส่งให้เจ้าหน้าที่ตรวจสอบความถูกต้องทันที</p>
+      </div>
+      <!-- Highlight 4: Quota -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold" id="hl-4-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">ล็อกโควต้าชั่วโมงเปิดกว้าง 12 หน่วย</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">ช่วยเหลือนักศึกษาควบคุมการทำโครงการจิตอาสาภายนอกไม่ให้เสียเปล่า โดยจำกัดให้สะสมชั่วโมงได้สูงสุดไม่เกิน 12 หน่วยกิต (36 ชั่วโมง) ต่อปีการศึกษา และล็อกระบบอัตโนมัติเมื่อครบโควต้า</p>
+      </div>
+      <!-- Highlight 5: SAC Export -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold" id="hl-5-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">ส่งออกข้อมูล UBU SAC สำเร็จรูป</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">ลดภาระงานทะเบียนคณะด้วยการรวบรวมรายชื่อผู้เช็คอินมาจัดทำรายงาน Excel รูปแบบเข้ากันได้ดีกับ UBU SAC ของส่วนกลาง พร้อมระบบตรวจสอบโครงสร้างรหัสนักศึกษา 11 หลักก่อนดาวน์โหลดไฟล์</p>
+      </div>
+      <!-- Highlight 6: Slack & LINE Notification -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition space-y-3">
+        <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold" id="hl-6-icon"></div>
+        <h3 class="text-base font-semibold text-slate-900">แจ้งเตือนสถานะผ่าน LINE & Slack</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">ส่งแจ้งเตือนด่วนทางเดียวถึง LINE ของนักศึกษาเมื่อเจ้าหน้าที่กดยืนยันนำเข้า UBU SAC สำเร็จ และสตาฟแจ้งเตือนถึงเจ้าหน้าที่ทะเบียนผ่าน Slack สำหรับคิวหลักฐานเปิดกว้างที่ส่งเข้ามาใหม่</p>
+      </div>
+    </div>
+    
+    <div class="text-center pt-2">
+      <a href="student-help.html" class="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800 transition">
+        ดูรายละเอียดการช่วยเหลือทั้งหมด <span id="ic-hl-chevron"></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Section: Featured Events (รายการกิจกรรมแนะนำ) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 border-t border-slate-100">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900">กิจกรรมนักศึกษาที่เปิดรับสมัคร</h2>
+        <p class="text-sm text-slate-500 mt-1">อัปเดตโครงการกิจกรรมเด่นล่าสุด คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</p>
+      </div>
+      <a href="event-list.html" class="inline-flex items-center gap-1.5 px-4 py-2 border border-slate-300 bg-white text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition shadow-sm">
+        ดูตารางกิจกรรมทั้งหมด
+      </a>
+    </div>
+
+    <!-- Featured Grid -->
+    <div id="featured-events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-10"></div>
+  </section>
+
+  <!-- Mockup Navigator (Collapsible Accordion for Evaluation Panels) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 border-t border-slate-200 mt-16 bg-slate-50/50 rounded-3xl border border-slate-100">
+    <button id="toggle-navigator" class="w-full flex items-center justify-between p-4 bg-white/80 hover:bg-slate-100 rounded-2xl border border-slate-200 transition" onclick="toggleNavPanel()">
+      <span class="text-left font-bold text-slate-800 flex items-center gap-2">
+        <span id="ic-nav-btn" class="text-blue-600"></span> แผงทดสอบจำลองระบบสำหรับงานประเมินผล (Mockup Navigator)
+      </span>
+      <span class="text-xs text-slate-500 border border-slate-200 rounded-full px-3 py-1 bg-white flex items-center gap-1 font-mono" id="nav-badge">
+        24 หน้าจอ • คลิกเพื่อเปิด <span id="ic-nav-chevron"></span>
+      </span>
+    </button>
+    
+    <div id="navigator-panel" class="hidden mt-6 space-y-8">
+      <div id="navigator" class="space-y-8"></div>
+    </div>
   </section>
 </main>
 
 <script src="js/shared.js"></script>
 <script>
-  renderShell({ role: 'guest', active: 'index.html', title: 'หน้าแรก' });
-  document.getElementById('hero-logo').innerHTML = icon('atom', 'w-8 h-8');
+  renderShell({ active: 'index.html', title: 'หน้าแรก' });
+  document.getElementById('hero-logo').innerHTML = '<img src="img/sci-faculty-2569.png" class="w-20 h-20 object-contain block" alt="SciU-Regis">';
   document.getElementById('buddy-icon').innerHTML = icon('robot', 'w-5 h-5');
+  document.getElementById('ic-btn-send').innerHTML = icon('send', 'w-4 h-4');
+  document.getElementById('ic-login-stu').innerHTML = icon('user', 'w-4 h-4');
+  document.getElementById('ic-login-staff').innerHTML = icon('users', 'w-4 h-4');
+  document.getElementById('ic-hl-chevron').innerHTML = icon('chevron-right', 'w-4 h-4');
+  document.getElementById('ic-nav-btn').innerHTML = icon('shield', 'w-5 h-5');
+  document.getElementById('ic-nav-chevron').innerHTML = icon('chevron-down', 'w-3 h-3');
 
-  // คำถามตัวอย่าง (docs/09 §4.5.6)
+  // Icons for Highlights
+  document.getElementById('hl-1-icon').innerHTML = icon('message-circle', 'w-5 h-5');
+  document.getElementById('hl-2-icon').innerHTML = icon('map-pin', 'w-5 h-5');
+  document.getElementById('hl-3-icon').innerHTML = icon('file-text', 'w-5 h-5');
+  document.getElementById('hl-4-icon').innerHTML = icon('lock', 'w-5 h-5');
+  document.getElementById('hl-5-icon').innerHTML = icon('download', 'w-5 h-5');
+  document.getElementById('hl-6-icon').innerHTML = icon('bell', 'w-5 h-5');
+
+  // คำถามตัวอย่าง
   const samples = [
     'ชั่วโมงกิจกรรมขั้นต่ำของ UBU SAC คือเท่าไร?',
     'ติดต่องานทะเบียนคณะได้ช่องทางไหน?',
     'กิจกรรมเปิดกว้างคืออะไร?',
   ];
   document.getElementById('sample-questions').innerHTML = samples.map((q) =>
-    `<button onclick="location.href='student-chatbot.html?role=guest&q=' + encodeURIComponent('${q}')"
+    `<button onclick="location.href='student-chatbot.html?q=' + encodeURIComponent('${q}')"
        class="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full px-3 py-1.5 transition">${q}</button>`).join('');
 
   function askBuddy(e) {
     e.preventDefault();
     const q = document.getElementById('guest-question').value.trim();
-    location.href = 'student-chatbot.html?role=guest' + (q ? '&q=' + encodeURIComponent(q) : '');
+    location.href = 'student-chatbot.html' + (q ? '?q=' + encodeURIComponent(q) : '');
   }
+
+  // Accordion Toggle
+  function toggleNavPanel() {
+    const panel = document.getElementById('navigator-panel');
+    const chevron = document.getElementById('ic-nav-chevron');
+    const isHidden = panel.classList.contains('hidden');
+    if (isHidden) {
+      panel.classList.remove('hidden');
+      chevron.style.transform = 'rotate(180deg)';
+    } else {
+      panel.classList.add('hidden');
+      chevron.style.transform = 'none';
+    }
+  }
+
+  // Load Events Dynamically
+  const DEFAULT_EVENTS = [
+    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ' },
+    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม' },
+    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่' },
+    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม' },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ' },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU' },
+  ];
+  const events = DEFAULT_EVENTS;
+  const featured = events.slice(0, 3);
+  
+  document.getElementById('featured-events-grid').innerHTML = featured.length ? featured.map((ev) => {
+    const imgHtml = ev.image_url 
+      ? `<img src="${ev.image_url}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">`
+      : `<div class="w-full h-48 bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center text-blue-600/30 group-hover:scale-105 transition duration-300">${icon('calendar', 'w-12 h-12')}</div>`;
+    const openBadge = ev.open ? `<span class="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-semibold px-2 py-1 rounded-lg shadow-sm">กิจกรรมเปิดกว้าง</span>` : '';
+    const gpsBadge = ev.gps ? `<span class="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-semibold px-2 py-1 rounded-lg shadow-sm inline-flex items-center gap-1">${icon('map-pin', 'w-3 h-3')} GPS</span>` : '';
+    return `
+      <div onclick="Store.set('eventId','${ev.id}');window.location.href='event-detail.html'" class="group rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-md hover:shadow-lg hover:border-blue-300 transition flex flex-col relative cursor-pointer">
+        <div class="overflow-hidden relative bg-slate-100">
+          ${imgHtml}
+          ${openBadge}
+          ${gpsBadge}
+        </div>
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+          <div class="space-y-2">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600">${ev.subcategory || 'กิจกรรมคณะ'}</span>
+            <h3 class="text-base font-bold text-slate-800 leading-snug group-hover:text-blue-700 transition line-clamp-2">${ev.name}</h3>
+            <p class="text-xs text-slate-400">${thDate(ev.date)} • ${ev.days} วัน</p>
+            ${ev.objectives ? `<p class="text-xs text-slate-500 mt-2 leading-relaxed line-clamp-2">${ev.objectives}</p>` : ''}
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+            <span class="text-xs font-mono font-semibold text-slate-700">${ev.credits} หน่วยกิต</span>
+            <a href="event-detail.html?id=${ev.id}" onclick="event.stopPropagation();Store.set('eventId','${ev.id}')" class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 transition">รายละเอียด <span class="ic-go"></span></a>
+          </div>`;
+  }).join('') : `<p class="col-span-full py-12 text-slate-400 text-center text-sm">ไม่มีรายการกิจกรรมแนะนำในขณะนี้</p>`;
+
+  document.querySelectorAll('.ic-go').forEach((el) => el.innerHTML = icon('chevron-right', 'w-3 h-3'));
 
   // Navigator: ทุกหน้าแยกตาม role
   const groups = [
@@ -121,11 +272,14 @@
       ],
     },
     {
-      title: 'บทบาทอื่น ๆ', iconName: 'users', accent: 'amber',
+      title: 'บทบาทอื่น ๆ / หน้าใหม่เพิ่มเติม', iconName: 'users', accent: 'amber',
       pages: [
         { n: 'Home', t: 'หน้าแรก Lead Org', d: 'กิจกรรมของตัวเอง + กำหนดส่งรายชื่อ', href: 'lead-org-home.html', ic: 'calendar' },
         { n: 'Home', t: 'หน้าแรก Field Staff', d: 'กิจกรรมวันนี้ + Master Code', href: 'field-staff-home.html', ic: 'shield' },
         { n: '-', t: 'เข้าสู่ระบบ', d: 'Google OAuth (นักศึกษา) + ฟอร์มบุคลากร + PDPA consent', href: 'login.html', ic: 'log-in' },
+        { n: 'New', t: 'รายการกิจกรรมทั้งหมด', d: 'รายละเอียดกิจกรรม + ค้นหาคัดกรอง', href: 'event-list.html', ic: 'calendar' },
+        { n: 'New', t: 'การช่วยเหลือนักศึกษา', d: 'จุดเด่น 6 ด้านของระบบผู้ช่วยกิจกรรม', href: 'student-help.html', ic: 'book-open' },
+        { n: 'New', t: 'ติดต่อเรา', d: 'แผนที่ตั้งคณะ + ฟอร์มส่งข้อความไป Slack', href: 'contact.html', ic: 'phone' },
       ],
     },
   ];
@@ -135,6 +289,17 @@
     purple: 'bg-purple-50 text-purple-600', amber: 'bg-amber-50 text-amber-600',
   };
 
+  // navGoTo: persist session role before navigating so navbar is stable on every page
+  const ROLE_FOR_PAGE = {
+    'registrar': 'registrar', 'admin': 'admin',
+    'student': 'student', 'lead-org': 'lead-org', 'field-staff': 'field-staff',
+  };
+  function navGoTo(href) {
+    const prefix = Object.keys(ROLE_FOR_PAGE).find((k) => href.startsWith(k));
+    if (prefix) Store.set('role', ROLE_FOR_PAGE[prefix]);
+    location.href = href;
+  }
+
   document.getElementById('navigator').innerHTML = groups.map((g) => `
     <div>
       <div class="flex items-center gap-2 mb-3">
@@ -143,14 +308,14 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         ${g.pages.map((p) => `
-          <a href="${p.href}" class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition">
+          <button onclick="navGoTo('${p.href}')" class="group text-left rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition">
             <div class="flex items-start justify-between">
               <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition">${icon(p.ic, 'w-4 h-4')}</span>
-              <span class="text-[10px] font-mono text-slate-300 group-hover:text-blue-400">${p.n === 'Home' || p.n === '-' ? p.n : 'หน้า ' + p.n}</span>
+              <span class="text-[10px] font-mono text-slate-300 group-hover:text-blue-400">${p.n === 'Home' || p.n === '-' || p.n === 'New' ? p.n : 'หน้า ' + p.n}</span>
             </div>
             <p class="mt-3 text-sm font-semibold text-slate-800 group-hover:text-blue-700">${p.t}</p>
             <p class="mt-1 text-xs text-slate-400 leading-relaxed">${p.d}</p>
-          </a>`).join('')}
+          </button>`).join('')}
       </div>
     </div>`).join('');
 </script>

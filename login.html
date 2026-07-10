@@ -22,7 +22,7 @@
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8 flex items-center justify-center">
   <div class="w-full max-w-md mx-auto px-4 py-10">
     <div class="text-center mb-6">
-      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center mx-auto shadow-xl shadow-blue-600/20" id="login-logo"></div>
+      <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center mx-auto shadow-xl border border-slate-100" id="login-logo"></div>
       <h1 class="mt-4 text-2xl font-bold tracking-tight">เข้าสู่ระบบ SciU-Regis</h1>
       <p class="mt-1 text-sm text-slate-500">ระบบผู้ช่วยกิจกรรมนักศึกษาฯ คณะวิทยาศาสตร์ ม.อุบลฯ</p>
     </div>
@@ -90,7 +90,7 @@
 <script src="js/shared.js"></script>
 <script>
   renderShell({ role: 'guest', active: 'login.html', title: 'เข้าสู่ระบบ' });
-  document.getElementById('login-logo').innerHTML = icon('atom', 'w-7 h-7');
+  document.getElementById('login-logo').innerHTML = '<img src="img/sci-faculty-2569.png" class="w-8 h-8 object-contain" alt="SciU-Regis">';
   document.getElementById('pdpa-icon').innerHTML = icon('shield', 'w-4 h-4');
   document.getElementById('back-link').insertAdjacentHTML('afterbegin', icon('arrow-left', 'w-4 h-4'));
 
@@ -116,6 +116,7 @@
       confirmText: 'ยินยอม และเข้าสู่ระบบ',
       onConfirm: () => {
         Store.set('consent:base', true);
+        Store.set('role', 'student');          // ← persist session role
         showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับคุณสมชาย ใจดี');
         setTimeout(() => { location.href = 'student-home.html'; }, 900);
       },
@@ -125,6 +126,14 @@
   function mockStaffLogin(e) {
     e.preventDefault();
     const dest = document.getElementById('staff-role').value;
+    // Map destination page to a role key and persist it to session
+    const roleMap = {
+      'registrar-home.html': 'registrar',
+      'lead-org-home.html': 'lead-org',
+      'field-staff-home.html': 'field-staff',
+      'admin-home.html': 'admin',
+    };
+    Store.set('role', roleMap[dest] || 'registrar');
     showToast('เข้าสู่ระบบสำเร็จ');
     setTimeout(() => { location.href = dest; }, 700);
   }

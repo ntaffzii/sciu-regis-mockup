@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายการกิจกรรมทั้งหมด — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+        colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+      } },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="index.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">รายการกิจกรรมทั้งหมด</span>
+    </nav>
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตารางและรายการกิจกรรมนักศึกษา</h1>
+      <p class="text-sm text-slate-500 mt-1">ตารางกิจกรรมสะสมหน่วยกิตของคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี ทั้งในสถาบันและจิตอาสานอกสถานที่</p>
+    </div>
+
+    <!-- Search & Filter Area -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Search -->
+        <div class="relative md:col-span-2">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" id="ic-search"></span>
+          <input id="search-input" type="text" placeholder="ค้นหาตามชื่อกิจกรรม, วัตถุประสงค์ หรือสถานที่จัด..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <!-- Subcategory Dropdown -->
+        <div>
+          <select id="subcat-filter" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            <option value="">ทุกประเภทกิจกรรมย่อย</option>
+            <option value="วิชาการและวิชาชีพ">ด้านวิชาการและวิชาชีพ</option>
+            <option value="บำเพ็ญประโยชน์/สิ่งแวดล้อม">ด้านบำเพ็ญประโยชน์และรักษาสิ่งแวดล้อม</option>
+            <option value="กีฬา/สุขภาพ">ด้านกีฬาและส่งเสริมสุขภาพ</option>
+            <option value="ศิลปวัฒนธรรม/ภูมิปัญญา">ด้านศิลปวัฒนธรรมและภูมิปัญญา</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Toggles -->
+      <div class="flex flex-wrap items-center gap-4 pt-1 border-t border-slate-100 text-sm text-slate-600">
+        <span class="font-medium text-slate-700">ตัวกรองเพิ่มเติม:</span>
+        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="open-filter" class="rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+          <span>เฉพาะกิจกรรมเปิดกว้าง (Open Category)</span>
+        </label>
+        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="gps-filter" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+          <span>เฉพาะกิจกรรมที่มีเช็คอิน GPS</span>
+        </label>
+        <button onclick="resetFilters()" class="text-xs text-blue-600 hover:underline ml-auto font-medium">ล้างตัวกรองทั้งหมด</button>
+      </div>
+    </div>
+
+    <!-- Active Filters Badge / Count -->
+    <div class="flex items-center justify-between text-xs text-slate-400">
+      <span id="results-count">กำลังโหลดกิจกรรม...</span>
+    </div>
+
+    <!-- Event Cards Grid -->
+    <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ active: 'event-list.html', title: 'รายการกิจกรรม' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-search').innerHTML = icon('search', 'w-4 h-4');
+
+  // Fallback default events list
+  const DEFAULT_EVENTS = [
+    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ' },
+    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม' },
+    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่' },
+    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม' },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ' },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU' }
+  ];
+
+  // Get active database list
+  const dbEvents = DEFAULT_EVENTS;
+
+  // Bind UI elements
+  document.getElementById('search-input').addEventListener('input', filterEvents);
+  document.getElementById('subcat-filter').addEventListener('change', filterEvents);
+  document.getElementById('open-filter').addEventListener('change', filterEvents);
+  document.getElementById('gps-filter').addEventListener('change', filterEvents);
+
+  function resetFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('subcat-filter').value = '';
+    document.getElementById('open-filter').checked = false;
+    document.getElementById('gps-filter').checked = false;
+    filterEvents();
+  }
+
+  function filterEvents() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const subcat = document.getElementById('subcat-filter').value;
+    const openOnly = document.getElementById('open-filter').checked;
+    const gpsOnly = document.getElementById('gps-filter').checked;
+
+    const filtered = dbEvents.filter((ev) => {
+      const matchQuery = (ev.name + (ev.objectives || '') + (ev.location || '')).toLowerCase().includes(q);
+      const matchSubcat = !subcat || ev.subcategory === subcat;
+      const matchOpen = !openOnly || ev.open;
+      const matchGps = !gpsOnly || ev.gps;
+      return matchQuery && matchSubcat && matchOpen && matchGps;
+    });
+
+    renderEvents(filtered);
+  }
+
+  function renderEvents(list) {
+    const grid = document.getElementById('events-grid');
+    document.getElementById('results-count').textContent = `พบรายการกิจกรรมทั้งหมด ${list.length} รายการ`;
+
+    if (!list.length) {
+      grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-sm">ไม่พบกิจกรรมที่สอดคล้องกับเงื่อนไขการค้นหา</div>`;
+      return;
+    }
+
+    grid.innerHTML = list.map((ev) => {
+      const imgHtml = ev.image_url 
+        ? `<img src="${ev.image_url}" class="w-full h-44 object-cover group-hover:scale-105 transition duration-300">`
+        : `<div class="w-full h-44 bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center text-blue-600/30 group-hover:scale-105 transition duration-300">${icon('calendar', 'w-12 h-12')}</div>`;
+      
+      const openBadge = ev.open ? `<span class="bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm">กิจกรรมเปิดกว้าง</span>` : '';
+      const gpsBadge = ev.gps ? `<span class="bg-blue-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm inline-flex items-center gap-0.5">${icon('map-pin', 'w-3 h-3')} GPS</span>` : '';
+      
+      return `
+        <div onclick="Store.set('eventId','${ev.id}');window.location.href='event-detail.html'" class="group rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200 transition flex flex-col relative cursor-pointer">
+          <div class="overflow-hidden relative bg-slate-100">
+            ${imgHtml}
+            <div class="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+              ${openBadge}
+            </div>
+            <div class="absolute top-3 right-3">
+              ${gpsBadge}
+            </div>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+              <span class="text-[10px] font-semibold uppercase tracking-wider text-blue-600">${ev.subcategory || 'กิจกรรมทั่วไป'}</span>
+              <h3 class="text-base font-bold text-slate-800 leading-snug group-hover:text-blue-700 transition">${ev.name}</h3>
+              <p class="text-xs text-slate-400 font-mono">${thDate(ev.date)} • ${ev.days} วัน</p>
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+              <span class="text-xs font-mono font-bold text-slate-800">${ev.credits.toFixed(1)} หน่วยกิต</span>
+              <a href="event-detail.html?id=${ev.id}" onclick="Store.set('eventId','${ev.id}')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm inline-block">ดูรายละเอียด</a>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function mockRegister(id, name) {
+    showToast(`ลงทะเบียนเข้าร่วมกิจกรรม "${name}" เรียบร้อยแล้ว (จำลอง)`);
+  }
+
+  // Initial render
+  filterEvents();
+</script>
+</body>
+</html>

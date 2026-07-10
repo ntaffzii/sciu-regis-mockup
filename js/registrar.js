@@ -331,25 +331,100 @@ function initEventFormPage() {
     document.getElementById('ev-lng').value = (104.9020 + x * 0.00015).toFixed(6);
   });
 
+  // อัปโหลดและแสดงตัวอย่างรูปภาพกิจกรรม
+  const dropzone = document.getElementById('ev-image-dropzone');
+  const fileInput = document.getElementById('ev-image-file');
+  const previewWrap = document.getElementById('ev-image-preview-wrap');
+  const previewImg = document.getElementById('ev-image-preview');
+  const placeholder = document.getElementById('ev-image-placeholder');
+  const removeBtn = document.getElementById('ev-image-remove');
+
+  if (dropzone && fileInput) {
+    dropzone.addEventListener('click', (e) => {
+      if (e.target.closest('#ev-image-remove') || e.target.closest('#ev-image-preview-wrap')) return;
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewWrap.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.value = '';
+      previewImg.src = '';
+      previewWrap.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+    });
+  }
+
+  const clearImage = () => {
+    if (fileInput) fileInput.value = '';
+    if (previewImg) previewImg.src = '';
+    if (previewWrap) previewWrap.classList.add('hidden');
+    if (placeholder) placeholder.classList.remove('hidden');
+  };
+
+  document.getElementById('event-form').addEventListener('reset', () => {
+    clearImage();
+    gpsFields.classList.add('hidden');
+  });
+
   document.getElementById('event-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('ev-name').value.trim();
     if (!name) { showToast('กรุณากรอกชื่อกิจกรรม', 'error'); return; }
     const open = document.getElementById('ev-open').checked;
+    const objectives = document.getElementById('ev-objectives').value.trim();
+    const description = document.getElementById('ev-desc').value.trim();
+    const schedule = document.getElementById('ev-schedule').value.trim();
+    const subcategory = document.getElementById('ev-subcat').value;
+    const eligible_participants = document.getElementById('ev-target').value.trim();
+    const location = document.getElementById('ev-location').value.trim();
+    const registration_deadline = document.getElementById('ev-deadline').value;
+    const contact_info = document.getElementById('ev-contact').value.trim();
+    const image_url = previewImg && previewImg.src ? previewImg.src : null;
+
     RegDB.events.unshift({
-      id: Date.now(), name, date: document.getElementById('ev-date').value || '2026-08-01',
+      id: Date.now(),
+      name,
+      date: document.getElementById('ev-date').value || '2026-08-01',
       days: Number(document.getElementById('ev-days').value) || 1,
       credits: parseFloat(document.getElementById('ev-credits').value) || 1,
-      open, gps: gpsToggle.checked,
+      open,
+      gps: gpsToggle.checked,
       lat: parseFloat(document.getElementById('ev-lat').value) || null,
       lng: parseFloat(document.getElementById('ev-lng').value) || null,
-      radius: Number(radius.value), participants: 0, checkedIn: 0, exportStatus: 'none', rosterOverdue: false,
+      radius: Number(radius.value),
+      participants: 0,
+      checkedIn: 0,
+      exportStatus: 'none',
+      rosterOverdue: false,
+      objectives,
+      description,
+      schedule,
+      subcategory,
+      eligible_participants,
+      location,
+      registration_deadline,
+      contact_info,
+      image_url,
     });
     RegDB.save();
     appendAudit('event_created', `สร้างกิจกรรม "${name}"${open ? ' (เปิดกว้าง)' : ''}`);
     showToast(`บันทึกกิจกรรม "${name}" แล้ว${open ? ' — ติดธงกิจกรรมเปิดกว้าง' : ''}`);
     renderRecentEvents();
     e.target.reset();
+    clearImage();
     gpsFields.classList.add('hidden');
   });
   renderRecentEvents();
@@ -358,17 +433,34 @@ function initEventFormPage() {
 function renderRecentEvents() {
   const box = document.getElementById('recent-events');
   if (!box) return;
-  box.innerHTML = RegDB.events.slice(0, 5).map((ev) => `
-    <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 transition">
-      <div class="min-w-0">
-        <p class="text-sm font-medium text-slate-800 truncate">${ev.name}</p>
-        <p class="text-xs text-slate-400 mt-0.5">${thDate(ev.date)} • ${ev.credits} หน่วยกิต • ${ev.days} วัน</p>
-      </div>
-      <div class="flex items-center gap-1.5 shrink-0">
-        ${ev.open ? statusBadge('open', 'เปิดกว้าง') : ''}
-        ${ev.gps ? `<span class="text-blue-500" title="เปิด GPS geofencing">${icon('map-pin', 'w-4 h-4')}</span>` : ''}
-      </div>
-    </div>`).join('');
+  box.innerHTML = RegDB.events.slice(0, 5).map((ev) => {
+    const imgHtml = ev.image_url 
+      ? `<img src="${ev.image_url}" class="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-100 border border-slate-100">`
+      : `<div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0 border border-blue-200">${ev.name.charAt(0)}</div>`;
+    const subcatBadge = ev.subcategory ? `<span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded border border-blue-100 shrink-0 font-medium">${ev.subcategory}</span>` : '';
+    const targetBadge = ev.eligible_participants ? `<span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded shrink-0">${ev.eligible_participants}</span>` : '';
+    return `
+      <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 transition">
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          ${imgHtml}
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-slate-800 truncate" title="${ev.name}">${ev.name}</p>
+            <p class="text-xs text-slate-400 mt-0.5">${thDate(ev.date)} • ${ev.credits} หน่วยกิต • ${ev.days} วัน</p>
+            <div class="flex flex-wrap items-center gap-1.5 mt-1">
+              ${subcatBadge}
+              ${targetBadge}
+            </div>
+            ${ev.objectives ? `<p class="text-[10px] text-slate-500 mt-1.5 line-clamp-2" title="${ev.objectives}"><strong>เป้าหมาย:</strong> ${ev.objectives}</p>` : ''}
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-1.5 shrink-0">
+          <div class="flex items-center gap-1">
+            ${ev.open ? statusBadge('open', 'เปิดกว้าง') : ''}
+            ${ev.gps ? `<span class="text-blue-500" title="เปิด GPS geofencing">${icon('map-pin', 'w-4 h-4')}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ---------------- Screen 4: ตรวจหลักฐาน OCR ------------------------------ */
