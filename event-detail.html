@@ -20,7 +20,7 @@
 <body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
 
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
       <a href="event-list.html" class="hover:text-blue-600 transition inline-flex items-center gap-1">
@@ -42,14 +42,16 @@
 <script>
   renderShell({ active: '', title: 'รายละเอียดกิจกรรม' });
 
-  var EVENTS = [
-    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ' },
-    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม' },
-    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่' },
-    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม' },
-    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ' },
-    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU' },
+  var DEFAULT_EVENTS = [
+    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ', staffId: 99 },
+    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม', staffId: null },
+    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่', staffId: null },
+    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม', staffId: null },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ', staffId: 4 },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU', staffId: null }
   ];
+
+  var EVENTS = Store.get('events', DEFAULT_EVENTS);
 
   function loadDetail() {
     var q = window.location.search + window.location.hash;
@@ -72,89 +74,199 @@
 
   function render(ev) {
     var img = ev.image_url
-      ? '<img src="' + ev.image_url + '" class="w-full h-56 sm:h-72 object-cover rounded-2xl">'
-      : '<div class="w-full h-56 sm:h-72 bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex items-center justify-center text-blue-600/20 rounded-2xl">' + icon('calendar', 'w-16 h-16') + '</div>';
+      ? '<img src="' + ev.image_url + '" class="w-full h-64 md:h-full object-cover rounded-3xl shadow-sm hover:scale-[1.02] transition duration-300">'
+      : '<div class="w-full h-64 md:h-full min-h-[220px] bg-gradient-to-br from-blue-500/10 to-blue-600/5 flex flex-col items-center justify-center text-blue-600/20 rounded-3xl border border-slate-100 shadow-inner">' + icon('calendar', 'w-16 h-16 mb-2 text-blue-600/30') + '<span class="text-xs font-semibold text-blue-600/40">SciU-Regis Activity</span></div>';
 
     var badges = '';
-    if (ev.open) badges += '<span class="bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded">' + icon('unlock', 'w-3.5 h-3.5 inline mr-1') + 'กิจกรรมเปิดกว้าง</span>';
-    if (ev.gps) badges += '<span class="bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded inline-flex items-center gap-1 ml-2">' + icon('map-pin', 'w-3.5 h-3.5') + ' GPS Check-in</span>';
+    if (ev.open) badges += '<span class="bg-amber-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-sm inline-flex items-center gap-1.5">' + icon('unlock', 'w-3.5 h-3.5') + 'กิจกรรมเปิดกว้าง</span>';
+    if (ev.gps) badges += '<span class="bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-sm inline-flex items-center gap-1.5 ml-2">' + icon('map-pin', 'w-3.5 h-3.5') + ' GPS Check-in</span>';
 
     var role = getSessionRole();
     var registerBtn = role === 'student'
-      ? '<button onclick="showToast(\'ลงทะเบียนเข้าร่วมกิจกรรมเรียบร้อยแล้ว (จำลอง)\')" class="w-full py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">' + icon('check', 'w-4 h-4 inline mr-1') + 'ลงทะเบียนร่วมกิจกรรม</button>'
-      : '<button onclick="window.location.href=\'login.html\'" class="w-full py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">' + icon('log-in', 'w-4 h-4 inline mr-1') + 'เข้าสู่ระบบเพื่อลงทะเบียน</button>';
+      ? '<button onclick="showToast(\'ลงทะเบียนเข้าร่วมกิจกรรมเรียบร้อยแล้ว (จำลอง)\')" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">' + icon('check', 'w-4 h-4') + 'ลงทะเบียนร่วมกิจกรรม</button>'
+      : '<button onclick="window.location.href=\'login.html\'" class="w-full py-3 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2">' + icon('log-in', 'w-4 h-4') + 'เข้าสู่ระบบเพื่อลงทะเบียน</button>';
 
-    var html = '<div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">' +
-      '<div class="relative">' + img + '</div>' +
-      '<div class="p-6 space-y-6">' +
-        '<div class="flex flex-wrap gap-2">' + badges + '</div>' +
+    var currentStaff = 'ยังไม่ได้แต่งตั้งสตาฟหน้างาน';
+    if (ev.staffId) {
+      if (ev.staffId === 4) currentStaff = 'น้องเก่ง สตาฟดี (keng.staff)';
+      else if (ev.staffId === 6) currentStaff = 'บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน';
+      else if (ev.staffId === 99) currentStaff = 'น้องเบล สตาฟใหม่ (bell.staff)';
+      else {
+        const stds = Store.get('students', []);
+        const std = stds.find(function(s) { return Number(s.code) === ev.staffId; });
+        if (std) currentStaff = std.first + ' ' + std.last + ' (' + std.code + ') — นักศึกษาสตาฟเฉพาะกิจ';
+      }
+    }
 
-        '<div>' +
-          '<span class="text-xs font-semibold uppercase tracking-wider text-blue-600">' + (ev.subcategory || 'กิจกรรมทั่วไป') + '</span>' +
-          '<h2 class="text-xl font-bold text-slate-900 mt-1">' + ev.name + '</h2>' +
+    var staffSelectOptions = '<option value="">-- ไม่แต่งตั้ง / ถอนสตาฟ --</option>' +
+      '<option value="4" ' + (ev.staffId === 4 ? 'selected' : '') + '>น้องเก่ง สตาฟดี (keng.staff)</option>' +
+      '<option value="6" ' + (ev.staffId === 6 ? 'selected' : '') + '>บุคลากรเก่า ลาออกแล้ว (old.staff)</option>' +
+      '<option value="99" ' + (ev.staffId === 99 ? 'selected' : '') + '>น้องเบล สตาฟใหม่ (bell.staff)</option>';
+
+    const stdsForSelect = Store.get('students', []);
+    stdsForSelect.forEach(function(s) {
+      const val = Number(s.code);
+      if (val) {
+        staffSelectOptions += '<option value="' + val + '" ' + (ev.staffId === val ? 'selected' : '') + '>' + s.first + ' ' + s.last + ' (' + s.code + ')</option>';
+      }
+    });
+
+    var staffManagerCard = '';
+    if (role === 'registrar' || role === 'lead-org') {
+      staffManagerCard = 
+        '<!-- Staff Assignment -->' +
+        '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">' +
+          '<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">' + icon('shield', 'w-4 h-4 text-blue-600') + 'การจัดการสตาฟหน้างาน (Field Staff)</h3>' +
+          '<div class="space-y-3">' +
+            '<div>' +
+              '<p class="text-[10px] text-slate-400">สตาฟผู้รับผิดชอบปัจจุบัน</p>' +
+              '<p class="text-xs font-semibold text-slate-700 mt-0.5" id="current-staff-display">' + currentStaff + '</p>' +
+            '</div>' +
+            '<div class="space-y-1.5">' +
+              '<label class="text-[10px] font-medium text-slate-500" for="detail-staff-select">แต่งตั้ง/เปลี่ยนตัวสตาฟ</label>' +
+              '<select id="detail-staff-select" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">' +
+                staffSelectOptions +
+              '</select>' +
+            '</div>' +
+            '<button onclick="assignStaffFromDetail(' + ev.id + ')" class="w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-semibold transition block text-center">บันทึกแต่งตั้งสตาฟ</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    var html = '<!-- Hero Section -->' +
+      '<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mb-8 bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm">' +
+        '<div class="flex flex-col justify-between space-y-6">' +
+          '<div class="space-y-4">' +
+            '<div class="flex flex-wrap gap-2">' + badges + '</div>' +
+            '<div class="pt-2">' +
+              '<span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">' + (ev.subcategory || 'กิจกรรมทั่วไป') + '</span>' +
+              '<h2 class="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight mt-3 leading-tight">' + ev.name + '</h2>' +
+            '</div>' +
+            (ev.objectives ? '<p class="text-sm text-slate-500 leading-relaxed font-normal border-l-2 border-blue-500 pl-4 py-0.5">' + ev.objectives + '</p>' : '') +
+          '</div>' +
+          '<div class="flex items-center gap-4 border-t border-slate-100 pt-4">' +
+            '<div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">' + icon('calendar', 'w-5 h-5') + '</div>' +
+            '<div>' +
+              '<p class="text-xs text-slate-400 font-medium">วันจัดกิจกรรม</p>' +
+              '<p class="text-sm font-semibold text-slate-800">' + thDate(ev.date) + ' (' + ev.days + ' วัน)</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="relative overflow-hidden rounded-3xl min-h-[240px] md:min-h-0">' + img + '</div>' +
+      '</div>' +
+
+      '<!-- Detailed Layout Split -->' +
+      '<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">' +
+        '<!-- Left Side: Core Info -->' +
+        '<div class="lg:col-span-2 space-y-6">' +
+          '<!-- Objectives / Description -->' +
+          '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-sm space-y-4">' +
+            '<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2.5 border-b border-slate-100 pb-3">' + icon('file-text', 'w-5 h-5 text-blue-600') + 'รายละเอียดกิจกรรม</h3>' +
+            '<p class="text-sm text-slate-600 leading-relaxed font-normal whitespace-pre-line">' + (ev.description || 'ไม่มีข้อมูลรายละเอียดเพิ่มเติมสำหรับกิจกรรมนี้ แต่เป็นกิจกรรมสร้างสรรค์และเปิดโอกาสให้นิสิตได้เรียนรู้เพิ่มพูนประสบการณ์จริงนอกห้องเรียน') + '</p>' +
+          '</div>' +
+          
+          '<!-- Schedule -->' +
+          (ev.schedule ? 
+          '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-sm space-y-4">' +
+            '<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2.5 border-b border-slate-100 pb-3">' + icon('clock', 'w-5 h-5 text-blue-600') + 'กำหนดการ</h3>' +
+            '<pre class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80 text-sm text-slate-600 font-sans whitespace-pre-line leading-relaxed shadow-inner">' + ev.schedule + '</pre>' +
+          '</div>' : '') +
         '</div>' +
 
-        '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl">' +
-          '<div class="text-center"><p class="text-xs text-slate-400">วันที่</p><p class="text-sm font-semibold text-slate-800 mt-1">' + thDate(ev.date) + '</p></div>' +
-          '<div class="text-center"><p class="text-xs text-slate-400">จำนวนวัน</p><p class="text-sm font-semibold text-slate-800 mt-1">' + ev.days + ' วัน</p></div>' +
-          '<div class="text-center"><p class="text-xs text-slate-400">หน่วยกิต</p><p class="text-sm font-semibold font-mono text-slate-800 mt-1">' + ev.credits.toFixed(1) + '</p></div>' +
-          '<div class="text-center"><p class="text-xs text-slate-400">ผู้เข้าร่วม</p><p class="text-sm font-semibold text-slate-800 mt-1">' + (ev.checkedIn || 0) + '/' + (ev.participants || '-') + '</p></div>' +
-        '</div>';
+        '<!-- Right Side: Sidebar Info -->' +
+        '<div class="space-y-6">' +
+          '<!-- Quick Stats Block -->' +
+          '<div class="bg-gradient-to-br from-blue-900 to-blue-800 text-white rounded-3xl p-6 shadow-md border border-blue-950/20">' +
+            '<p class="text-xs font-semibold uppercase tracking-wider text-blue-200 mb-4 flex items-center gap-1.5">' + icon('info', 'w-4 h-4 text-blue-300') + 'สรุปสถิติจำลอง</p>' +
+            '<div class="grid grid-cols-2 gap-4">' +
+              '<div class="bg-white/10 p-3 rounded-2xl border border-white/5"><p class="text-[10px] text-blue-200">สะสมได้</p><p class="text-base font-bold mt-1 font-mono">' + ev.credits.toFixed(1) + ' <span class="text-xs font-sans font-normal">หน่วยกิต</span></p></div>' +
+              '<div class="bg-white/10 p-3 rounded-2xl border border-white/5"><p class="text-[10px] text-blue-200">ผู้เข้าร่วม</p><p class="text-base font-bold mt-1">' + (ev.checkedIn || 0) + '/' + (ev.participants || '-') + '</p></div>' +
+            '</div>' +
+          '</div>' +
 
-    if (ev.objectives) {
-      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('book-open', 'w-4 h-4') + 'วัตถุประสงค์</h4><p class="text-sm text-slate-600 leading-relaxed">' + ev.objectives + '</p></div>';
-    }
-    if (ev.description) {
-      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('file-text', 'w-4 h-4') + 'รายละเอียดกิจกรรม</h4><p class="text-sm text-slate-600 leading-relaxed">' + ev.description + '</p></div>';
-    }
-    if (ev.schedule) {
-      html += '<div class="space-y-2"><h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('calendar', 'w-4 h-4') + 'กำหนดการ</h4><pre class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm text-slate-600 font-sans whitespace-pre-line leading-relaxed">' + ev.schedule + '</pre></div>';
-    }
+          '<!-- Activity Specifications -->' +
+          '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-5">' +
+            '<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">' + icon('info', 'w-4 h-4 text-blue-600') + 'ข้อมูลเพิ่มเติม</h3>' +
+            '<div class="space-y-4 text-xs">' +
+              '<div class="flex items-start gap-3">' +
+                '<span class="text-blue-500 mt-0.5 shrink-0">' + icon('map-pin', 'w-4 h-4') + '</span>' +
+                '<div><p class="font-bold text-slate-700">สถานที่จัดงาน</p><p class="text-slate-500 mt-0.5">' + (ev.location || 'คณะวิทยาศาสตร์ ม.อุบลราชธานี') + '</p></div>' +
+              '</div>' +
+              '<div class="flex items-start gap-3">' +
+                '<span class="text-blue-500 mt-0.5 shrink-0">' + icon('users', 'w-4 h-4') + '</span>' +
+                '<div><p class="font-bold text-slate-700">กลุ่มเป้าหมาย</p><p class="text-slate-500 mt-0.5">' + (ev.eligible_participants || 'ทุกชั้นปี') + '</p></div>' +
+              '</div>' +
+              (ev.registration_deadline ? 
+              '<div class="flex items-start gap-3">' +
+                '<span class="text-blue-500 mt-0.5 shrink-0">' + icon('clock', 'w-4 h-4') + '</span>' +
+                '<div><p class="font-bold text-slate-700">วันปิดรับสมัคร</p><p class="text-slate-500 mt-0.5">' + thDate(ev.registration_deadline) + '</p></div>' +
+              '</div>' : '') +
+              (ev.contact_info ? 
+              '<div class="flex items-start gap-3">' +
+                '<span class="text-blue-500 mt-0.5 shrink-0">' + icon('phone', 'w-4 h-4') + '</span>' +
+                '<div><p class="font-bold text-slate-700">ผู้ประสานงานหลัก</p><p class="text-slate-500 mt-0.5">' + ev.contact_info + '</p></div>' +
+              '</div>' : '') +
+            '</div>' +
+          '</div>' +
 
-    html += '<div class="border-t border-slate-100 pt-4 space-y-3">' +
-      '<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">' + icon('info', 'w-4 h-4') + 'ข้อมูลกิจกรรม</h4>' +
-      '<div class="space-y-3 text-sm">' +
-        '<div class="flex items-start gap-3">' +
-          '<span class="text-slate-400 mt-0.5">' + icon('map-pin', 'w-4 h-4') + '</span>' +
-          '<div><p class="font-medium text-slate-700">สถานที่</p><p class="text-slate-500">' + (ev.location || 'คณะวิทยาศาสตร์ ม.อุบลราชธานี') + '</p></div>' +
+          staffManagerCard +
+
+          '<!-- Actions -->' +
+          '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-3">' +
+            registerBtn +
+            (ev.gps ? 
+            '<div class="space-y-2 pt-2">' +
+              '<a href="event-gps.html?id=' + ev.id + '" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-semibold rounded-xl transition shadow shadow-blue-500/10">' +
+                icon('map-pin', 'w-4 h-4') + 'ดูแผนที่เช็คอิน GPS' +
+              '</a>' +
+              '<p class="text-[10px] text-slate-400 text-center font-mono">' + ev.lat + ', ' + ev.lng + ' · รัศมี ' + ev.radius + ' ม.</p>' +
+            '</div>' : '') +
+            '<div class="pt-2 border-t border-slate-100">' +
+              '<a href="event-list.html" class="block w-full py-2.5 border border-slate-200 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-50 transition text-center">ย้อนกลับไปหน้ากิจกรรม</a>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
-        '<div class="flex items-start gap-3">' +
-          '<span class="text-slate-400 mt-0.5">' + icon('users', 'w-4 h-4') + '</span>' +
-          '<div><p class="font-medium text-slate-700">กลุ่มเป้าหมาย</p><p class="text-slate-500">' + (ev.eligible_participants || 'ทุกชั้นปี') + '</p></div>' +
-        '</div>';
-
-    if (ev.registration_deadline) {
-      html += '<div class="flex items-start gap-3">' +
-        '<span class="text-slate-400 mt-0.5">' + icon('clock', 'w-4 h-4') + '</span>' +
-        '<div><p class="font-medium text-slate-700">วันปิดรับสมัคร</p><p class="text-slate-500">' + thDate(ev.registration_deadline) + '</p></div>' +
       '</div>';
-    }
-    if (ev.contact_info) {
-      html += '<div class="flex items-start gap-3">' +
-        '<span class="text-slate-400 mt-0.5">' + icon('phone', 'w-4 h-4') + '</span>' +
-        '<div><p class="font-medium text-slate-700">ผู้ติดต่อ</p><p class="text-slate-500">' + ev.contact_info + '</p></div>' +
-      '</div>';
-    }
-    html += '</div></div>';
-
-    if (ev.gps) {
-      html += '<div class="border-t border-slate-100 pt-4 space-y-2">' +
-        '<a href="event-gps.html?id=' + ev.id + '" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm font-semibold rounded-xl hover:from-blue-700 hover:to-blue-600 transition shadow-lg shadow-blue-600/20">' +
-          icon('map-pin', 'w-4 h-4') + 'ดูแผนที่ GPS' +
-        '</a>' +
-        '<p class="text-[11px] text-slate-400 text-center">' + ev.lat + ', ' + ev.lng + ' · รัศมี ' + ev.radius + ' เมตร</p>' +
-      '</div>';
-    }
-
-    html += '<div class="border-t border-slate-100 pt-4 space-y-3">' +
-      registerBtn +
-      '<a href="event-list.html" class="block w-full py-2.5 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition text-center">กลับไปหน้ากิจกรรมทั้งหมด</a>' +
-    '</div>';
-
-    html += '</div></div>';
 
     document.getElementById('detail-content').innerHTML = html;
     document.title = ev.name + ' — SciU-Regis';
+  }
+
+  function assignStaffFromDetail(eventId) {
+    const selectEl = document.getElementById('detail-staff-select');
+    const staffId = selectEl.value ? Number(selectEl.value) : null;
+    
+    const evs = Store.get('events', DEFAULT_EVENTS);
+    const evIndex = evs.findIndex(function(e) { return e.id === eventId; });
+    if (evIndex !== -1) {
+      evs[evIndex].staffId = staffId;
+      Store.set('events', evs);
+      
+      var staffName = 'ถอนตัวสตาฟ';
+      if (staffId === 4) staffName = 'น้องเก่ง สตาฟดี';
+      else if (staffId === 6) staffName = 'บุคลากรเก่า ลาออกแล้ว';
+      else if (staffId === 99) staffName = 'น้องเบล สตาฟใหม่';
+      else if (staffId) {
+        const stds = Store.get('students', []);
+        const std = stds.find(function(s) { return Number(s.code) === staffId; });
+        if (std) staffName = std.first + ' ' + std.last;
+      }
+      
+      const logs = Store.get('audit-extra', []);
+      logs.unshift({
+        time: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        user: 'registrar.sombat',
+        action: 'staff_assigned',
+        detail: 'แต่งตั้งสตาฟ "' + staffName + '" ดูแลกิจกรรม "' + evs[evIndex].name + '"',
+        role: 'registrar'
+      });
+      Store.set('audit-extra', logs);
+      
+      showToast('แต่งตั้งสตาฟหน้างานเป็น "' + staffName + '" สำเร็จ');
+      setTimeout(function() {
+        location.reload();
+      }, 800);
+    }
   }
 
   loadDetail();

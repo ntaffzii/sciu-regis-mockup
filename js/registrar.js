@@ -7,12 +7,12 @@
 const QUOTA_MAX = 12; // 12 หน่วย (36 ชม.) ต่อปีการศึกษา — FR-C group
 
 const DEFAULT_EVENTS = [
-  { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', rosterOverdue: false },
-  { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', rosterOverdue: false },
-  { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', rosterOverdue: false },
-  { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', rosterOverdue: false },
-  { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', rosterOverdue: true },
-  { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', rosterOverdue: true },
+  { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', rosterOverdue: false, staffId: 99 },
+  { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', rosterOverdue: false, staffId: null },
+  { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', rosterOverdue: false, staffId: null },
+  { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', rosterOverdue: false, staffId: null },
+  { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', rosterOverdue: true, staffId: 4 },
+  { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', rosterOverdue: true, staffId: null },
 ];
 
 const DEFAULT_STUDENTS = [
@@ -374,6 +374,22 @@ function initEventFormPage() {
     if (placeholder) placeholder.classList.remove('hidden');
   };
 
+  const staffSelect = document.getElementById('ev-staff-id');
+  if (staffSelect) {
+    let optionsHtml = '<option value="">-- ไม่แต่งตั้ง (สามารถมอบหมายงานทีหลังได้) --</option>' +
+      '<option value="4">น้องเก่ง สตาฟดี (keng.staff)</option>' +
+      '<option value="6">บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน</option>' +
+      '<option value="99">น้องเบล สตาฟใหม่ (bell.staff)</option>';
+
+    RegDB.students.forEach((s) => {
+      const val = Number(s.code);
+      if (val) {
+        optionsHtml += `<option value="${val}">${s.first} ${s.last} (${s.code})</option>`;
+      }
+    });
+    staffSelect.innerHTML = optionsHtml;
+  }
+
   document.getElementById('event-form').addEventListener('reset', () => {
     clearImage();
     gpsFields.classList.add('hidden');
@@ -394,6 +410,11 @@ function initEventFormPage() {
     const contact_info = document.getElementById('ev-contact').value.trim();
     const image_url = previewImg && previewImg.src ? previewImg.src : null;
 
+    const selfie = document.getElementById('ev-selfie').checked;
+    const masterCode = document.getElementById('ev-code').checked;
+    const staffIdInput = document.getElementById('ev-staff-id');
+    const staffId = staffIdInput && staffIdInput.value ? Number(staffIdInput.value) : null;
+
     RegDB.events.unshift({
       id: Date.now(),
       name,
@@ -405,6 +426,9 @@ function initEventFormPage() {
       lat: parseFloat(document.getElementById('ev-lat').value) || null,
       lng: parseFloat(document.getElementById('ev-lng').value) || null,
       radius: Number(radius.value),
+      selfie,
+      masterCode,
+      staffId,
       participants: 0,
       checkedIn: 0,
       exportStatus: 'none',
@@ -495,10 +519,12 @@ function selectProof(id) {
   document.getElementById('proof-empty').classList.add('hidden');
 
   // ซ้าย: เอกสารต้นฉบับ (จำลองใบรับรอง)
+  const categoryBadge = p.categoryTitle ? `<div class="mt-1"><span class="bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-medium px-2 py-0.5 rounded-full inline-block">หมวดหมู่: ${p.categoryTitle}</span></div>` : '';
   document.getElementById('proof-doc').innerHTML = `
     <div class="mock-certificate rounded-xl p-6 text-center space-y-3 min-h-[280px] flex flex-col justify-center">
       <p class="text-[10px] uppercase tracking-[0.3em] text-amber-700/60">Certificate of Volunteer Work</p>
       <p class="text-lg font-semibold text-slate-700">ใบรับรองการเข้าร่วมกิจกรรมจิตอาสา</p>
+      ${categoryBadge}
       <p class="text-sm text-slate-500">ขอรับรองว่า <span class="font-semibold text-slate-800 underline decoration-dotted">${p.ocr.name}</span></p>
       <p class="text-sm text-slate-500">ได้เข้าร่วม "${p.title}"</p>
       <p class="text-sm text-slate-500">เมื่อวันที่ ${p.ocr.date} รวม <span class="font-mono font-semibold">${p.ocr.hours}</span> ชั่วโมง</p>
@@ -509,6 +535,8 @@ function selectProof(id) {
   document.getElementById('ocr-confidence').textContent = `Confidence: ${p.ocr.confidence}%`;
   document.getElementById('ocr-fields').innerHTML = `
     ${ocrRow('ชื่อในเอกสาร', `<input id="ocr-name" value="${p.ocr.name}" class="ocr-input">`)}
+    ${p.categoryTitle ? ocrRow('หมวดหมู่ระบบ (event_id)', `<span class="text-sm font-semibold text-slate-800 text-right">${p.categoryTitle}</span>`) : ''}
+    ${ocrRow('ชื่อกิจกรรมเฉพาะ', `<input id="ocr-title" value="${p.title}" class="ocr-input">`)}
     ${ocrRow('วันที่จัดกิจกรรม', `<input id="ocr-date" value="${p.ocr.date}" class="ocr-input">`)}
     ${ocrRow('จำนวนชั่วโมง', `<input id="ocr-hours" type="number" value="${p.ocr.hours}" class="ocr-input font-mono w-24 text-right">`)}
     ${ocrRow('คิดเป็นหน่วยกิต', `<span class="text-sm font-mono font-semibold text-slate-800">${p.units.toFixed(1)} หน่วย</span>`)}

@@ -144,6 +144,7 @@
                 <div>
                   <p class="font-semibold text-slate-800">ส่งแจ้งเตือนชั่วโมงกิจกรรมผ่าน LINE (LINE Notify)</p>
                   <p class="text-xs text-slate-400 mt-0.5">รับข้อความแจ้งเตือนอัตโนมัติทันทีที่งานทะเบียนกดยืนยันชั่วโมงลงระบบ UBU SAC</p>
+                  <p class="text-[10px] text-blue-600/70 mt-1 leading-relaxed">ความยินยอม PDPA ระดับพื้นฐาน: ระบบจะส่งเฉพาะผลกิจกรรม (ชื่อกิจกรรม, สถานะ) ไม่มีการส่งข้อมูลส่วนบุคคลออกนอกระบบ — ถอนความยินยอมได้ทุกเมื่อ</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="line-toggle-notif" class="sr-only peer" onchange="toggleLineOption('notif', this)">
@@ -155,6 +156,7 @@
                 <div>
                   <p class="font-semibold text-slate-800">แชทบอท SciU-Buddy บน LINE (LINE Chatbot)</p>
                   <p class="text-xs text-slate-400 mt-0.5">เปิดใช้งานให้คุณสามารถแชทพิมพ์ถามข้อสงสัยกับ SciU-Buddy บนแอปพลิเคชัน LINE ได้โดยตรง</p>
+                  <p class="text-[10px] text-amber-600/80 mt-1 leading-relaxed">⚠️ ความยินยอม PDPA ระดับสูง: ข้อความที่คุณพิมพ์จะถูก AI ประมวลผลเพื่อตอบคำถาม (opt-in ค่าเริ่มต้นปิดเสมอ) — AI ไม่เข้าถึงข้อมูลส่วนบุคคลหรือชั่วโมงกิจกรรมของคุณ ถอนความยินยอมได้ทุกเมื่อ</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="line-toggle-chat" class="sr-only peer" onchange="toggleLineOption('chat', this)">

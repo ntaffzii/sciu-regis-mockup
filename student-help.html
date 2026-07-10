@@ -39,23 +39,23 @@
     <!-- Section 1: ดาวน์โหลดแบบฟอร์มเอกสาร -->
     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
       <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-        <span id="ic-sec-download" class="text-blue-600"></span> 1. ดาวน์โหลดเอกสารและแบบฟอร์มกิจกรรม (จิตอาสา/กยศ.)
+        <span id="ic-sec-download" class="text-blue-600"></span> 1. ดาวน์โหลดเอกสารและแบบฟอร์มกิจกรรม / เอกสารกยศ. ทุนหรืออื่นๆ
       </h2>
-      <p class="text-xs text-slate-500 leading-relaxed">กรุณาดาวน์โหลดแบบฟอร์มที่ถูกต้องไปกรอกรายละเอียดและให้ผู้รับรองเซ็นกำกับ ก่อนนำมาสแกนส่งในระบบเพื่อบันทึกหน่วยกิตสะสม UBU SAC</p>
+      <p class="text-xs text-slate-500 leading-relaxed">กรุณาดาวน์โหลดแบบฟอร์มที่ถูกต้องไปเขียนรายละเอียดและให้ผู้รับรองลงนาม ก่อนนำมาสแกนส่งในระบบเพื่อความถูกต้องแม่นยำในการบันทึกหน่วยกิตสะสม</p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
         <!-- Form 1 -->
         <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition flex flex-col justify-between space-y-3">
           <div class="space-y-1.5">
-            <span class="text-[10px] font-semibold text-blue-600 uppercase">ฟอร์มขออนุมัติล่วงหน้า</span>
-            <h3 class="text-sm font-bold text-slate-800">แบบฟอร์มเสนอโครงการจิตอาสานอกสถานที่ (สำหรับ กยศ. & กิจกรรมทั่วไป)</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">ใช้สำหรับเขียนเสนอขอทำกิจกรรมจิตอาสานอกมหาวิทยาลัย เพื่อยื่นขออนุมัติโครงการล่วงหน้าจากงานทะเบียนและพัฒนานักศึกษาคณะวิทยาศาสตร์ก่อนลงมือปฏิบัติงานจริง</p>
+            <span class="text-[10px] font-semibold text-blue-600 uppercase">ฟอร์มเสนอโครงการ</span>
+            <h3 class="text-sm font-bold text-slate-800">แบบฟอร์มเสนอโครงการบำเพ็ญประโยชน์ (กิจกรรมเปิดกว้างนอกคณะ)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">ใช้สำหรับเขียนวัตถุประสงค์และกรอบชั่วโมงกิจกรรม เสนอขออนุมัติจัดโครงการสะสมจิตอาสารายครั้งภายนอกมหาวิทยาลัยกับฝ่ายงานทะเบียนและสโมสรนักศึกษา</p>
           </div>
           <div class="flex items-center gap-2 pt-1">
-            <button onclick="mockDownload('แบบฟอร์มเสนอโครงการจิตอาสานอกสถานที่_กยศ.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+            <button onclick="mockDownload('แบบฟอร์มเสนอโครงการบำเพ็ญประโยชน์นอกสถานที่.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
               <span class="ic-download-btn"></span> PDF
             </button>
-            <button onclick="mockDownload('แบบฟอร์มเสนอโครงการจิตอาสานอกสถานที่_กยศ.docx')" class="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition flex items-center gap-1">
+            <button onclick="mockDownload('แบบฟอร์มเสนอโครงการบำเพ็ญประโยชน์นอกสถานที่.docx')" class="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition flex items-center gap-1">
               <span class="ic-download-btn"></span> Word (.docx)
             </button>
           </div>
@@ -64,70 +64,43 @@
         <!-- Form 2 -->
         <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition flex flex-col justify-between space-y-3">
           <div class="space-y-1.5">
-            <span class="text-[10px] font-semibold text-emerald-600 uppercase">ใบลงชื่อ & ใบรับรอง</span>
-            <h3 class="text-sm font-bold text-slate-800">แบบฟอร์มบันทึกเวลาและใบรับรองผลบำเพ็ญประโยชน์นอกมหาวิทยาลัย</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">ใช้สำหรับให้หัวหน้าหน่วยงานภายนอก (เช่น ผู้อำนวยการโรงเรียน, นายแพทย์ใหญ่, นายก อบต.) ลงลายมือชื่อและประทับตรา เพื่อเป็นหลักฐานถ่ายรูปอัปโหลดเข้าสู่ระบบสแกน OCR</p>
+            <span class="text-[10px] font-semibold text-amber-600 uppercase">สมุดกิจกรรมจิตอาสา</span>
+            <h3 class="text-sm font-bold text-slate-800">สมุดบันทึกเวลาทำกิจกรรมจิตอาสา (Volunteer Log Book)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">ใบลงชื่อบันทึกรอบการร่วมบำเพ็ญประโยชน์รายวันภายนอกสถาบัน สำหรับให้หน่วยงานปลายทางเซ็นชื่อพร้อมประทับตรา เพื่อใช้อัปโหลดสแกนด้วย OCR</p>
           </div>
           <div class="flex items-center gap-2 pt-1">
-            <button onclick="mockDownload('ใบรับรองบำเพ็ญประโยชน์นอกสถานที่_วิทยาศาสตร์.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+            <button onclick="mockDownload('สมุดบันทึกกิจกรรมมุ่งจิตอาสา_ม.อุบล.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
               <span class="ic-download-btn"></span> PDF
             </button>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Section 2: ขั้นตอนการสะสมชั่วโมงและกฎเกณฑ์ -->
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-      <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-        <span id="ic-sec-manual" class="text-blue-600"></span> 2. ขั้นตอนการสะสมชั่วโมงและกฎระเบียบ UBU SAC
-      </h2>
-
-      <!-- Steps grid -->
-      <div class="space-y-4">
-        <h3 class="text-sm font-bold text-slate-800">📌 ขั้นตอนการยื่นขออนุมัติกิจกรรมจิตอาสานอกมหาวิทยาลัย (เปิดกว้าง)</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-          <div class="border border-blue-100 bg-blue-50/30 rounded-xl p-3.5 space-y-2">
-            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold font-mono">1</div>
-            <p class="font-bold text-slate-800">เขียนโครงการ & อนุมัติ</p>
-            <p class="text-slate-500 leading-relaxed">ดาวน์โหลดแบบฟอร์มเสนอโครงการด้านบน เขียนรายละเอียด แล้วส่งให้งานทะเบียนหรือสโมสรนักศึกษาคณะวิทยาศาสตร์อนุมัติโครงการก่อนไปจัด</p>
+        <!-- Form 3 -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition flex flex-col justify-between space-y-3">
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-semibold text-purple-600 uppercase">ใบคำร้องทางการ</span>
+            <h3 class="text-sm font-bold text-slate-800">แบบบันทึกการเข้าร่วมกิจกรรมของนักศึกษา (UBU Activity Attendance Form)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">ใบคำร้องอย่างเป็นทางการระบุรายละเอียดโครงการ สำหรับขอรับรองคะแนนการเข้าร่วมพร้อมตารางแนบรายชื่อผู้เข้าร่วมกลุ่มเพื่อส่งออก SAC</p>
           </div>
-          
-          <div class="border border-blue-100 bg-blue-50/30 rounded-xl p-3.5 space-y-2">
-            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold font-mono">2</div>
-            <p class="font-bold text-slate-800">จัดกิจกรรม & เซ็นรับรอง</p>
-            <p class="text-slate-500 leading-relaxed">ลงมือทำกิจกรรมจิตอาสา และให้ผู้รับผิดชอบสถานที่หรือหัวหน้าหน่วยงานเซ็นชื่อประทับตราในแบบฟอร์มบันทึกเวลาทำประโยชน์</p>
-          </div>
-
-          <div class="border border-blue-100 bg-blue-50/30 rounded-xl p-3.5 space-y-2">
-            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold font-mono">3</div>
-            <p class="font-bold text-slate-800">อัปโหลดหลักฐาน (OCR)</p>
-            <p class="text-slate-500 leading-relaxed">สแกนหรือถ่ายภาพใบรับรอง/เกียรติบัตร ส่งเข้าเมนู <a href="student-proof-upload.html" class="text-blue-600 underline font-semibold">ส่งหลักฐาน</a> ระบบจะใช้ OCR ตรวจสอบชื่อ-รหัสและเสนอคิวให้อัตโนมัติ</p>
-          </div>
-
-          <div class="border border-blue-100 bg-blue-50/30 rounded-xl p-3.5 space-y-2">
-            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold font-mono">4</div>
-            <p class="font-bold text-slate-800">นำเข้า UBU SAC</p>
-            <p class="text-slate-500 leading-relaxed">เจ้าหน้าที่งานทะเบียนกดยืนยันนำเข้ารายการเข้าสู่ระบบใหญ่ UBU SAC และชั่วโมงจะอัปเดตออโต้บนแดชบอร์ดหน้าแรกของนักศึกษา</p>
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="mockDownload('แบบบันทึกกิจกรรมนักศึกษา_UBU.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+              <span class="ic-download-btn"></span> PDF
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Quota and guidelines -->
-      <div class="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs leading-relaxed text-slate-600">
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-800 flex items-center gap-1.5">
-            <span id="ic-rule-limit" class="text-amber-600"></span> ข้อจำกัดหน่วยกิตจิตอาสาภายนอก (12 หน่วยกิต/ปี)
-          </h4>
-          <p>เพื่อปกป้องและจัดสรรชั่วโมงให้เป็นระเบียบ คณะวิทยาศาสตร์กำหนดให้การทำกิจกรรมจิตอาสานอกมหาวิทยาลัย (หมวดเปิดกว้าง) สามารถสะสมชั่วโมงสูงสุดได้ **ไม่เกิน 12 หน่วยกิต (เทียบเท่า 36 ชั่วโมง)** ต่อหนึ่งปีการศึกษา หากนักศึกษาสะสมครบแล้ว ระบบจะล็อกการส่งหลักฐานภายนอกในปีการศึกษานั้นโดยอัตโนมัติ เพื่อกระจายโอกาสให้นักศึกษาสะสมกิจกรรมหมวดวิชาการและกีฬาในสถาบันเพิ่มขึ้นด้วย</p>
-        </div>
-        
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-800 flex items-center gap-1.5">
-            <span id="ic-rule-minimum" class="text-blue-600"></span> ข้อกำหนดชั่วโมงสำหรับนักศึกษากองทุน กยศ.
-          </h4>
-          <p>นักศึกษาที่มีความประสงค์กู้ยืมเงินกองทุนเงินให้กู้ยืมเพื่อการศึกษา (กยศ.) จะต้องมีชั่วโมงกิจกรรมบำเพ็ญประโยชน์สะสม **ไม่น้อยกว่า 36 ชั่วโมงต่อปีการศึกษา** (คิดเป็น 12 หน่วยกิตในระบบ) ซึ่งนักศึกษาสามารถนำชั่วโมงกิจกรรมที่ได้รับการอนุมัติสำเร็จบนระบบ SciU-Regis นี้ ไปกรอกในระบบขอทุนและแนบใบรับรองกิจกรรมที่พิมพ์จากแดชบอร์ดหลักของสถาบันได้ทันที</p>
+        <!-- Form 4 -->
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 hover:bg-slate-50 transition flex flex-col justify-between space-y-3">
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-semibold text-emerald-600 uppercase">กฎระเบียบ & คู่มือ</span>
+            <h3 class="text-sm font-bold text-slate-800">คู่มือแนวทางการสะสมชั่วโมงและทุน กยศ. คณะวิทยาศาสตร์ 2569</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">สรุปเกณฑ์ขั้นต่ำ 12 หน่วยกิจกรรม/ปี วิธีเชื่อมต่อ LINE แจ้งเตือน และแนวปฏิบัติสำหรับการยื่นเอกสารขอทุนการศึกษาของคณะวิทยาศาสตร์ ม.อุบลฯ</p>
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="mockDownload('คู่มือกฎระเบียบสะสมชั่วโมง_วิทยาศาสตร์_2569.pdf')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+              <span class="ic-download-btn"></span> PDF
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -182,9 +155,6 @@
   // Icons
   document.getElementById('title-icon').innerHTML = icon('book-open', 'w-8 h-8');
   document.getElementById('ic-sec-download').innerHTML = icon('download', 'w-5 h-5');
-  document.getElementById('ic-sec-manual').innerHTML = icon('file-text', 'w-5 h-5');
-  document.getElementById('ic-rule-limit').innerHTML = icon('lock', 'w-4 h-4');
-  document.getElementById('ic-rule-minimum').innerHTML = icon('check-circle', 'w-4 h-4');
   document.getElementById('ic-sec-bot').innerHTML = icon('message-circle', 'w-5 h-5');
   document.getElementById('ic-sec-contact').innerHTML = icon('phone', 'w-5 h-5');
 

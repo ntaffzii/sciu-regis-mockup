@@ -108,7 +108,7 @@ function initLineOptIn(mountId) {
 }
 
 /* ---------------- Screen 8: เช็คอินกิจกรรม -------------------------------- */
-const CHECKIN_EVENT = OPEN_EVENTS[1]; // จิตอาสาพัฒนาคณะวิทยาศาสตร์ @ SC18
+let checkinEvent = OPEN_EVENTS[1]; // จิตอาสาพัฒนาคณะวิทยาศาสตร์ @ SC18
 const MOCK_POSITIONS = {
   inside: { lat: 15.11995, lng: 104.90785, label: 'ในลานกิจกรรม SC18' },
   outside: { lat: 15.12310, lng: 104.91530, label: 'หน้าประตูมหาวิทยาลัย' },
@@ -126,11 +126,37 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
 }
 
 function initCheckinPage() {
+  const eventId = Number(Store.get('eventId', 5));
+  const allEvents = Store.get('events', []);
+  const found = allEvents.find(e => e.id === eventId);
+  if (found) {
+    checkinEvent = found;
+  }
+
   document.getElementById('ci-event').innerHTML = `
     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">กิจกรรมที่เลือก</p>
-    <p class="text-base font-semibold text-slate-800 mt-1">${CHECKIN_EVENT.name}</p>
-    <p class="text-xs text-slate-400 mt-1 inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ${CHECKIN_EVENT.place} • รัศมี ${CHECKIN_EVENT.radius} ม. • ${CHECKIN_EVENT.credits} หน่วยกิต</p>`;
-  switchMode('gps');
+    <p class="text-base font-semibold text-slate-800 mt-1">${checkinEvent.name}</p>
+    <p class="text-xs text-slate-400 mt-1 inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ${checkinEvent.location || checkinEvent.place || 'คณะวิทยาศาสตร์'} • รัศมี ${checkinEvent.radius || 30} ม. • ${checkinEvent.credits} หน่วยกิต</p>`;
+  
+  const hasGps = checkinEvent.gps !== false;
+  const hasSelfie = checkinEvent.selfie !== false;
+  const hasCode = checkinEvent.masterCode !== false;
+
+  document.getElementById('mode-gps').classList.toggle('hidden', !hasGps);
+  document.getElementById('mode-selfie').classList.toggle('hidden', !hasSelfie);
+  document.getElementById('mode-code').classList.toggle('hidden', !hasCode);
+
+  if (hasGps) {
+    switchMode('gps');
+  } else if (hasSelfie) {
+    switchMode('selfie');
+  } else if (hasCode) {
+    switchMode('code');
+  } else {
+    document.getElementById('pane-gps').classList.add('hidden');
+    document.getElementById('pane-selfie').classList.add('hidden');
+    document.getElementById('pane-code').classList.add('hidden');
+  }
 }
 
 function switchMode(mode) {
@@ -153,18 +179,18 @@ function setMockPos(key) {
 
 function doGpsCheckin() {
   const pos = MOCK_POSITIONS[mockPos];
-  const dist = haversineMeters(pos.lat, pos.lng, CHECKIN_EVENT.lat, CHECKIN_EVENT.lng);
-  const ok = dist <= CHECKIN_EVENT.radius;
+  const dist = haversineMeters(pos.lat, pos.lng, checkinEvent.lat, checkinEvent.lng);
+  const ok = dist <= checkinEvent.radius;
   document.getElementById('gps-result').innerHTML = ok ? `
     <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center space-y-2">
       <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">${icon('check-circle', 'w-6 h-6')}</div>
       <p class="text-sm font-semibold text-emerald-800">เช็คอินสำเร็จ!</p>
-      <p class="text-xs text-emerald-700">คุณอยู่ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> (ในรัศมี ${CHECKIN_EVENT.radius} ม.) — บันทึกเวลา ${new Date().toLocaleTimeString('th-TH')}</p>
+      <p class="text-xs text-emerald-700">คุณอยู่ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> (ในรัศมี ${checkinEvent.radius} ม.) — บันทึกเวลา ${new Date().toLocaleTimeString('th-TH')}</p>
     </div>` : `
     <div class="rounded-2xl border border-red-200 bg-red-50 p-5 text-center space-y-2">
       <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">${icon('x-circle', 'w-6 h-6')}</div>
       <p class="text-sm font-semibold text-red-800">เช็คอินไม่สำเร็จ — อยู่นอกพื้นที่กิจกรรม</p>
-      <p class="text-xs text-red-700">ตำแหน่งของคุณ (<span class="font-mono">${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}</span>) ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> เกินรัศมี ${CHECKIN_EVENT.radius} ม.</p>
+      <p class="text-xs text-red-700">ตำแหน่งของคุณ (<span class="font-mono">${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}</span>) ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> เกินรัศมี ${checkinEvent.radius} ม.</p>
       <p class="text-xs text-red-600">กรุณาเข้าใกล้พื้นที่จัดงาน หรือติดต่อสตาฟเพื่อขอ Master Code</p>
     </div>`;
   if (ok) showToast('เช็คอิน GPS สำเร็จ');
@@ -257,7 +283,6 @@ function initProofUploadPage() {
   });
 
   if (locked) {
-    // Block overlay เมื่อโควต้าเต็ม — กันเสียเวลาส่งหลักฐานที่ไม่ถูกนับ
     document.getElementById('pu-form-wrap').innerHTML = `
       <div class="rounded-2xl border border-purple-200 bg-purple-50 p-8 text-center space-y-3">
         <div class="w-14 h-14 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto">${icon('lock', 'w-7 h-7')}</div>
@@ -265,6 +290,19 @@ function initProofUploadPage() {
         <p class="text-sm text-purple-700 leading-relaxed">หลักฐานที่ส่งเพิ่มจะไม่ถูกนับหน่วยกิตในปีการศึกษานี้<br/>ระบบจึงปิดการอัปโหลดเพื่อไม่ให้เสียเวลา — โควต้าจะรีเซ็ตเมื่อเปิดรอบปีการศึกษาใหม่</p>
       </div>`;
     return;
+  }
+
+  const select = document.getElementById('pu-event-id');
+  if (select) {
+    const allEvents = Store.get('events', []);
+    const openEvents = allEvents.filter(e => e.open === true || e.is_open_category === true);
+    const listToUse = openEvents.length ? openEvents : [
+      { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)' },
+      { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)' },
+      { id: 7, name: 'กิจกรรมจิตอาสาสาธารณประโยชน์ภายนอกคณะ (เปิดกว้าง)' }
+    ];
+    select.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกประเภทกิจกรรมเปิดกว้าง --</option>` +
+      listToUse.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
   }
 
   const dz = document.getElementById('dropzone');
@@ -285,9 +323,16 @@ function initProofUploadPage() {
     const hours = parseFloat(document.getElementById('pu-hours').value) || 0;
     const unitsClaim = hours / 3; // 3 ชม. = 1 หน่วย
     const proofs = Store.get('proofs', []);
+    const selEvent = document.getElementById('pu-event-id');
+    const eventId = Number(selEvent.value);
+    const categoryTitle = selEvent.options[selEvent.selectedIndex].text;
+    const titleVal = document.getElementById('pu-title').value;
+
     proofs.unshift({
       id: Date.now(), student: ME.name, code: ME.code,
-      title: document.getElementById('pu-title').value || 'กิจกรรมจิตอาสา',
+      eventId: eventId,
+      categoryTitle: categoryTitle,
+      title: titleVal || 'กิจกรรมจิตอาสา',
       submitted: new Date().toISOString().slice(0, 10), hours, units: unitsClaim,
       file: Store.get('pu-filename', 'หลักฐาน.pdf'), status: 'pending', mismatch: false,
       ocr: { name: 'นาย' + ME.name, date: thDate(document.getElementById('pu-date').value || new Date()), hours, confidence: 90 },

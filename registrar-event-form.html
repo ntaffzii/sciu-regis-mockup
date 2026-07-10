@@ -125,13 +125,28 @@
               <span class="block text-xs text-slate-500 mt-0.5 leading-relaxed">นักศึกษาส่งหลักฐานจากภายนอกได้ ระบบตรวจด้วย OCR และนับเข้าโควต้า 12 หน่วย/ปีการศึกษา</span>
             </span>
           </label>
+          
+          <!-- Staff assignment select field (Optional) -->
+          <div class="space-y-1.5 pt-2">
+            <label class="text-sm font-medium text-slate-700" for="ev-staff-id">แต่งตั้งสตาฟหน้างานดูแลกิจกรรม (Field Staff) - <span class="text-slate-400">ไม่บังคับ</span></label>
+            <select id="ev-staff-id" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <option value="">-- ไม่แต่งตั้ง (สามารถมอบหมายงานทีหลังได้) --</option>
+              <option value="4">น้องเก่ง สตาฟดี (keng.staff)</option>
+              <option value="6">บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน</option>
+              <option value="99">น้องเบล สตาฟใหม่ (bell.staff)</option>
+            </select>
+            <p class="text-[11px] text-slate-400">ผู้จัดกิจกรรมหรือ Registrar สามารถเพิ่ม/แก้ไขรายชื่อผู้ดูแลผ่านหน้าข้อมูลกิจกรรมได้ภายหลัง</p>
+          </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">การตั้งค่าการเช็คอินเข้าร่วม (Check-in Configuration)</h2>
+
+          <!-- GPS Check-in -->
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-base font-semibold text-slate-800">เช็คอินด้วย GPS (Geofencing)</h2>
-              <p class="text-xs text-slate-400 mt-0.5">ฟิลด์นี้กำหนดโดย Lead Org/ผู้จัดกิจกรรม — ไม่ใช่ Field Staff</p>
+              <h3 class="text-sm font-semibold text-slate-800">เช็คอินด้วย GPS (Geofencing)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">ตรวจสอบพิกัดตำแหน่งของนักศึกษาขณะเช็คอิน (กำหนดโดย Lead Org)</p>
             </div>
             <span class="relative inline-flex shrink-0">
               <input id="ev-gps" type="checkbox" class="toggle-input sr-only">
@@ -140,6 +155,7 @@
               </span>
             </span>
           </div>
+
           <div id="gps-fields" class="hidden space-y-4">
             <div id="mock-map" class="mock-map rounded-2xl h-64 cursor-crosshair" role="img" aria-label="แผนที่จำลองสำหรับปักหมุด">
               <div id="geofence-circle" class="geofence-circle" style="left:50%; top:50%; width:69px; height:69px;"></div>
@@ -161,6 +177,35 @@
               </div>
             </div>
           </div>
+
+          <!-- Selfie Check-in -->
+          <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-800">เช็คอินด้วยภาพถ่าย (Selfie)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">ต้องการรูปถ่ายเพื่อยืนยันตัวตนจริง (ข้อมูลชีวภาพ ลบออกใน 90 วันตาม PDPA)</p>
+            </div>
+            <span class="relative inline-flex shrink-0">
+              <input id="ev-selfie" type="checkbox" checked class="toggle-input sr-only">
+              <span class="toggle-track w-11 h-6 bg-slate-200 rounded-full transition-colors flex items-center px-0.5 cursor-pointer" onclick="document.getElementById('ev-selfie').click()">
+                <span class="toggle-thumb w-5 h-5 bg-white rounded-full shadow transition-transform"></span>
+              </span>
+            </span>
+          </div>
+
+          <!-- Master Code Check-in -->
+          <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-800">เช็คอินด้วยรหัสสำรองฉุกเฉิน (Master Code)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">เปิดใช้รหัสฉุกเฉิน 6 หลักหน้างาน ที่ออกชั่วคราวโดย Field Staff</p>
+            </div>
+            <span class="relative inline-flex shrink-0">
+              <input id="ev-code" type="checkbox" checked class="toggle-input sr-only">
+              <span class="toggle-track w-11 h-6 bg-slate-200 rounded-full transition-colors flex items-center px-0.5 cursor-pointer" onclick="document.getElementById('ev-code').click()">
+                <span class="toggle-thumb w-5 h-5 bg-white rounded-full shadow transition-transform"></span>
+              </span>
+            </span>
+          </div>
+
         </div>
 
         <div class="flex gap-3">

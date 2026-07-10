@@ -235,7 +235,7 @@ function renderShell(opts) {
   const navbar = `
   <nav class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 lg:h-16 flex items-center justify-between gap-3">
-      <a href="${homeHref}" class="flex items-center gap-2 shrink-0">
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
         <span class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm"><img src="img/sci-faculty-2569.png" class="w-8 h-8 object-contain" alt="SciU-Regis"></span>
         <span class="hidden sm:block leading-tight">
           <span class="block text-sm font-bold text-slate-900">SciU-Regis</span>

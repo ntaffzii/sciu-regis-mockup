@@ -39,7 +39,11 @@
       <div id="codes" class="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 text-center space-y-2 shadow-lg shadow-blue-600/25">
         <p class="text-xs text-blue-100 uppercase tracking-widest">Master Code ปัจจุบัน</p>
         <p class="text-4xl font-bold font-mono master-code" id="mc-display">A7K2M9</p>
-        <p class="text-xs text-blue-200">ให้นักศึกษาที่ GPS ใช้ไม่ได้กรอกรหัสนี้ — หมดอายุเมื่อจบกิจกรรม</p>
+        <p class="text-xs text-blue-200">ให้นักศึกษาที่ GPS ใช้ไม่ได้กรอกรหัสนี้ — รหัสหมดอายุภายใน 5-15 นาที</p>
+        <div class="mt-3 flex items-center justify-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-blue-300 gps-dot"></span>
+          <p class="text-sm font-mono text-blue-100" id="mc-countdown">เหลือเวลา 14:59</p>
+        </div>
       </div>
 
       <div class="flex items-center justify-between">
@@ -47,7 +51,7 @@
         <span class="text-2xl font-bold font-mono text-slate-900" id="fs-count">45 <span class="text-sm text-slate-400 font-normal">/ 100 คน</span></span>
       </div>
       <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-        <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style="width:45%"></div>
+        <div id="fs-progress" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style="width:45%"></div>
       </div>
     </div>
 
@@ -104,6 +108,61 @@
       },
     });
   }
+
+  // Countdown Timer (mock 15 minutes = 900 seconds)
+  let countdownSec = 15 * 60 - 1; // start at 14:59
+  function updateCountdown() {
+    const el = document.getElementById('mc-countdown');
+    if (!el) return;
+    const m = Math.floor(countdownSec / 60);
+    const s = countdownSec % 60;
+    el.textContent = `เหลือเวลา ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (countdownSec <= 0) {
+      el.textContent = 'หมดอายุแล้ว — กดออกรหัสใหม่';
+      el.classList.add('text-red-300');
+      return;
+    }
+    countdownSec--;
+    setTimeout(updateCountdown, 1000);
+  }
+  updateCountdown();
+
+  // Load and apply assigned event details dynamically
+  function loadAssignedEvent() {
+    const defaultEvents = [
+      { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', location: 'ตึก SC18 และลานหน้าตึกวิจัย', participants: 55, checkedIn: 51, staffId: 4 }
+    ];
+    const evs = Store.get('events', defaultEvents);
+    
+    let activeEv = evs.find(function(e) { return e.staffId === 4; });
+    if (!activeEv) {
+      activeEv = evs.find(function(e) { return e.staffId && e.staffId > 100; });
+    }
+    if (!activeEv) {
+      activeEv = evs.find(function(e) { return e.id === 5; }) || defaultEvents[0];
+    }
+    
+    let staffName = 'น้องเก่ง สตาฟดี';
+    if (activeEv && activeEv.staffId && activeEv.staffId !== 4) {
+      const stds = Store.get('students', []);
+      const std = stds.find(function(s) { return Number(s.code) === activeEv.staffId; });
+      if (std) staffName = std.first + ' ' + std.last + ' (สตาฟเฉพาะกิจ)';
+    }
+    
+    const subtitleEl = document.querySelector('p.text-sm.text-slate-500.mt-1');
+    if (subtitleEl) {
+      subtitleEl.textContent = 'สวัสดี ' + staffName + ' — 10 ก.ค. 2569';
+    }
+    
+    document.querySelector('#today p.text-lg').textContent = activeEv.name;
+    document.querySelector('#fs-place').innerHTML = icon('map-pin', 'w-4 h-4 text-blue-600') + ' ' + (activeEv.location || 'คณะวิทยาศาสตร์ ม.อุบลราชธานี');
+    document.querySelector('#fs-count').innerHTML = activeEv.checkedIn + ' <span class="text-sm text-slate-400 font-normal">/ ' + (activeEv.participants || '-') + ' คน</span>';
+    
+    const pct = activeEv.participants ? Math.round((activeEv.checkedIn / activeEv.participants) * 100) : 0;
+    document.getElementById('fs-progress').style.width = pct + '%';
+  }
+
+  loadAssignedEvent();
   renderHistory();
 </script>
 </body>

@@ -49,7 +49,7 @@
 <script src="js/shared.js"></script>
 <script src="js/student.js"></script>
 <script>
-  renderShell({ active: 'student-chatbot.html', title: 'SciU-Buddy' });
+  renderShell({ role: 'student', active: 'student-chatbot.html', title: 'SciU-Buddy' });
   document.getElementById('buddy-avatar').innerHTML = icon('robot', 'w-6 h-6');
   document.getElementById('btn-send').innerHTML = icon('send', 'w-5 h-5');
   initChatbotPage();

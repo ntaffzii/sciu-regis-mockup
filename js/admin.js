@@ -33,11 +33,11 @@ const DEFAULT_AUDIT = [
 ];
 
 const DEFAULT_DOCS = [
-  { id: 1, name: 'ระเบียบ UBU SAC 2569.pdf', size: '2.4 MB', uploaded: '2026-07-07', status: 'ready', ocr: false, chunks: 148 },
-  { id: 2, name: 'คู่มือกิจกรรมนักศึกษา (สแกน).pdf', size: '18.7 MB', uploaded: '2026-07-07', status: 'ready', ocr: true, chunks: 412 },
-  { id: 3, name: 'FAQ กยศ. และทุนการศึกษา.pdf', size: '1.1 MB', uploaded: '2026-07-08', status: 'embedding', ocr: false, chunks: 0 },
-  { id: 4, name: 'ประกาศรายชื่ออาจารย์ที่ปรึกษา.pdf', size: '3.3 MB', uploaded: '2026-07-09', status: 'ocr', ocr: true, chunks: 0 },
-  { id: 5, name: 'แผ่นพับประชาสัมพันธ์ (ภาพ).pdf', size: '22.0 MB', uploaded: '2026-07-09', status: 'failed', ocr: true, chunks: 0 },
+  { id: 1, name: 'ระเบียบ UBU SAC 2569.pdf', size: '2.4 MB', uploaded: '2026-07-07', status: 'ready', ocr: false, chunks: 148, text: 'เกณฑ์ข้อกำหนดกิจกรรมนักศึกษา คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี ปีการศึกษา 2569:\n1. นักศึกษาต้องสะสมชั่วโมงกิจกรรมสะสมรวมไม่น้อยกว่า 36 ชั่วโมง (12 หน่วยกิต)\n2. สามารถยื่นใบคำร้องเข้าร่วมกิจกรรมบำเพ็ญประโยชน์ภายนอก (เปิดกว้าง) สูงสุดได้ไม่เกิน 12 หน่วยกิตต่อปี\n3. Registrar จะทำการ Reset ข้อมูลเมื่อเริ่มรอบปีการศึกษาใหม่ด้วยมือ' },
+  { id: 2, name: 'คู่มือกิจกรรมนักศึกษา (สแกน).pdf', size: '18.7 MB', uploaded: '2026-07-07', status: 'ready', ocr: true, chunks: 412, text: '[ข้อความที่แกะจากภาพสแกนโดย Typhoon OCR]\nขั้นตอนปฏิบัติการบันทึกเวลาจัดตั้งโครงการบำเพ็ญประโยชน์:\n- นิสิตต้องแจ้งเรื่องเสนอโครงการล่วงหน้า 7 วัน\n- การตรวจสอบใช้ระบบเช็คอินด้วยพิกัด GPS รัศมีตามที่ระบุในแผนที่ หรือ รหัส Master Code จาก Field Staff' },
+  { id: 3, name: 'FAQ กยศ. และทุนการศึกษา.pdf', size: '1.1 MB', uploaded: '2026-07-08', status: 'embedding', ocr: false, chunks: 0, text: 'คำถามที่พบบ่อย (FAQ) เรื่องกองทุน กยศ. และชั่วโมงกิจกรรม:\nQ: สามารถนำชั่วโมงจิตอาสานอกคณะมานับรวมได้หรือไม่?\nA: ได้ โดยอยู่ในประเภทเปิดกว้างและจำกัดไม่เกิน 12 หน่วยกิตต่อปีการศึกษา\nQ: ต้องส่งเอกสารภายในวันไหน?\nA: ภายใน 14 วันหลังเสร็จสิ้นกิจกรรม' },
+  { id: 4, name: 'ประกาศรายชื่ออาจารย์ที่ปรึกษา.pdf', size: '3.3 MB', uploaded: '2026-07-09', status: 'ocr', ocr: true, chunks: 0, text: '[กำลังประมวลผล OCR... ข้อความชั่วคราว]\nรายชื่อคณะทำงานสโมสรนักศึกษาและอาจารย์ที่ปรึกษากิจกรรม คณะวิทยาศาสตร์ ม.อุบลฯ\n1. ดร.วิชัย งานวิชาการ (ที่ปรึกษาสโมสร)\n2. พี่สมบัติ วงศ์ทะเบียน (ทะเบียนกิจกรรมคณะ)' },
+  { id: 5, name: 'แผ่นพับประชาสัมพันธ์ (ภาพ).pdf', size: '22.0 MB', uploaded: '2026-07-09', status: 'failed', ocr: true, chunks: 0, text: '[ประมวลผลล้มเหลว - เนื่องจากไฟล์ภาพมีความละเอียดต่ำหรือไม่มีตัวอักษรภาษาไทย]\nสามารถเข้ามาพิมพ์ป้อนข้อมูลด้วยมือที่นี่เพื่อทดแทนและนำขึ้น Vector Store ได้' },
 ];
 
 const AdminDB = {
@@ -370,7 +370,7 @@ function initKnowledgePage() {
 }
 
 function uploadKbDoc(name) {
-  const doc = { id: Date.now(), name, size: (Math.random() * 15 + 1).toFixed(1) + ' MB', uploaded: new Date().toISOString().slice(0, 10), status: 'processing', ocr: false, chunks: 0 };
+  const doc = { id: Date.now(), name, size: (Math.random() * 15 + 1).toFixed(1) + ' MB', uploaded: new Date().toISOString().slice(0, 10), status: 'processing', ocr: false, chunks: 0, text: `[ข้อความที่แกะออกมาแบบอัตโนมัติจากไฟล์ใหม่ "${name}"]\nข้อมูลแนวทางส่งเสริมการเรียนรู้และการพัฒนาทักษะวิชาการ/บำเพ็ญสาธารณประโยชน์สำหรับสโมสรนักศึกษา ม.อุบลราชธานี ประจำปีการศึกษา 2569` };
   AdminDB.docs.unshift(doc);
   AdminDB.save();
   renderKbTable();
@@ -415,8 +415,9 @@ function renderKbTable() {
             <td class="px-4 py-3 text-center">${DOC_STATUS[d.status].badge()}
               ${d.status === 'failed' ? `<button onclick="retryKbDoc(${d.id})" class="block mx-auto mt-1 text-xs text-blue-600 hover:underline">ลองใหม่</button>` : ''}</td>
             <td class="px-4 py-3 text-center text-sm font-mono text-slate-600">${d.chunks || '—'}</td>
-            <td class="px-4 py-3 text-right">
-              <button onclick="deleteKbDoc(${d.id})" class="inline-flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-4 h-4')} ลบ</button>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
+              <button onclick="viewKbDocText(${d.id})" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-3.5 h-3.5')} ดู/แก้ไขข้อความ</button>
+              <button onclick="deleteKbDoc(${d.id})" class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-3.5 h-3.5')} ลบ</button>
             </td>
           </tr>`).join('')}
       </tbody>
@@ -445,5 +446,81 @@ function deleteKbDoc(id) {
       showToast(`ลบ "${d.name}" พร้อม embedding ที่เกี่ยวข้องแล้ว`, 'warning');
       renderKbTable();
     },
+  });
+}
+
+function viewKbDocText(id) {
+  const d = AdminDB.docs.find((x) => x.id === id);
+  if (!d) return;
+  
+  const textVal = d.text || '';
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
+  overlay.innerHTML = `
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 flex flex-col space-y-4 max-h-[85vh]">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <span id="kb-modal-title-icon"></span> ดู/แก้ไขข้อความที่แกะจากเอกสาร RAG
+        </h3>
+        <button id="kb-modal-close" class="text-slate-400 hover:text-slate-600 transition" aria-label="ปิด">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-700">ชื่อเอกสาร: <span class="text-slate-500 font-normal">${d.name} (${d.size})</span></p>
+        <p class="text-[10px] text-slate-400 mt-1">อัปโหลดเมื่อ: ${thDate(d.uploaded)} | สถานะปัจจุบัน: <span class="font-semibold">${d.status === 'ocr' ? 'แกะลายพิมพ์ด้วย OCR' : d.status === 'ready' ? 'พร้อมใช้งาน' : d.status === 'failed' ? 'ประมวลผลล้มเหลว' : 'กำลังจัดเตรียม'}</span></p>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto space-y-1.5 flex flex-col min-h-0">
+        <label class="text-xs font-bold text-slate-700 block" for="kb-doc-textarea">ข้อความที่สกัดได้ (Editable Extracted Text)</label>
+        <textarea id="kb-doc-textarea" class="w-full flex-1 min-h-[220px] p-3 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 leading-relaxed" placeholder="ยังไม่มีข้อความ หรือการดึงข้อมูลล้มเหลว สามารถเพิ่มข้อความตรงนี้ได้...">${textVal}</textarea>
+        <p class="text-[10px] text-slate-400">ตรวจสอบและแก้ไขตัวสะกดที่ผิดพลาดจากการแกะ OCR/Text Layer เพื่อรักษาความถูกต้องในการสืบค้นค้นหา RAG Vector Search (1024D)</p>
+      </div>
+      
+      <div class="flex items-center justify-between border-t border-slate-100 pt-4 gap-4 flex-wrap">
+        <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+          <input type="checkbox" id="kb-confirm-vector" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+          <span>ยืนยันความถูกต้องและต้องการ Vectorize ทันที</span>
+        </label>
+        <div class="flex gap-2.5">
+          <button id="kb-modal-cancel" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition">ยกเลิก</button>
+          <button id="kb-modal-save" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">บันทึกและปรับปรุง Index</button>
+        </div>
+      </div>
+    </div>`;
+    
+  document.body.appendChild(overlay);
+  document.getElementById('kb-modal-title-icon').innerHTML = icon('file-text', 'w-5 h-5 text-blue-600');
+  
+  const close = () => overlay.remove();
+  overlay.querySelector('#kb-modal-close').addEventListener('click', close);
+  overlay.querySelector('#kb-modal-cancel').addEventListener('click', close);
+  
+  overlay.querySelector('#kb-modal-save').addEventListener('click', () => {
+    const newText = overlay.querySelector('#kb-doc-textarea').value;
+    const confirmVector = overlay.querySelector('#kb-confirm-vector').checked;
+    
+    d.text = newText;
+    if (confirmVector) {
+      d.status = 'ready';
+      d.chunks = Math.floor(newText.split('\n').filter(t => t.trim()).length * 1.5) || 5;
+    }
+    
+    AdminDB.save();
+    
+    // Log action to Audit Log
+    const logs = Store.get('audit-extra', []);
+    logs.unshift({
+      time: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      user: 'admin.thanakorn',
+      action: 'rag_text_edited',
+      detail: `แก้ไขข้อความสกัดและอัปเดต Vector Indexing เอกสาร "${d.name}" (${d.chunks} chunks)`,
+      role: 'admin'
+    });
+    Store.set('audit-extra', logs);
+    
+    close();
+    showToast(`บันทึกการแก้ไขข้อความ RAG และปรับโครงสร้าง pgvector สำหรับ "${d.name}" สำเร็จ`);
+    renderKbTable();
   });
 }
