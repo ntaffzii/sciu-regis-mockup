@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SciU-Regis — ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+        colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+      } },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <!-- Hero: Guest landing (docs/09 §4.5.6) -->
+  <section class="bg-gradient-to-b from-blue-50/80 to-transparent border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center mx-auto shadow-xl shadow-blue-600/20" id="hero-logo"></div>
+      <h1 class="mt-5 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม</h1>
+      <p class="mt-2 text-sm md:text-base text-slate-500">Student Activity &amp; Registrar Assistant System — คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</p>
+
+      <!-- กล่องถาม SciU-Buddy -->
+      <div class="mt-8 max-w-xl mx-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm text-left">
+        <div class="flex items-center gap-2.5 mb-3">
+          <span class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 text-white flex items-center justify-center shadow-sm" id="buddy-icon"></span>
+          <div>
+            <p class="text-sm font-semibold text-slate-800">สอบถาม SciU-Buddy</p>
+            <p class="text-xs text-slate-400">เรื่องกิจกรรม ชั่วโมงสะสม และระเบียบ UBU SAC — ไม่ต้องล็อกอิน</p>
+          </div>
+        </div>
+        <form onsubmit="askBuddy(event)" class="flex gap-2">
+          <input id="guest-question" type="text" placeholder="พิมพ์คำถามของคุณ..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="คำถามถึง SciU-Buddy">
+          <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">ถาม</button>
+        </form>
+        <div class="mt-3 flex flex-wrap gap-2" id="sample-questions"></div>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="login.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" id="btn-student-login">เข้าสู่ระบบนักศึกษา</a>
+        <a href="login.html?tab=staff" class="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition" id="btn-staff-login">เข้าสู่ระบบบุคลากร</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mockup Navigator -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex items-end justify-between flex-wrap gap-3 mb-2">
+      <div>
+        <h2 class="text-xl md:text-2xl font-semibold text-slate-800">Mockup Navigator</h2>
+        <p class="text-sm text-slate-500 mt-1">หน้าจอทั้งหมดของระบบ แยกตามบทบาทผู้ใช้ — คลิกเพื่อเปิดดูแต่ละหน้า</p>
+      </div>
+      <span class="text-xs text-slate-400 border border-slate-200 rounded-full px-3 py-1 bg-white">22 หน้าจอ • อิง docs/05, 09, 10 + AGENTS.md §9</span>
+    </div>
+    <div id="navigator" class="mt-6 space-y-8"></div>
+  </section>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ role: 'guest', active: 'index.html', title: 'หน้าแรก' });
+  document.getElementById('hero-logo').innerHTML = icon('atom', 'w-8 h-8');
+  document.getElementById('buddy-icon').innerHTML = icon('robot', 'w-5 h-5');
+
+  // คำถามตัวอย่าง (docs/09 §4.5.6)
+  const samples = [
+    'ชั่วโมงกิจกรรมขั้นต่ำของ UBU SAC คือเท่าไร?',
+    'ติดต่องานทะเบียนคณะได้ช่องทางไหน?',
+    'กิจกรรมเปิดกว้างคืออะไร?',
+  ];
+  document.getElementById('sample-questions').innerHTML = samples.map((q) =>
+    `<button onclick="location.href='student-chatbot.html?role=guest&q=' + encodeURIComponent('${q}')"
+       class="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full px-3 py-1.5 transition">${q}</button>`).join('');
+
+  function askBuddy(e) {
+    e.preventDefault();
+    const q = document.getElementById('guest-question').value.trim();
+    location.href = 'student-chatbot.html?role=guest' + (q ? '&q=' + encodeURIComponent(q) : '');
+  }
+
+  // Navigator: ทุกหน้าแยกตาม role
+  const groups = [
+    {
+      title: 'Registrar — เจ้าหน้าที่ทะเบียน', iconName: 'file-text', accent: 'blue',
+      pages: [
+        { n: 'Home', t: 'หน้าแรก Registrar', d: 'Stats งานค้าง + แจ้งเตือน + ทางด่วน', href: 'registrar-home.html', ic: 'home' },
+        { n: '1', t: 'Export Excel', d: 'Export รายชื่อตามฟอร์แมต UBU SAC + ยืนยันนำเข้า', href: 'registrar-export.html', ic: 'download' },
+        { n: '2', t: 'แก้ไขหน่วยกิตรายบุคคล', d: 'กิจกรรมหลายวัน + บังคับกรอกเหตุผล', href: 'registrar-adjust.html', ic: 'edit' },
+        { n: '3', t: 'สร้าง/แก้ไขกิจกรรม', d: 'กิจกรรมเปิดกว้าง + ปักหมุด GPS + รัศมี', href: 'registrar-event-form.html', ic: 'calendar' },
+        { n: '4', t: 'ตรวจหลักฐาน OCR', d: 'Side-by-side + Mismatch Flag', href: 'registrar-ocr-review.html', ic: 'file-text' },
+        { n: '5', t: 'ตรวจสอบ/ล็อกโควต้า', d: 'ยอดสะสม 12 หน่วย/ปี + สถานะล็อก', href: 'registrar-quotas.html', ic: 'lock' },
+        { n: '6', t: 'จัดการรอบปีการศึกษา', d: 'เปิดรอบใหม่ + confirm เตือนรีเซ็ต', href: 'registrar-cycles.html', ic: 'calendar' },
+        { n: '7', t: 'ตั้งค่าแจ้งเตือน Slack', d: 'Toggle รายประเภท + เชื่อมบัญชี (DM)', href: 'registrar-slack.html', ic: 'bell' },
+      ],
+    },
+    {
+      title: 'Student — นักศึกษา', iconName: 'user', accent: 'emerald',
+      pages: [
+        { n: 'Home', t: 'หน้าแรกนักศึกษา', d: 'Progress หน่วยกิต + กิจกรรมเปิดรับ', href: 'student-home.html', ic: 'home' },
+        { n: '8', t: 'เช็คอินกิจกรรม', d: 'GPS / Selfie (PDPA consent) / Master Code', href: 'student-checkin.html', ic: 'map-pin' },
+        { n: '9', t: 'อัปโหลดหลักฐาน', d: 'Drag & drop + โควต้าคงเหลือ', href: 'student-proof-upload.html', ic: 'upload-cloud' },
+        { n: '10', t: 'แชทบอท SciU-Buddy', d: 'ถามตอบ + Human Fallback', href: 'student-chatbot.html', ic: 'message-circle' },
+      ],
+    },
+    {
+      title: 'Admin — ผู้ดูแลระบบ (IT)', iconName: 'shield', accent: 'purple',
+      pages: [
+        { n: 'Home', t: 'แผงควบคุมระบบ', d: 'สถานะระบบ + Audit ล่าสุด', href: 'admin-home.html', ic: 'home' },
+        { n: '11', t: 'จัดการผู้ใช้และบทบาท', d: 'Multi-role ต่อบัญชี + active/inactive', href: 'admin-users.html', ic: 'users' },
+        { n: '12', t: 'ตั้งค่าเทคนิค', d: 'Slack Token (masked) + MCP + อีเมล', href: 'admin-settings.html', ic: 'settings' },
+        { n: '13', t: 'Audit Log Viewer', d: 'Log ทุกฝั่ง + filter หลายมิติ', href: 'admin-audit.html', ic: 'bar-chart' },
+        { n: '14', t: 'ตั้งค่า AI Provider', d: 'Gemini/GPT/llama.cpp + Test Connection', href: 'admin-ai.html', ic: 'robot' },
+        { n: '15', t: 'จัดการฐานความรู้ RAG', d: 'อัปโหลด PDF + สถานะ + badge OCR', href: 'admin-knowledge.html', ic: 'book-open' },
+      ],
+    },
+    {
+      title: 'บทบาทอื่น ๆ', iconName: 'users', accent: 'amber',
+      pages: [
+        { n: 'Home', t: 'หน้าแรก Lead Org', d: 'กิจกรรมของตัวเอง + กำหนดส่งรายชื่อ', href: 'lead-org-home.html', ic: 'calendar' },
+        { n: 'Home', t: 'หน้าแรก Field Staff', d: 'กิจกรรมวันนี้ + Master Code', href: 'field-staff-home.html', ic: 'shield' },
+        { n: '-', t: 'เข้าสู่ระบบ', d: 'Google OAuth (นักศึกษา) + ฟอร์มบุคลากร + PDPA consent', href: 'login.html', ic: 'log-in' },
+      ],
+    },
+  ];
+
+  const accents = {
+    blue: 'bg-blue-50 text-blue-600', emerald: 'bg-emerald-50 text-emerald-600',
+    purple: 'bg-purple-50 text-purple-600', amber: 'bg-amber-50 text-amber-600',
+  };
+
+  document.getElementById('navigator').innerHTML = groups.map((g) => `
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-8 h-8 rounded-xl ${accents[g.accent]} flex items-center justify-center">${icon(g.iconName, 'w-4 h-4')}</span>
+        <h3 class="text-base font-semibold text-slate-800">${g.title}</h3>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        ${g.pages.map((p) => `
+          <a href="${p.href}" class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 hover:-translate-y-0.5 transition">
+            <div class="flex items-start justify-between">
+              <span class="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center transition">${icon(p.ic, 'w-4 h-4')}</span>
+              <span class="text-[10px] font-mono text-slate-300 group-hover:text-blue-400">${p.n === 'Home' || p.n === '-' ? p.n : 'หน้า ' + p.n}</span>
+            </div>
+            <p class="mt-3 text-sm font-semibold text-slate-800 group-hover:text-blue-700">${p.t}</p>
+            <p class="mt-1 text-xs text-slate-400 leading-relaxed">${p.d}</p>
+          </a>`).join('')}
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>

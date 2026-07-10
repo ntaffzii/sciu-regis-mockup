@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log Viewer — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="admin-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">แผงควบคุม</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">Audit Log</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Audit Log Viewer</h1>
+        <p class="text-sm text-slate-500 mt-1">Log รวมทุกฝั่ง (Registrar, Lead Org, Field Staff, Admin) — ใช้ตรวจสอบย้อนหลังเมื่อมีข้อพิพาท เก็บ 3–5 ปี</p>
+      </div>
+      <span id="audit-count" class="text-xs text-slate-400 border border-slate-200 rounded-full px-3 py-1 bg-white"></span>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-3">
+      <select id="audit-user" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="กรองตามผู้ใช้"></select>
+      <select id="audit-action" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="กรองตามการกระทำ"></select>
+      <div class="relative flex-1 min-w-[200px]">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" id="ic-search"></span>
+        <input id="audit-search" type="text" placeholder="ค้นหาในรายละเอียด..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="ค้นหา log">
+      </div>
+    </div>
+
+    <div id="audit-table" class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"></div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  renderShell({ role: 'admin', active: 'admin-audit.html', title: 'Audit Log Viewer' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-search').innerHTML = icon('search', 'w-4 h-4');
+  initAuditPage();
+</script>
+</body>
+</html>

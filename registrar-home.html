@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>หน้าแรก Registrar — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">สวัสดี, พี่สมบัติ</h1>
+        <p class="text-sm text-slate-500 mt-1">ภาพรวมกิจกรรมและงานที่รอดำเนินการของงานทะเบียนกิจกรรม</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium" id="year-badge">ปีการศึกษา 2569</span>
+    </div>
+
+    <!-- Stats Cards -->
+    <div id="home-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- ซ้าย 2/3: งานที่ต้องดำเนินการ -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">รายการล่าสุดที่ต้องดำเนินการ</h2>
+            <a href="registrar-ocr-review.html" class="text-xs font-medium text-blue-600 hover:underline">ไปหน้าตรวจหลักฐาน</a>
+          </div>
+          <div id="home-tasks" class="divide-y divide-slate-50"></div>
+        </div>
+      </div>
+
+      <!-- ขวา 1/3: แจ้งเตือน + ทางด่วน -->
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100">
+            <h2 class="text-base font-semibold text-slate-800">การแจ้งเตือนล่าสุด</h2>
+          </div>
+          <div id="home-notifs" class="divide-y divide-slate-50"></div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-2">
+          <h2 class="text-base font-semibold text-slate-800 mb-3">ทางด่วน (Quick Actions)</h2>
+          <div id="home-quick" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
+<script>
+  renderShell({ role: 'registrar', active: 'registrar-home.html', title: 'หน้าแรก Registrar' });
+  initRegistrarHome();
+  document.getElementById('year-badge').textContent = 'ปีการศึกษา ' + RegDB.cycles[0].year;
+</script>
+</body>
+</html>

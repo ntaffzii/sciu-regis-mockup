@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>หน้าแรก Field Staff — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">งานหน้างานวันนี้</h1>
+        <p class="text-sm text-slate-500 mt-1">สวัสดี น้องเก่ง — 10 ก.ค. 2569</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium" id="fs-badge">Field Staff</span>
+    </div>
+
+    <!-- กิจกรรมปัจจุบัน + Master Code -->
+    <div id="today" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">กิจกรรมที่กำลังจัด</p>
+        <p class="text-lg font-semibold text-slate-800 mt-1">จิตอาสาพัฒนาคณะวิทยาศาสตร์</p>
+        <p class="text-xs text-slate-400 mt-0.5 inline-flex items-center gap-1" id="fs-place">ลานกิจกรรม ตึก SC18 • 09:00–16:00 น.</p>
+      </div>
+
+      <div id="codes" class="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 text-center space-y-2 shadow-lg shadow-blue-600/25">
+        <p class="text-xs text-blue-100 uppercase tracking-widest">Master Code ปัจจุบัน</p>
+        <p class="text-4xl font-bold font-mono master-code" id="mc-display">A7K2M9</p>
+        <p class="text-xs text-blue-200">ให้นักศึกษาที่ GPS ใช้ไม่ได้กรอกรหัสนี้ — หมดอายุเมื่อจบกิจกรรม</p>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-slate-500">เช็คอินแล้ว</span>
+        <span class="text-2xl font-bold font-mono text-slate-900" id="fs-count">45 <span class="text-sm text-slate-400 font-normal">/ 100 คน</span></span>
+      </div>
+      <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style="width:45%"></div>
+      </div>
+    </div>
+
+    <!-- ปุ่มดำเนินการ -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <button onclick="regenCode()" class="inline-flex items-center justify-center gap-2 py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" type="button" id="btn-regen">ออกรหัสใหม่</button>
+      <button onclick="showToast('เปิดรายชื่อผู้เช็คอิน (จำลอง)', 'info')" class="inline-flex items-center justify-center gap-2 py-3 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition" type="button" id="btn-list">ดูรายชื่อเช็คอิน</button>
+      <button onclick="showToast('ส่งเรื่องถึง Lead Org และ Registrar แล้ว (จำลอง)', 'warning')" class="inline-flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition" type="button" id="btn-issue">แจ้งปัญหาหน้างาน</button>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-800">ประวัติการออกรหัสวันนี้</h2>
+      </div>
+      <div id="code-history" class="divide-y divide-slate-50"></div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ role: 'field-staff', active: 'field-staff-home.html', title: 'หน้าแรก Field Staff' });
+  document.getElementById('fs-badge').insertAdjacentHTML('afterbegin', icon('shield', 'w-4 h-4'));
+  document.getElementById('btn-regen').insertAdjacentHTML('afterbegin', icon('refresh', 'w-4 h-4'));
+  document.getElementById('btn-list').insertAdjacentHTML('afterbegin', icon('users', 'w-4 h-4'));
+  document.getElementById('btn-issue').insertAdjacentHTML('afterbegin', icon('alert-triangle', 'w-4 h-4'));
+
+  const history = [{ code: 'A7K2M9', time: '08:55 น.', by: 'น้องเก่ง สตาฟดี', active: true }];
+
+  function renderHistory() {
+    document.getElementById('code-history').innerHTML = history.map((h) => `
+      <div class="flex items-center justify-between gap-3 px-5 py-3">
+        <div>
+          <p class="text-sm font-mono font-bold text-slate-800 master-code">${h.code}</p>
+          <p class="text-xs text-slate-400 mt-0.5">ออกเมื่อ ${h.time} โดย ${h.by}</p>
+        </div>
+        ${h.active ? statusBadge('ready', 'ใช้งานอยู่') : statusBadge('rejected', 'ยกเลิกแล้ว')}
+      </div>`).join('');
+  }
+
+  function regenCode() {
+    showConfirmDialog({
+      title: 'ออก Master Code ใหม่?',
+      bullets: ['รหัสเดิมจะใช้ไม่ได้ทันที', 'ประกาศรหัสใหม่ให้นักศึกษาหน้างานทราบ', 'บันทึกการออกรหัสลง Audit Log'],
+      confirmText: 'ออกรหัสใหม่',
+      onConfirm: () => {
+        const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        history.forEach((h) => { h.active = false; });
+        history.unshift({ code, time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.', by: 'น้องเก่ง สตาฟดี', active: true });
+        document.getElementById('mc-display').textContent = code;
+        renderHistory();
+        showToast(`ออก Master Code ใหม่: ${code}`);
+      },
+    });
+  }
+  renderHistory();
+</script>
+</body>
+</html>

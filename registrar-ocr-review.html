@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจหลักฐานกิจกรรมเปิดกว้าง — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="registrar-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">ตรวจหลักฐาน</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตรวจหลักฐานกิจกรรมเปิดกว้าง</h1>
+        <p class="text-sm text-slate-500 mt-1">ตรวจภาพต้นฉบับคู่กับผล OCR — ระบบไม่อนุมัติอัตโนมัติ ทุกใบต้องผ่านคน</p>
+      </div>
+      <span id="queue-count"></span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- คิวซ้าย -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-700">คิวรอตรวจ</h2>
+        </div>
+        <div id="proof-queue" class="divide-y divide-slate-50 max-h-[560px] overflow-y-auto"></div>
+      </div>
+
+      <!-- รายละเอียด side-by-side -->
+      <div class="lg:col-span-3">
+        <div id="proof-empty" class="hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div class="py-16 text-center">
+            <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-3" id="empty-icon"></div>
+            <p class="text-sm text-slate-500 font-medium">ตรวจครบทุกใบแล้ว</p>
+            <p class="text-xs text-slate-400 mt-1">ไม่มีหลักฐานค้างในคิว</p>
+          </div>
+        </div>
+
+        <div id="proof-detail" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <!-- ซ้าย: เอกสารต้นฉบับ -->
+          <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+              <span class="text-slate-500" id="ic-doc"></span>
+              <h3 class="text-sm font-semibold text-slate-700">เอกสารต้นฉบับ</h3>
+            </div>
+            <div class="p-4" id="proof-doc"></div>
+          </div>
+
+          <!-- ขวา: ผล OCR -->
+          <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500" id="ic-ocr"></span>
+                <h3 class="text-sm font-semibold text-slate-700">ผลการอ่าน (OCR) — แก้ไขได้ก่อนอนุมัติ</h3>
+              </div>
+              <span id="ocr-confidence" class="text-xs text-slate-400 font-mono"></span>
+            </div>
+            <div class="p-4 space-y-4">
+              <div id="ocr-fields" class="space-y-3"></div>
+              <div id="mismatch-box"></div>
+              <div class="flex gap-3 pt-1">
+                <button onclick="decideProof(true)" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition" type="button">
+                  <span id="ic-approve"></span> อนุมัติ
+                </button>
+                <button onclick="decideProof(false)" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 border border-red-300 text-red-600 font-medium rounded-xl hover:bg-red-50 transition" type="button">
+                  <span id="ic-reject"></span> ปฏิเสธ
+                </button>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed">แก้ไขค่าที่ OCR อ่านผิดในช่องด้านบนได้เลย ก่อนกดอนุมัติ — การตัดสินใจทั้งหมดถูกบันทึกลง Audit Log</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
+<script>
+  renderShell({ role: 'registrar', active: 'registrar-ocr-review.html', title: 'ตรวจหลักฐาน OCR' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-doc').innerHTML = icon('file-text', 'w-4 h-4');
+  document.getElementById('ic-ocr').innerHTML = icon('robot', 'w-4 h-4');
+  document.getElementById('ic-approve').innerHTML = icon('check', 'w-4 h-4');
+  document.getElementById('ic-reject').innerHTML = icon('x', 'w-4 h-4');
+  document.getElementById('empty-icon').innerHTML = icon('check-circle', 'w-7 h-7');
+  initOcrPage();
+</script>
+</body>
+</html>

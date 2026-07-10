@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สร้าง/แก้ไขกิจกรรม — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="registrar-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">สร้าง/แก้ไขกิจกรรม</span>
+    </nav>
+
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">สร้าง/แก้ไขกิจกรรม</h1>
+      <p class="text-sm text-slate-500 mt-1">ติดธง "กิจกรรมเปิดกว้าง" ได้ทุกกิจกรรม — การปักหมุด GPS เป็นงานของ Lead Org/ผู้จัดกิจกรรม</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- ฟอร์ม 2/3 -->
+      <form id="event-form" class="lg:col-span-2 space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-semibold text-slate-800">ข้อมูลกิจกรรม</h2>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700" for="ev-name">ชื่อกิจกรรม <span class="text-red-500">*</span></label>
+            <input id="ev-name" type="text" placeholder="เช่น ค่ายจิตอาสาพัฒนาชุมชน" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="ev-date">วันที่จัด</label>
+              <input id="ev-date" type="date" value="2026-08-01" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="ev-days">จำนวนวัน</label>
+              <input id="ev-days" type="number" min="1" max="7" value="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="ev-credits">หน่วยกิต</label>
+              <input id="ev-credits" type="number" step="0.5" min="0.5" max="6" value="1.5" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+          </div>
+          <label class="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50/60 cursor-pointer">
+            <input id="ev-open" type="checkbox" class="mt-0.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+            <span>
+              <span class="block text-sm font-medium text-slate-800">กิจกรรมเปิดกว้าง (Open Category)</span>
+              <span class="block text-xs text-slate-500 mt-0.5 leading-relaxed">นักศึกษาส่งหลักฐานจากภายนอกได้ ระบบตรวจด้วย OCR และนับเข้าโควต้า 12 หน่วย/ปีการศึกษา</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-slate-800">เช็คอินด้วย GPS (Geofencing)</h2>
+              <p class="text-xs text-slate-400 mt-0.5">ฟิลด์นี้กำหนดโดย Lead Org/ผู้จัดกิจกรรม — ไม่ใช่ Field Staff</p>
+            </div>
+            <span class="relative inline-flex shrink-0">
+              <input id="ev-gps" type="checkbox" class="toggle-input sr-only">
+              <span class="toggle-track w-11 h-6 bg-slate-200 rounded-full transition-colors flex items-center px-0.5 cursor-pointer" onclick="document.getElementById('ev-gps').click()">
+                <span class="toggle-thumb w-5 h-5 bg-white rounded-full shadow transition-transform"></span>
+              </span>
+            </span>
+          </div>
+          <div id="gps-fields" class="hidden space-y-4">
+            <div id="mock-map" class="mock-map rounded-2xl h-64 cursor-crosshair" role="img" aria-label="แผนที่จำลองสำหรับปักหมุด">
+              <div id="geofence-circle" class="geofence-circle" style="left:50%; top:50%; width:69px; height:69px;"></div>
+              <div id="map-pin" class="absolute -translate-x-1/2 -translate-y-full text-blue-600 drop-shadow" style="left:50%; top:50%;"></div>
+              <span class="absolute bottom-2 right-3 text-[10px] text-slate-500/70 bg-white/70 rounded px-1.5 py-0.5">แผนที่จำลอง — คลิกเพื่อปักหมุด (บริเวณตึก SC18)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-sm font-medium text-slate-700" for="ev-lat">Latitude</label>
+                <input id="ev-lat" type="text" value="15.118300" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-sm font-medium text-slate-700" for="ev-lng">Longitude</label>
+                <input id="ev-lng" type="text" value="104.905700" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-sm font-medium text-slate-700" for="ev-radius">รัศมี: <span id="ev-radius-val" class="font-mono font-semibold text-blue-700">30</span> เมตร</label>
+                <input id="ev-radius" type="range" min="10" max="100" step="5" value="30" class="w-full accent-blue-600 mt-3">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
+            <span id="ic-save"></span> บันทึกกิจกรรม
+          </button>
+          <button type="reset" class="px-5 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">ล้างฟอร์ม</button>
+        </div>
+      </form>
+
+      <!-- ขวา 1/3: กิจกรรมล่าสุด -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
+        <div class="px-5 py-4 border-b border-slate-100">
+          <h2 class="text-base font-semibold text-slate-800">กิจกรรมล่าสุด</h2>
+        </div>
+        <div id="recent-events" class="divide-y divide-slate-50"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
+<script>
+  renderShell({ role: 'registrar', active: 'registrar-event-form.html', title: 'สร้าง/แก้ไขกิจกรรม' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-save').innerHTML = icon('check', 'w-5 h-5');
+  document.getElementById('map-pin').innerHTML = icon('map-pin', 'w-7 h-7');
+  initEventFormPage();
+</script>
+</body>
+</html>
