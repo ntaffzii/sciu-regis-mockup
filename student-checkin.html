@@ -61,7 +61,7 @@
         <button onclick="doGpsCheckin()" class="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white text-base font-semibold rounded-2xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/25" type="button" id="btn-gps">
           เช็คอินด้วย GPS ตอนนี้
         </button>
-        <p class="text-xs text-slate-400 text-center">ระบบคำนวณระยะด้วยสูตร Haversine จากพิกัดของคุณถึงจุดกิจกรรม</p>
+        <p class="text-xs text-slate-400 text-center">ระบบคำนวณระยะจากพิกัดของคุณถึงจุดกิจกรรมด้วย PostGIS spatial query (ST_DWithin)</p>
       </div>
       <div id="gps-result"></div>
     </div>
