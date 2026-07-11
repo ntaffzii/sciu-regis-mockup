@@ -141,7 +141,28 @@
   ];
 
   function getActiveUsers() {
-    return Store.get('adm-users', DEFAULT_USERS_MOCK);
+    const users = Store.get('adm-users', DEFAULT_USERS_MOCK);
+    
+    // บังคับให้บัญชีที่มีสิทธิ์แอดมิน มีสิทธิ์แอดมินเพียงอย่างเดียวเท่านั้น
+    users.forEach(u => {
+      if (u.roles.includes('admin') && u.roles.length > 1) {
+        u.roles = ['admin'];
+      }
+    });
+
+    // ตรวจสอบและกู้คืนบัญชีแอดมิน เพื่อความปลอดภัยจากการโดนลบหรือปิดใช้งานระหว่างทดสอบ
+    const hasAdmin = users.some(u => u.active && u.roles.includes('admin'));
+    if (!hasAdmin) {
+      let admin = users.find(u => u.username === 'admin.thanakorn' || u.email === 'thanakorn.r@ubu.ac.th');
+      if (admin) {
+        admin.active = true;
+        admin.roles = ['admin'];
+      } else {
+        users.unshift({ id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true });
+      }
+      Store.set('adm-users', users);
+    }
+    return users;
   }
 
   function getWhitelist() {

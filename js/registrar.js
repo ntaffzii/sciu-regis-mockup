@@ -258,6 +258,7 @@ function renderExportTable() {
       <thead><tr class="border-b border-slate-100 bg-slate-50/50">
         ${t.columns.map(col => `<th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">${col}</th>`).join('')}
         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รหัสถูกต้อง</th>
+        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ดำเนินการ</th>
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
         ${list.map((s) => {
@@ -280,6 +281,9 @@ function renderExportTable() {
               return `<td class="px-4 py-3 text-sm ${cls}">${val}</td>`;
             }).join('')}
             <td class="px-4 py-3 text-center">${ok ? statusBadge('ready', 'ผ่าน') : statusBadge('rejected', 'ไม่ผ่าน (ต้องเป็นเลข 11 หลัก)')}</td>
+            <td class="px-4 py-3 text-right">
+              <button onclick="openAdjustDialog(['${s.code}'])" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>
+            </td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -365,7 +369,7 @@ function openAdjustDialog(codes) {
       <p class="text-sm text-slate-500">${names.slice(0, 3).join(', ')}${names.length > 3 ? ` และอีก ${names.length - 3} คน` : ''}</p>
       <div class="space-y-1.5">
         <label class="text-sm font-medium text-slate-700" for="adj-credits">หน่วยกิตใหม่</label>
-        <input id="adj-credits" type="number" step="0.5" min="0" max="6" value="2.0" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="adj-credits" type="number" step="0.5" min="0" max="6" value="${(() => { const s0 = RegDB.students.find((x) => x.code === codes[0]); return s0 ? s0.credits.toFixed(1) : '2.0'; })()}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="space-y-1.5">
         <label class="text-sm font-medium text-slate-700" for="adj-reason">เหตุผลที่แก้ไข <span class="text-red-500">*</span></label>
@@ -397,7 +401,8 @@ function openAdjustDialog(codes) {
     adjustSelection.clear();
     overlay.remove();
     showToast(`บันทึกหน่วยกิตใหม่ ${codes.length} คน พร้อมเหตุผลลง Audit Log แล้ว`);
-    renderAdjustTable();
+    if (document.getElementById('adjust-table')) renderAdjustTable();
+    if (document.getElementById('export-table')) renderExportTable();
   });
 }
 
@@ -822,6 +827,7 @@ function renderQuotaTable() {
         <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
         <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-64">ยอดสะสม (หน่วย)</th>
         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">สถานะ</th>
+        ${readOnly ? '' : '<th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ดำเนินการ</th>'}
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
         ${list.map((l) => {
@@ -838,10 +844,55 @@ function renderQuotaTable() {
               </div>
             </td>
             <td class="px-4 py-3 text-center">${l.locked ? statusBadge('locked', `ครบแล้ว (${QUOTA_MAX}/${QUOTA_MAX})`) : statusBadge('info', 'สะสมได้อยู่')}</td>
+            ${readOnly ? '' : `<td class="px-4 py-3 text-right">
+              <button onclick="openLedgerAdjustDialog('${l.code}')" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>
+            </td>`}
           </tr>`;
         }).join('')}
       </tbody>
     </table>` : emptyState('ไม่พบนักศึกษาที่ค้นหา');
+}
+
+function openLedgerAdjustDialog(code) {
+  const l = RegDB.ledger.find((x) => x.code === code);
+  if (!l) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
+  overlay.innerHTML = `
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+      <h3 class="text-lg font-semibold text-slate-900">แก้ไขยอดสะสมหน่วยกิต</h3>
+      <p class="text-sm text-slate-500">${l.name} (${l.code})</p>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-slate-700" for="ledger-units">ยอดสะสมใหม่ (หน่วย)</label>
+        <input id="ledger-units" type="number" step="0.5" min="0" max="${QUOTA_MAX}" value="${l.units.toFixed(1)}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-slate-700" for="ledger-reason">เหตุผลที่แก้ไข <span class="text-red-500">*</span></label>
+        <textarea id="ledger-reason" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" placeholder="เช่น แก้ไขยอดสะสมผิดพลาดจากการนับซ้ำ"></textarea>
+        <p id="ledger-reason-err" class="hidden text-xs text-red-600">ต้องกรอกเหตุผลก่อนบันทึก (ผูกกับ Audit Log)</p>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button id="ledger-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">ยกเลิก</button>
+        <button id="ledger-save" class="flex-1 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">บันทึก</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#ledger-cancel').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#ledger-save').addEventListener('click', () => {
+    const reason = overlay.querySelector('#ledger-reason').value.trim();
+    if (!reason) {
+      overlay.querySelector('#ledger-reason-err').classList.remove('hidden');
+      return;
+    }
+    const val = Math.min(QUOTA_MAX, Math.max(0, parseFloat(overlay.querySelector('#ledger-units').value) || 0));
+    appendAudit('credit_adjusted', `แก้ยอดสะสมหน่วยกิต ${l.name} ${l.units} -> ${val} เหตุผล: ${reason}`);
+    l.units = val;
+    l.locked = val >= QUOTA_MAX;
+    RegDB.save();
+    overlay.remove();
+    showToast(`บันทึกยอดสะสมหน่วยกิตใหม่ของ ${l.name} แล้ว`);
+    renderQuotaTable();
+  });
 }
 
 /* ---------------- Screen 6: จัดการรอบปีการศึกษา --------------------------- */

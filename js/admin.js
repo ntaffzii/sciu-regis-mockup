@@ -3,6 +3,20 @@
  * Mock data + logic สำหรับหน้าจอฝั่ง Admin (Screen 11-15 + Home)
  * ========================================================================= */
 
+const SCIENCE_MAJORS = [
+  'เคมี',
+  'เทคโนโลยียางและพอลิเมอร์',
+  'ฟิสิกส์ชีวการแพทย์',
+  'คณิตศาสตร์',
+  'วิทยาการข้อมูลและนวัตกรรมซอฟต์แวร์',
+  'เทคโนโลยีสารสนเทศและการสื่อสาร',
+  'ชีววิทยา',
+  'จุลชีววิทยา',
+  'วิทยาศาสตร์สิ่งแวดล้อม',
+  'อาชีวอนามัยและความปลอดภัย',
+  'นวัตกรรมเทคโนโลยีวัสดุ',
+];
+
 const ROLE_LABELS = {
   admin: { text: 'Admin', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
   registrar: { text: 'Registrar', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -48,7 +62,29 @@ const DEFAULT_DOCS = [
 ];
 
 const AdminDB = {
-  users: Store.get('adm-users', DEFAULT_USERS),
+  users: (() => {
+    const list = Store.get('adm-users', DEFAULT_USERS);
+    
+    // บังคับให้บัญชีที่มีสิทธิ์แอดมิน มีสิทธิ์แอดมินเพียงอย่างเดียวเท่านั้น
+    list.forEach(u => {
+      if (u.roles.includes('admin') && u.roles.length > 1) {
+        u.roles = ['admin'];
+      }
+    });
+
+    const hasAdmin = list.some(u => u.active && u.roles.includes('admin'));
+    if (!hasAdmin) {
+      let admin = list.find(u => u.username === 'admin.thanakorn' || u.email === 'thanakorn.r@ubu.ac.th');
+      if (admin) {
+        admin.active = true;
+        admin.roles = ['admin'];
+      } else {
+        list.unshift({ id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true });
+      }
+      Store.set('adm-users', list);
+    }
+    return list;
+  })(),
   docs: Store.get('adm-docs', DEFAULT_DOCS),
   whitelist: Store.get('adm-whitelist', DEFAULT_WHITELIST),
   save() {
@@ -201,6 +237,23 @@ function openUserModal(id) {
       </div>
     </div>`;
   document.body.appendChild(overlay);
+
+  // Enforce mutual exclusivity of admin role
+  const roleCheckboxes = overlay.querySelectorAll('.um-role');
+  roleCheckboxes.forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      if (e.target.value === 'admin' && e.target.checked) {
+        roleCheckboxes.forEach(otherCb => {
+          if (otherCb.value !== 'admin') otherCb.checked = false;
+        });
+      } else if (e.target.checked) {
+        roleCheckboxes.forEach(otherCb => {
+          if (otherCb.value === 'admin') otherCb.checked = false;
+        });
+      }
+    });
+  });
+
   overlay.querySelector('#um-cancel').addEventListener('click', () => overlay.remove());
   overlay.querySelector('#um-save').addEventListener('click', () => {
     const name = overlay.querySelector('#um-name').value.trim();
@@ -714,9 +767,15 @@ function openWhitelistModal(id) {
           <input id="wm-code" value="${w ? w.studentCode || '' : ''}" placeholder="66114400123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <label class="text-xs font-semibold text-slate-700" for="wm-major">สาขาวิชา</label>
-            <input id="wm-major" value="${w ? w.major || '' : ''}" placeholder="วิทยาการคอมพิวเตอร์" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <div class="space-y-1.5 relative">
+            <label class="text-xs font-semibold text-slate-700">สาขาวิชา</label>
+            <button id="wm-major-btn" type="button" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs text-left bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 flex items-center justify-between">
+              <span id="wm-major-label" class="truncate text-slate-500">เลือกสาขา...</span>
+              <span class="text-slate-400 shrink-0 text-[10px]">&#9662;</span>
+            </button>
+            <div id="wm-major-dropdown" class="hidden absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-2 space-y-0.5">
+              <!-- Dynamically Populated -->
+            </div>
           </div>
           <div class="space-y-1.5">
             <label class="text-xs font-semibold text-slate-700" for="wm-year">ชั้นปี</label>
@@ -779,6 +838,63 @@ function openWhitelistModal(id) {
   typeSelect.addEventListener('change', toggleFields);
   toggleFields();
 
+  // ---- Major Multiselect Dropdown ----
+  const currentMajors = w && w.major ? w.major.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const majorBtn = overlay.querySelector('#wm-major-btn');
+  const majorLabel = overlay.querySelector('#wm-major-label');
+  const majorDropdown = overlay.querySelector('#wm-major-dropdown');
+
+  // Populate checkboxes
+  majorDropdown.innerHTML = SCIENCE_MAJORS.map(m => `
+    <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer">
+      <input type="checkbox" class="wm-major-cb rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="${m}" ${currentMajors.includes(m) ? 'checked' : ''}>
+      <span class="text-xs text-slate-700">${m}</span>
+    </label>`).join('');
+
+  function updateMajorLabel() {
+    const checked = [...overlay.querySelectorAll('.wm-major-cb:checked')].map(cb => cb.value);
+    if (checked.length === 0) {
+      majorLabel.textContent = 'เลือกสาขา...';
+      majorLabel.className = 'truncate text-slate-400';
+    } else if (checked.length === 1) {
+      majorLabel.textContent = checked[0];
+      majorLabel.className = 'truncate text-slate-800 font-medium';
+    } else {
+      majorLabel.textContent = `เลือกแล้ว ${checked.length} สาขา`;
+      majorLabel.className = 'truncate text-blue-600 font-medium';
+    }
+  }
+  updateMajorLabel();
+
+  majorBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    majorDropdown.classList.toggle('hidden');
+  });
+  majorDropdown.addEventListener('change', updateMajorLabel);
+  // Close dropdown when clicking outside
+  overlay.addEventListener('click', (e) => {
+    if (!majorBtn.contains(e.target) && !majorDropdown.contains(e.target)) {
+      majorDropdown.classList.add('hidden');
+    }
+  });
+  // ---- End Major Multiselect ----
+
+  // Enforce mutual exclusivity of admin role in whitelist modal
+  const whitelistRoleCheckboxes = overlay.querySelectorAll('.wm-role');
+  whitelistRoleCheckboxes.forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      if (e.target.value === 'admin' && e.target.checked) {
+        whitelistRoleCheckboxes.forEach(otherCb => {
+          if (otherCb.value !== 'admin') otherCb.checked = false;
+        });
+      } else if (e.target.checked) {
+        whitelistRoleCheckboxes.forEach(otherCb => {
+          if (otherCb.value === 'admin') otherCb.checked = false;
+        });
+      }
+    });
+  });
+
   const close = () => overlay.remove();
   overlay.querySelector('#wm-modal-close').addEventListener('click', close);
   overlay.querySelector('#wm-cancel').addEventListener('click', close);
@@ -793,7 +909,8 @@ function openWhitelistModal(id) {
 
     if (type === 'student') {
       const code = overlay.querySelector('#wm-code').value.trim();
-      const major = overlay.querySelector('#wm-major').value.trim();
+      const selectedMajors = [...overlay.querySelectorAll('.wm-major-cb:checked')].map(cb => cb.value);
+      const major = selectedMajors.join(', ');
       const year = parseInt(overlay.querySelector('#wm-year').value, 10);
       
       if (!code || code.length !== 11) {
@@ -852,4 +969,520 @@ function openWhitelistModal(id) {
     showToast(w ? 'ปรับปรุงข้อมูลสิทธิ์ล่วงหน้าสำเร็จ' : 'เพิ่มรายชื่อลงทะเบียนสิทธิ์ล่วงหน้าแล้ว');
     renderWhitelistTable();
   });
+}
+
+/* ---------------- Bulk Import Excel / CSV Functionality ---------------- */
+function openImportModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
+  
+  overlay.innerHTML = `
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 flex flex-col space-y-4 max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 font-sans">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span id="im-title-icon"></span> นำเข้ารายชื่อผู้ใช้งาน (Bulk Import Excel / CSV)
+        </h3>
+        <button id="im-modal-close" class="text-slate-400 hover:text-slate-600 transition" aria-label="ปิด">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans">
+        <!-- ประเภทและปลายทาง -->
+        <div class="space-y-3">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-700" for="im-type">ประเภทข้อมูลในไฟล์</label>
+            <select id="im-type" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <option value="student">นักศึกษา (Student Roster)</option>
+              <option value="staff">เจ้าหน้าที่ / คณาจารย์ (Staff Whitelist)</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-700" for="im-destination">ปลายทางการนำเข้า</label>
+            <select id="im-destination" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <option value="whitelist">รายชื่อลงทะเบียน & Whitelist (รอเข้าใช้งานครั้งแรก)</option>
+              <option value="active">บัญชีที่เปิดใช้งานแล้ว (Active Accounts ทันที)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- เทมเพลตตัวอย่าง -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col justify-between">
+          <div>
+            <h4 class="text-xs font-bold text-slate-700 mb-1">ดาวน์โหลดเทมเพลตตัวอย่าง</h4>
+            <p class="text-[11px] text-slate-500">กรุณาจัดโครงสร้างไฟล์ Excel หรือ CSV ให้ตรงตามเทมเพลตเพื่อให้ระบบสแกนข้อมูลได้อย่างถูกต้อง</p>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <button id="im-btn-dl-xlsx" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-xs font-semibold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition shadow-sm">
+              <span id="im-dl-xlsx-icon"></span> Excel (.xlsx)
+            </button>
+            <button id="im-btn-dl-csv" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition shadow-sm">
+              <span id="im-dl-csv-icon"></span> CSV (.csv)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div id="im-dropzone" class="border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/20 transition font-sans">
+        <span id="im-upload-icon" class="text-slate-400 mb-2"></span>
+        <p class="text-sm font-semibold text-slate-700">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</p>
+        <p class="text-xs text-slate-400 mt-1">รองรับไฟล์ Excel (.xlsx, .xls) หรือ CSV (.csv) ขนาดไม่เกิน 5 MB</p>
+        <input type="file" id="im-file-inp" accept=".xlsx, .xls, .csv" class="hidden">
+      </div>
+
+      <!-- Preview Section (Hidden initially) -->
+      <div id="im-preview-section" class="hidden flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden font-sans">
+        <div class="flex items-center justify-between bg-blue-50 border border-blue-100 p-3 rounded-xl shrink-0">
+          <div class="min-w-0">
+            <p id="im-preview-filename" class="text-xs font-bold text-slate-800 truncate"></p>
+            <p id="im-preview-summary" class="text-[11px] text-slate-600 mt-0.5"></p>
+          </div>
+          <button id="im-btn-clear-file" class="px-2.5 py-1.5 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition bg-white shrink-0">เปลี่ยนไฟล์</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto border border-slate-200 rounded-xl min-h-[150px] bg-slate-50/50">
+          <table class="w-full text-left text-xs">
+            <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold">
+              <tr>
+                <th class="px-3 py-2">แถว</th>
+                <th class="px-3 py-2">คีย์ระบุตัวตน</th>
+                <th class="px-3 py-2">ชื่อ-นามสกุล</th>
+                <th class="px-3 py-2">รายละเอียด</th>
+                <th class="px-3 py-2 text-right">ผลตรวจ</th>
+              </tr>
+            </thead>
+            <tbody id="im-preview-tbody" class="divide-y divide-slate-100 bg-white">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between flex-wrap gap-2 pt-1.5 shrink-0">
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+            <input type="checkbox" id="im-confirm-chk" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+            <span>ยืนยันความถูกต้องของข้อมูลและพร้อมนำเข้าสู่ระบบ</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-3 border-t border-slate-100 pt-3 shrink-0 font-sans">
+        <button id="im-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition text-sm">ยกเลิก</button>
+        <button id="im-submit" disabled class="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-800 disabled:opacity-40 disabled:hover:bg-blue-600 transition shadow-lg text-sm">เริ่มนำเข้าข้อมูล</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  
+  // Icon injection
+  document.getElementById('im-title-icon').innerHTML = icon('upload-cloud', 'w-6 h-6 text-blue-600');
+  document.getElementById('im-dl-xlsx-icon').innerHTML = icon('download', 'w-3.5 h-3.5');
+  document.getElementById('im-dl-csv-icon').innerHTML = icon('download', 'w-3.5 h-3.5');
+  document.getElementById('im-upload-icon').innerHTML = icon('upload-cloud', 'w-10 h-10 text-slate-400');
+
+  const dropzone = overlay.querySelector('#im-dropzone');
+  const fileInp = overlay.querySelector('#im-file-inp');
+  const previewSec = overlay.querySelector('#im-preview-section');
+  const typeSel = overlay.querySelector('#im-type');
+  const destSel = overlay.querySelector('#im-destination');
+  const confirmChk = overlay.querySelector('#im-confirm-chk');
+  const submitBtn = overlay.querySelector('#im-submit');
+  
+  let parsedItems = [];
+
+  // Close handlers
+  const close = () => overlay.remove();
+  overlay.querySelector('#im-modal-close').addEventListener('click', close);
+  overlay.querySelector('#im-cancel').addEventListener('click', close);
+
+  // Template downloads
+  overlay.querySelector('#im-btn-dl-xlsx').addEventListener('click', () => downloadImportTemplateXlsx(typeSel.value));
+  overlay.querySelector('#im-btn-dl-csv').addEventListener('click', () => downloadImportTemplateCSV(typeSel.value));
+
+  // Trigger file select
+  dropzone.addEventListener('click', () => fileInp.click());
+
+  // Drag and drop events
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('border-blue-500', 'bg-blue-50/40');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50/40');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50/40');
+    if (e.dataTransfer.files.length) {
+      handleImportFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInp.addEventListener('change', () => {
+    if (fileInp.files.length) {
+      handleImportFile(fileInp.files[0]);
+    }
+  });
+
+  overlay.querySelector('#im-btn-clear-file').addEventListener('click', () => {
+    fileInp.value = '';
+    parsedItems = [];
+    dropzone.classList.remove('hidden');
+    previewSec.classList.add('hidden');
+    confirmChk.checked = false;
+    submitBtn.disabled = true;
+  });
+
+  confirmChk.addEventListener('change', () => {
+    const hasValidItems = parsedItems.some(item => !item.hasError);
+    submitBtn.disabled = !confirmChk.checked || parsedItems.length === 0 || !hasValidItems;
+  });
+
+  function handleImportFile(file) {
+    const name = file.name;
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(`ไฟล์ "${name}" มีขนาด ${sizeMB} MB ซึ่งเกินเพดาน 5 MB`, 'error');
+      return;
+    }
+
+    const type = typeSel.value;
+    const reader = new FileReader();
+
+    if (name.endsWith('.csv')) {
+      reader.onload = (e) => {
+        const text = e.target.result;
+        try {
+          const rawData = parseCSV(text);
+          processImportData(rawData, name, type);
+        } catch (err) {
+          showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ CSV: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rawData = XLSX.utils.sheet_to_json(worksheet);
+          processImportData(rawData, name, type);
+        } catch (err) {
+          showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel: ' + err.message, 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      showToast('ไม่รองรับประเภทไฟล์นี้ กรุณาอัปโหลด .xlsx, .xls หรือ .csv', 'error');
+    }
+  }
+
+  function processImportData(rawData, filename, importType) {
+    if (!rawData || rawData.length === 0) {
+      showToast('ไม่พบข้อมูลผู้ใช้ในไฟล์', 'error');
+      return;
+    }
+
+    parsedItems = [];
+    let successCount = 0;
+    let warningCount = 0;
+    let errorCount = 0;
+
+    rawData.forEach((row, index) => {
+      const item = {
+        rowNum: index + 2, // Row number in sheet (headers are row 1)
+        name: '',
+        key: '', // studentCode or email
+        details: '',
+        warning: '',
+        error: '',
+        hasWarning: false,
+        hasError: false,
+        raw: row
+      };
+
+      // Find Name column
+      const nameCol = Object.keys(row).find(k => k.toLowerCase().includes('ชื่อ') || k.toLowerCase().includes('name') || k.toLowerCase().includes('สกุล'));
+      item.name = nameCol ? String(row[nameCol]).trim() : '';
+
+      if (importType === 'student') {
+        // Find Code column
+        const codeCol = Object.keys(row).find(k => k.toLowerCase().includes('รหัส') || k.toLowerCase().includes('code') || k.toLowerCase().includes('id'));
+        item.key = codeCol ? String(row[codeCol]).trim().replace(/\D/g, '') : ''; // numeric only
+        
+        // Find Major
+        const majorCol = Object.keys(row).find(k => k.toLowerCase().includes('สาขา') || k.toLowerCase().includes('major'));
+        const major = majorCol ? String(row[majorCol]).trim() : 'วิทยาการคอมพิวเตอร์';
+
+        // Find Year
+        const yearCol = Object.keys(row).find(k => k.toLowerCase().includes('ปี') || k.toLowerCase().includes('year'));
+        let year = yearCol ? parseInt(String(row[yearCol]).trim(), 10) : 1;
+        if (isNaN(year) || year < 1 || year > 6) year = 1;
+
+        item.details = `${major} (ชั้นปีที่ ${year})`;
+        item.parsedData = { type: 'student', studentCode: item.key, name: item.name, major, year, roles: ['student'], connected: false };
+
+        // Validation
+        if (!item.name) {
+          item.error = 'ไม่มีชื่อ-นามสกุล';
+          item.hasError = true;
+          errorCount++;
+        } else if (!item.key || item.key.length !== 11) {
+          item.error = 'รหัสนักศึกษาต้องมี 11 หลัก';
+          item.hasError = true;
+          errorCount++;
+        } else {
+          // Check Duplicates in Whitelist
+          const inWhitelist = AdminDB.whitelist.some(w => w.type === 'student' && w.studentCode === item.key);
+          const inActiveUsers = AdminDB.users.some(u => u.username === item.key);
+          
+          if (inWhitelist || inActiveUsers) {
+            item.warning = 'รหัสนักศึกษานี้มีอยู่ในระบบแล้ว';
+            item.hasWarning = true;
+            warningCount++;
+          } else {
+            successCount++;
+          }
+        }
+      } else {
+        // Staff Whitelist import
+        // Find Email column
+        const emailCol = Object.keys(row).find(k => k.toLowerCase().includes('เมล') || k.toLowerCase().includes('email') || k.toLowerCase().includes('mail'));
+        item.key = emailCol ? String(row[emailCol]).trim() : '';
+
+        // Find Roles
+        const roleCol = Object.keys(row).find(k => k.toLowerCase().includes('บทบาท') || k.toLowerCase().includes('สิทธิ์') || k.toLowerCase().includes('role'));
+        const rawRoles = roleCol ? String(row[roleCol]).trim() : 'lead_org';
+        
+        // Map raw roles to internal roles
+        let roles = rawRoles.split(/[,;|]/).map(r => {
+          r = r.trim().toLowerCase();
+          if (r.includes('admin') || r.includes('แอดมิน')) return 'admin';
+          if (r.includes('regist') || r.includes('ทะเบียน') || r.includes('งานทะเบียน')) return 'registrar';
+          if (r.includes('lead') || r.includes('ผู้จัด') || r.includes('ผู้รับผิดชอบ')) return 'lead_org';
+          if (r.includes('staff') || r.includes('สตาฟ') || r.includes('ผู้ช่วย')) return 'field_staff';
+          return 'lead_org';
+        });
+        if (roles.includes('admin')) {
+          roles = ['admin'];
+        }
+
+        item.details = roles.map(r => ROLE_LABELS[r]?.text || r).join(', ');
+        item.parsedData = { type: 'staff', email: item.key, name: item.name, roles, connected: false };
+
+        // Validation
+        if (!item.name) {
+          item.error = 'ไม่มีชื่อ-นามสกุล';
+          item.hasError = true;
+          errorCount++;
+        } else if (!item.key || !item.key.includes('@')) {
+          item.error = 'รูปแบบอีเมลไม่ถูกต้อง';
+          item.hasError = true;
+          errorCount++;
+        } else if (!item.key.endsWith('@ubu.ac.th')) {
+          item.warning = 'คำแนะนำ: ควรใช้อีเมลสถาบัน @ubu.ac.th';
+          item.hasWarning = true;
+          warningCount++;
+        } else {
+          // Check Duplicates
+          const inWhitelist = AdminDB.whitelist.some(w => w.type === 'staff' && w.email === item.key);
+          const inActiveUsers = AdminDB.users.some(u => u.email === item.key);
+
+          if (inWhitelist || inActiveUsers) {
+            item.warning = 'อีเมลนี้มีอยู่ในระบบแล้ว';
+            item.hasWarning = true;
+            warningCount++;
+          } else {
+            successCount++;
+          }
+        }
+      }
+
+      parsedItems.push(item);
+    });
+
+    // Update UI Preview
+    overlay.querySelector('#im-preview-filename').textContent = `${filename} (${sizeMB} MB)`;
+    overlay.querySelector('#im-preview-summary').innerHTML = `พบข้อมูลรวม <span class="font-bold text-slate-800">${parsedItems.length}</span> แถว: พร้อมนำเข้า <span class="font-bold text-emerald-600">${successCount}</span>, มีคำเตือน <span class="font-bold text-amber-600">${warningCount}</span>, พบข้อผิดพลาด (นำเข้าไม่ได้) <span class="font-bold text-red-600">${errorCount}</span>`;
+
+    const tbody = overlay.querySelector('#im-preview-tbody');
+    tbody.innerHTML = parsedItems.map(item => {
+      let statusBadge = '';
+      if (item.hasError) {
+        statusBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">${item.error}</span>`;
+      } else if (item.hasWarning) {
+        statusBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">${item.warning}</span>`;
+      } else {
+        statusBadge = `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">ผ่านเกณฑ์</span>`;
+      }
+
+      return `
+        <tr class="hover:bg-slate-50 transition ${item.hasError ? 'bg-red-50/10' : ''}">
+          <td class="px-3 py-2 text-slate-400 font-mono">${item.rowNum}</td>
+          <td class="px-3 py-2 font-mono text-slate-700">${item.key || '—'}</td>
+          <td class="px-3 py-2 font-medium text-slate-800">${item.name || '<span class="text-red-500 font-normal">ไม่มีข้อมูล</span>'}</td>
+          <td class="px-3 py-2 text-slate-500">${item.details}</td>
+          <td class="px-3 py-2 text-right whitespace-nowrap">${statusBadge}</td>
+        </tr>`;
+    }).join('');
+
+    dropzone.classList.add('hidden');
+    previewSec.classList.remove('hidden');
+    confirmChk.checked = false;
+    submitBtn.disabled = true;
+  }
+
+  // Handle click on submit
+  submitBtn.addEventListener('click', () => {
+    const importDestination = destSel.value;
+    const importType = typeSel.value;
+    
+    // Filter only items without error
+    const importable = parsedItems.filter(item => !item.hasError);
+    if (importable.length === 0) {
+      showToast('ไม่มีข้อมูลที่สามารถนำเข้าได้', 'error');
+      return;
+    }
+
+    let addedCount = 0;
+
+    importable.forEach(item => {
+      const data = item.parsedData;
+      if (importDestination === 'whitelist') {
+        // Add to Whitelist
+        AdminDB.whitelist.push({
+          id: Date.now() + Math.floor(Math.random() * 10000),
+          ...data
+        });
+        addedCount++;
+      } else {
+        // Add directly as Active Users
+        const username = data.type === 'student' ? data.studentCode : data.email.split('@')[0];
+        AdminDB.users.push({
+          id: Date.now() + Math.floor(Math.random() * 10000),
+          username,
+          name: data.name,
+          email: data.type === 'student' ? `${data.studentCode}@ubu.ac.th` : data.email,
+          roles: data.roles,
+          active: true
+        });
+        addedCount++;
+      }
+    });
+
+    AdminDB.save();
+    
+    // Log to Audit Log
+    const auditLogs = Store.get('audit-extra', []);
+    auditLogs.unshift({
+      time: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      user: 'admin.thanakorn',
+      action: importDestination === 'whitelist' ? 'whitelist_imported' : 'users_imported',
+      detail: `นำเข้าข้อมูลผู้ใช้แบบกลุ่ม (${importType === 'student' ? 'นักศึกษา' : 'เจ้าหน้าที่'}) สำเร็จจำนวน ${addedCount} รายการ ผ่านไฟล์ Excel/CSV`,
+      role: 'admin'
+    });
+    Store.set('audit-extra', auditLogs);
+
+    close();
+    showToast(`นำเข้าข้อมูลผู้ใช้สำเร็จทั้งหมด ${addedCount} รายการ`, 'success');
+    
+    // Update the UI
+    renderCurrentTable();
+  });
+}
+
+function downloadImportTemplateXlsx(type) {
+  let data = [];
+  let filename = '';
+  if (type === 'student') {
+    data = [
+      { 'รหัสนักศึกษา': '66114400111', 'ชื่อ-นามสกุล': 'นายวันชัย ใจดี', 'สาขาวิชา': 'วิทยาการคอมพิวเตอร์', 'ชั้นปี': 2 },
+      { 'รหัสนักศึกษา': '66114400222', 'ชื่อ-นามสกุล': 'นางสาวดรุณี เรียนเก่ง', 'สาขาวิชา': 'เทคโนโลยีสารสนเทศ', 'ชั้นปี': 3 },
+      { 'รหัสนักศึกษา': '66114400333', 'ชื่อ-นามสกุล': 'นายอุดม พรดี', 'สาขาวิชา': 'ฟิสิกส์', 'ชั้นปี': 1 }
+    ];
+    filename = 'Student_Roster_Template.xlsx';
+  } else {
+    data = [
+      { 'อีเมล': 'somkiat.y@ubu.ac.th', 'ชื่อ-นามสกุล': 'ดร.สมเกียรติ เก่งวิทย์', 'บทบาท': 'lead_org, field_staff' },
+      { 'อีเมล': 'director.science@ubu.ac.th', 'ชื่อ-นามสกุล': 'ผศ.ดร.กิตติเดช ปัญญาดี', 'บทบาท': 'registrar' }
+    ];
+    filename = 'Staff_Whitelist_Template.xlsx';
+  }
+
+  try {
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, filename);
+    showToast(`ดาวน์โหลดเทมเพลต ${filename} เรียบร้อยแล้ว`);
+  } catch (err) {
+    showToast('ไม่สามารถดาวน์โหลดไฟล์ Excel ได้: ' + err.message, 'error');
+  }
+}
+
+function downloadImportTemplateCSV(type) {
+  let csvContent = '';
+  let filename = '';
+  if (type === 'student') {
+    csvContent = "รหัสนักศึกษา,ชื่อ-นามสกุล,สาขาวิชา,ชั้นปี\n66114400111,นายวันชัย ใจดี,วิทยาการคอมพิวเตอร์,2\n66114400222,นางสาวดรุณี เรียนเก่ง,เทคโนโลยีสารสนเทศ,3\n66114400333,นายอุดม พรดี,ฟิสิกส์,1\n";
+    filename = 'Student_Roster_Template.csv';
+  } else {
+    csvContent = "อีเมล,ชื่อ-นามสกุล,บทบาท\nsomkiat.y@ubu.ac.th,ดร.สมเกียรติ เก่งวิทย์,\"lead_org, field_staff\"\ndirector.science@ubu.ac.th,ผศ.ดร.กิตติเดช ปัญญาดี,registrar\n";
+    filename = 'Staff_Whitelist_Template.csv';
+  }
+  
+  try {
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`ดาวน์โหลดเทมเพลต ${filename} เรียบร้อยแล้ว`);
+  } catch (err) {
+    showToast('ไม่สามารถดาวน์โหลดไฟล์ CSV ได้: ' + err.message, 'error');
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim());
+  if (lines.length === 0) return [];
+  
+  const rows = lines.map(line => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  });
+  
+  const headers = rows[0].map(h => h.replace(/^["']|["']$/g, ''));
+  const data = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length < headers.length) continue;
+    const obj = {};
+    headers.forEach((header, index) => {
+      let val = row[index] || '';
+      val = val.replace(/^["']|["']$/g, '');
+      obj[header] = val;
+    });
+    data.push(obj);
+  }
+  return data;
 }

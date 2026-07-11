@@ -112,7 +112,6 @@ const NAV_MENUS = {
     { label: 'กิจกรรม', icon: 'calendar', href: 'registrar-event-form.html' },
     { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-ocr-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
-    { label: 'แก้ไขหน่วยกิต', icon: 'edit', href: 'registrar-adjust.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'รอบปี', icon: 'calendar', href: 'registrar-cycles.html' },
   ],
@@ -135,14 +134,14 @@ const NAV_MENUS = {
   ],
   'lead-org': [
     { label: 'หน้าแรก', icon: 'home', href: 'lead-org-home.html' },
-    { label: 'กิจกรรมของฉัน', icon: 'calendar', href: 'lead-org-home.html#events' },
+    { label: 'กิจกรรมของฉัน', icon: 'calendar', href: 'lead-org-my-events.html' },
     { label: 'สร้างกิจกรรม', icon: 'plus', href: 'registrar-event-form.html' },
-    { label: 'ส่งรายชื่อ', icon: 'file-text', href: 'lead-org-home.html#rosters' },
+    { label: 'ยืนยันรายชื่อ', icon: 'check-circle', href: 'lead-org-rosters.html' },
   ],
   'field-staff': [
     { label: 'หน้าแรก', icon: 'home', href: 'field-staff-home.html' },
-    { label: 'กิจกรรมวันนี้', icon: 'calendar', href: 'field-staff-home.html#today' },
-    { label: 'Master Code', icon: 'shield', href: 'field-staff-home.html#codes' },
+    { label: 'กิจกรรมวันนี้', icon: 'calendar', href: 'field-staff-home.html' },
+    { label: 'Master Code', icon: 'shield', href: 'field-staff-master-codes.html' },
   ],
   guest: [
     { label: 'หน้าแรก', icon: 'home', href: 'index.html' },
@@ -179,13 +178,13 @@ const BOTTOM_NAVS = {
   'lead-org': [
     { label: 'หน้าแรก', icon: 'home', href: 'lead-org-home.html' },
     { label: 'สร้างกิจกรรม', icon: 'plus', href: 'registrar-event-form.html' },
-    { label: 'รายชื่อ', icon: 'file-text', href: 'lead-org-home.html#rosters' },
+    { label: 'ยืนยัน', icon: 'check-circle', href: 'lead-org-rosters.html' },
     { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   'field-staff': [
     { label: 'หน้าแรก', icon: 'home', href: 'field-staff-home.html' },
-    { label: 'วันนี้', icon: 'calendar', href: 'field-staff-home.html#today' },
-    { label: 'Code', icon: 'shield', href: 'field-staff-home.html#codes' },
+    { label: 'วันนี้', icon: 'calendar', href: 'field-staff-home.html' },
+    { label: 'Code', icon: 'shield', href: 'field-staff-master-codes.html' },
     { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
   guest: [
@@ -199,7 +198,7 @@ const BOTTOM_NAVS = {
 const MOCK_NOTIFICATIONS = {
   registrar: [
     { icon: 'file-text', text: 'หลักฐานรอตรวจใหม่ (2 รายการ)', time: '5 นาทีที่แล้ว' },
-    { icon: 'alert-triangle', text: 'กิจกรรมค้างส่งรายชื่อ (1 รายการ)', time: '1 ชม.ที่แล้ว' },
+    { icon: 'alert-triangle', text: 'กิจกรรมที่รอยืนยันรายชื่อ (1 รายการ)', time: '1 ชม.ที่แล้ว' },
     { icon: 'message-circle', text: 'บอทตอบคำถามไม่ได้ (1 คำถาม)', time: '3 ชม.ที่แล้ว' },
   ],
   student: [
@@ -215,8 +214,49 @@ const MOCK_NOTIFICATIONS = {
 /* ---------------- Shell renderer ----------------------------------------- */
 function renderShell(opts) {
   const { role: _roleHint = null, active = '', title = '' } = opts || {};
-  // getSessionRole() is the single source of truth — pages no longer need to hardcode role.
   const role = getSessionRole(_roleHint);
+
+  // Page authorization check to enforce role boundaries
+  const pathname = window.location.pathname.split('/').pop() || 'index.html';
+  if (role === 'admin') {
+    const allowedAdminPages = [
+      'admin-home.html',
+      'admin-users.html',
+      'admin-settings.html',
+      'admin-ai.html',
+      'admin-knowledge.html',
+      'admin-audit.html',
+      'profile-settings.html',
+      'login.html',
+      'index.html'
+    ];
+    const isRestrictedPage = pathname.startsWith('registrar-') ||
+      pathname.startsWith('student-') ||
+      pathname.startsWith('lead-org-') ||
+      pathname.startsWith('field-staff-') ||
+      pathname === 'event-list.html' ||
+      pathname === 'event-detail.html' ||
+      pathname === 'contact.html';
+
+    if (isRestrictedPage && !allowedAdminPages.includes(pathname)) {
+      window.location.href = 'admin-home.html';
+      return;
+    }
+  } else if (role !== 'admin' && pathname.startsWith('admin-')) {
+    if (role === 'guest') {
+      window.location.href = 'login.html';
+    } else {
+      const homeRedirects = {
+        registrar: 'registrar-home.html',
+        student: 'student-home.html',
+        'lead-org': 'lead-org-home.html',
+        'field-staff': 'field-staff-home.html'
+      };
+      window.location.href = homeRedirects[role] || 'index.html';
+    }
+    return;
+  }
+
   const user = currentUser(role);
   const menus = NAV_MENUS[role] || NAV_MENUS.guest;
   const bottoms = BOTTOM_NAVS[role] || BOTTOM_NAVS.guest;
@@ -301,10 +341,10 @@ function renderShell(opts) {
   <nav class="lg:hidden fixed bottom-0 inset-x-0 z-50 h-16 bg-white border-t border-slate-200 safe-area-bottom">
     <div class="h-full grid grid-cols-${bottoms.length}">
       ${bottoms.map((b) => {
-        const isActive = b.href.split('#')[0] === active;
-        return `<a href="${b.href}" class="flex flex-col items-center justify-center gap-0.5 ${isActive ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}">
+    const isActive = b.href.split('#')[0] === active;
+    return `<a href="${b.href}" class="flex flex-col items-center justify-center gap-0.5 ${isActive ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}">
           ${icon(b.icon, 'w-5 h-5')}<span class="text-[10px] font-medium">${b.label}</span></a>`;
-      }).join('')}
+  }).join('')}
     </div>
   </nav>`;
 

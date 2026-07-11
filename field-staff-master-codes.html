@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Code — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="field-staff-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้างาน</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">Master Code</span>
+    </nav>
+
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">จัดการ Master Code</h1>
+      <p class="text-sm text-slate-500 mt-1">ออกรหัสเช็คอินสำรองสำหรับนักศึกษาที่ GPS/Selfie ใช้ไม่ได้</p>
+    </div>
+
+    <!-- Current active code -->
+    <div id="active-code-box" class="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 text-center space-y-3 shadow-lg shadow-blue-600/25">
+      <p class="text-xs text-blue-100 uppercase tracking-widest">Master Code ปัจจุบัน</p>
+      <p class="text-5xl font-bold font-mono tracking-[0.2em]" id="mc-display">A7K2M9</p>
+      <p class="text-xs text-blue-200">ให้นักศึกษาที่ GPS ใช้ไม่ได้กรอกรหัสนี้ — รหัสหมดอายุภายใน 5-15 นาที</p>
+      <div class="flex items-center justify-center gap-2 mt-1">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        <p class="text-sm font-mono text-blue-100" id="mc-countdown">เหลือเวลา 14:59</p>
+      </div>
+      <button id="btn-regen" class="mt-4 inline-flex items-center gap-2 px-6 py-2.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-xl backdrop-blur transition border border-white/20">
+        <span id="ic-regen"></span> ออกรหัสใหม่
+      </button>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">ออกรหัสวันนี้</p>
+        <p class="text-2xl font-bold font-mono text-slate-900 mt-1" id="stat-total">3</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">ใช้งานอยู่</p>
+        <p class="text-2xl font-bold font-mono text-green-600 mt-1" id="stat-active">1</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">หมดอายุแล้ว</p>
+        <p class="text-2xl font-bold font-mono text-slate-400 mt-1" id="stat-expired">2</p>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-800">ประวัติการออกรหัสวันนี้</h2>
+      </div>
+      <div id="code-history" class="divide-y divide-slate-50"></div>
+    </div>
+
+    <!-- Tips -->
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 space-y-1">
+      <p class="font-semibold">💡 ข้อควรทราบเกี่ยวกับ Master Code</p>
+      <ul class="list-disc list-inside space-y-0.5 text-amber-700">
+        <li>รหัสหมดอายุอัตโนมัติภายใน 15 นาที (กดออกรหัสใหม่ก่อนได้ทุกเมื่อ)</li>
+        <li>รหัสเก่าจะใช้งานไม่ได้ทันทีที่ออกรหัสใหม่</li>
+        <li>ใช้สำหรับนักศึกษาที่ GPS/Selfie ใช้ไม่ได้เท่านั้น — ควรให้ใช้ GPS ก่อน</li>
+        <li>ทุกการออกรหัสถูกบันทึกลง Audit Log</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ role: 'field-staff', active: 'field-staff-master-codes.html', title: 'Master Code' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-regen').innerHTML = icon('refresh', 'w-4 h-4');
+
+  let history = [
+    { code: 'A7K2M9', time: '08:55', by: 'น้องเก่ง สตาฟดี', active: true },
+    { code: 'X3B8P1', time: '08:30', by: 'น้องเก่ง สตาฟดี', active: false },
+    { code: 'M5N2K7', time: '08:10', by: 'น้องเก่ง สตาฟดี', active: false },
+  ];
+
+  function renderHistory() {
+    document.getElementById('code-history').innerHTML = history.map((h) => `
+      <div class="flex items-center justify-between gap-3 px-5 py-3">
+        <div>
+          <p class="text-sm font-mono font-bold text-slate-800 tracking-wider">${h.code}</p>
+          <p class="text-xs text-slate-400 mt-0.5">ออกเมื่อ ${h.time} น. โดย ${h.by}</p>
+        </div>
+        ${h.active
+          ? statusBadge('ready', 'ใช้งานอยู่')
+          : statusBadge('rejected', 'หมดอายุแล้ว')}
+      </div>`).join('');
+    document.getElementById('stat-total').textContent = history.length;
+    document.getElementById('stat-active').textContent = history.filter(h => h.active).length;
+    document.getElementById('stat-expired').textContent = history.filter(h => !h.active).length;
+  }
+
+  document.getElementById('btn-regen').addEventListener('click', function() {
+    showConfirmDialog({
+      title: 'ออก Master Code ใหม่?',
+      bullets: ['รหัสเดิมจะใช้ไม่ได้ทันที', 'ประกาศรหัสใหม่ให้นักศึกษาหน้างานทราบ', 'บันทึกการออกรหัสลง Audit Log'],
+      confirmText: 'ออกรหัสใหม่',
+      onConfirm: () => {
+        const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        history.forEach((h) => { h.active = false; });
+        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        history.unshift({ code, time, by: 'น้องเก่ง สตาฟดี', active: true });
+        document.getElementById('mc-display').textContent = code;
+        countdownSec = 15 * 60 - 1;
+        renderHistory();
+        showToast(`ออก Master Code ใหม่: ${code}`);
+      },
+    });
+  });
+
+  // Countdown timer (15 minutes = 900 seconds)
+  let countdownSec = 15 * 60 - 1;
+  function updateCountdown() {
+    const el = document.getElementById('mc-countdown');
+    if (!el) return;
+    if (countdownSec <= 0) {
+      el.textContent = 'หมดอายุแล้ว — กดออกรหัสใหม่';
+      el.classList.add('text-red-300');
+      history.forEach((h) => { if (h.active) h.active = false; });
+      renderHistory();
+      return;
+    }
+    const m = Math.floor(countdownSec / 60);
+    const s = countdownSec % 60;
+    el.textContent = `เหลือเวลา ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    countdownSec--;
+    setTimeout(updateCountdown, 1000);
+  }
+  updateCountdown();
+  renderHistory();
+</script>
+</body>
+</html>

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>จัดการบัญชีผู้ใช้และบทบาท — SciU-Regis</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS to parse Excel files -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
     tailwind.config = { theme: { extend: {
       fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
@@ -31,9 +33,14 @@
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">จัดการบัญชีผู้ใช้และสิทธิ์</h1>
         <p class="text-sm text-slate-500 mt-1">กำหนดสิทธิ์และ whitelist อีเมลผู้ใช้งานล่วงหน้า เพื่อผูกเชื่อม Google OAuth 2.0 (SSO)</p>
       </div>
-      <button id="btn-add-user" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" type="button">
-        <span id="ic-add"></span> <span id="btn-add-text">สร้างบัญชีใหม่</span>
-      </button>
+      <div class="flex gap-2">
+        <button id="btn-import-users" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-xl border border-slate-300 hover:bg-slate-50 transition shadow-sm" type="button">
+          <span id="ic-import"></span> <span>นำเข้า Excel / CSV</span>
+        </button>
+        <button id="btn-add-user" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" type="button">
+          <span id="ic-add"></span> <span id="btn-add-text">สร้างบัญชีใหม่</span>
+        </button>
+      </div>
     </div>
 
     <!-- Tabs for Normalization & Whitelist Design -->
@@ -61,7 +68,13 @@
   renderShell({ role: 'admin', active: 'admin-users.html', title: 'จัดการผู้ใช้' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-add').innerHTML = icon('plus', 'w-4 h-4');
+  document.getElementById('ic-import').innerHTML = icon('upload-cloud', 'w-4 h-4');
   document.getElementById('ic-search').innerHTML = icon('search', 'w-4 h-4');
+
+  // ผูกตัวนำเข้าไฟล์
+  document.getElementById('btn-import-users').addEventListener('click', () => {
+    openImportModal();
+  });
 
   // แท็บปัจจุบัน: 'active' หรือ 'whitelist'
   let currentTab = 'active';

@@ -23,7 +23,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">สวัสดี, อาจารย์วิชัย</h1>
-        <p class="text-sm text-slate-500 mt-1">ภาพรวมกิจกรรมที่คุณจัด และรายชื่อที่ต้องส่งให้งานทะเบียน</p>
+        <p class="text-sm text-slate-500 mt-1">ภาพรวมกิจกรรมที่คุณจัด และรายชื่อที่ต้องยืนยันความถูกต้อง</p>
       </div>
       <a href="registrar-event-form.html" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" id="btn-create">สร้างกิจกรรมใหม่</a>
     </div>
@@ -39,8 +39,8 @@
 
     <div id="rosters" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100">
-        <h2 class="text-base font-semibold text-slate-800">กำหนดการส่งรายชื่อ</h2>
-        <p class="text-xs text-slate-400 mt-0.5">ต้องส่งภายใน 3 วันหลังจบกิจกรรม — เกินกำหนดระบบจะแจ้ง Registrar ทาง Slack</p>
+        <h2 class="text-base font-semibold text-slate-800">กำหนดการยืนยันรายชื่อ</h2>
+        <p class="text-xs text-slate-400 mt-0.5">กรุณายืนยันรายชื่อภายใน 3 วันหลังจบกิจกรรม — เกินกำหนดระบบจะแจ้ง Registrar ทาง Slack</p>
       </div>
       <div id="lo-rosters" class="divide-y divide-slate-50"></div>
     </div>
@@ -54,18 +54,18 @@
 
   const MY_EVENTS = [
     { name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', status: 'ongoing', date: '2–3 ก.ค. 2569', joined: 51, total: 55, gps: true, rosterDue: null },
-    { name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ', status: 'ended', date: '8 ก.ค. 2569', joined: 36, total: 40, gps: false, rosterDue: 'เกินกำหนด 2 วัน' },
+    { name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ', status: 'ended', date: '8 ก.ค. 2569', joined: 36, total: 40, gps: false, rosterDue: 'เกินกำหนดยืนยัน 2 วัน' },
     { name: 'Science Open House 2569', status: 'upcoming', date: '15 ก.ค. 2569', joined: 0, total: 250, gps: true, rosterDue: null },
   ];
 
   document.getElementById('lo-stats').innerHTML =
     statsCard('กำลังจัดอยู่', MY_EVENTS.filter((e) => e.status === 'ongoing').length, 'กิจกรรม active')
     + statsCard('กำลังจะถึง', MY_EVENTS.filter((e) => e.status === 'upcoming').length, 'กิจกรรมล่วงหน้า')
-    + statsCard('รายชื่อค้างส่ง', MY_EVENTS.filter((e) => e.rosterDue).length, 'เกินกำหนดแล้ว', { valueCls: 'text-red-500' });
+    + statsCard('รายชื่อค้างยืนยัน', MY_EVENTS.filter((e) => e.rosterDue).length, 'เกินกำหนดแล้ว', { valueCls: 'text-red-500' });
 
   const stMap = {
     ongoing: statusBadge('ready', 'กำลังจัด'),
-    ended: statusBadge('pending', 'จบแล้ว — รอส่งรายชื่อ'),
+    ended: statusBadge('pending', 'จบแล้ว — รอยืนยันรายชื่อ'),
     upcoming: statusBadge('open', 'กำลังจะถึง'),
   };
   document.getElementById('lo-events').innerHTML = MY_EVENTS.map((e) => `
@@ -78,7 +78,7 @@
         ${stMap[e.status]}
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
-        ${e.status === 'ended' ? `<button onclick="showToast('ส่งรายชื่อให้งานทะเบียนแล้ว (จำลอง)')" class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-800 rounded-lg px-3 py-1.5 transition">ส่งรายชื่อ</button>` : ''}
+        ${e.status === 'ended' ? `<button onclick="showToast('ยืนยันรายชื่อกิจกรรมนี้เรียบร้อยแล้ว (จำลอง)')" class="text-xs font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg px-3 py-1.5 transition">${icon('check-circle', 'w-3.5 h-3.5')} ยืนยันรายชื่อ</button>` : ''}
         ${e.status === 'ongoing' ? `<a href="field-staff-home.html" class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-800 rounded-lg px-3 py-1.5 transition">ดูหน้างาน</a>` : ''}
         ${e.gps ? `<a href="registrar-event-form.html" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ตั้งค่า GPS</a>` : ''}
         <button onclick="showToast('เปิดรายชื่อผู้เข้าร่วม (จำลอง)', 'info')" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition">ดูผู้เข้าร่วม</button>

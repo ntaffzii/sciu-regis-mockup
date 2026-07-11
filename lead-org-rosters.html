@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ยืนยันรายชื่อ — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="lead-org-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">ยืนยันรายชื่อ</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ยืนยันรายชื่อผู้เข้าร่วม</h1>
+        <p class="text-sm text-slate-500 mt-1">กิจกรรมที่จบแล้ว — กรุณายืนยันรายชื่อที่เช็คอินภายใน 3 วัน</p>
+      </div>
+    </div>
+
+    <!-- Alert banner -->
+    <div id="overdue-banner" class="border-l-4 border-red-400 bg-red-50 p-3 rounded-r-xl flex items-start gap-2.5">
+      <span class="text-red-600 mt-0.5">${''}</span>
+      <p class="text-xs text-red-800">
+        มี <strong>1</strong> กิจกรรมที่เกินกำหนดยืนยันรายชื่อแล้ว — ระบบจะแจ้ง Registrar ผ่าน Slack หากยังไม่ยืนยัน
+      </p>
+    </div>
+    <script>
+      // Fix the banner icon after DOM ready
+      document.addEventListener('DOMContentLoaded', function() {
+        const banner = document.getElementById('overdue-banner');
+        if (banner) {
+          const iconSpan = banner.querySelector('span');
+          if (iconSpan) iconSpan.innerHTML = icon('alert-triangle', 'w-4 h-4');
+        }
+      });
+    </script>
+
+    <!-- Select event -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-slate-700" for="roster-event">เลือกกิจกรรมที่จบแล้ว</label>
+        <select id="roster-event" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <option value="">-- กรุณาเลือกกิจกรรม --</option>
+          <option value="1">ปลูกป่าชายเลนเฉลิมพระเกียรติ (8 ก.ค. 2569) — ⚠️ เกินกำหนด 2 วัน</option>
+          <option value="2">อบรมปฐมพยาบาล CPR (28 มิ.ย. 2569)</option>
+          <option value="3">บริจาคโลหิต สภากาชาดไทย (5 มิ.ย. 2569)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Roster table + confirm -->
+    <div id="roster-detail" class="hidden space-y-4">
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-800" id="roster-title">กิจกรรม: <span id="roster-name"></span></h2>
+          <span class="text-xs text-slate-400">เช็คอินแล้ว <span id="roster-count" class="font-mono font-semibold"></span> คน</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead><tr class="border-b border-slate-100 bg-slate-50/50">
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ลำดับ</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รหัสนักศึกษา</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">วิธีเช็คอิน</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">เวลา</th>
+            </tr></thead>
+            <tbody id="roster-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 justify-end">
+        <button id="btn-reject" class="py-2.5 px-6 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition">แจ้งปัญหา</button>
+        <button id="btn-confirm" class="inline-flex items-center gap-2 py-2.5 px-6 bg-green-700 text-white text-sm font-medium rounded-xl hover:bg-green-800 transition shadow-lg shadow-green-700/20">
+          <span id="ic-confirm"></span> ยืนยันรายชื่อ
+        </button>
+      </div>
+    </div>
+
+    <div id="roster-empty" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="py-12 text-center">
+        <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-300" id="ic-empty-start"></div>
+        <p class="text-sm text-slate-400">เลือกกิจกรรมจาก dropdown ด้านบนเพื่อดูรายชื่อที่ต้องยืนยัน</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ role: 'lead-org', active: 'lead-org-rosters.html', title: 'ยืนยันรายชื่อ' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-confirm').innerHTML = icon('check-circle', 'w-5 h-5');
+  document.getElementById('ic-empty-start').innerHTML = icon('file-text', 'w-7 h-7');
+
+  const ROSTER_DATA = {
+    1: {
+      name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ',
+      students: [
+        { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '08:23 น.' },
+        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '08:30 น.' },
+        { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Master Code', time: '09:15 น.' },
+        { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '08:45 น.' },
+        { code: '66114400127', name: 'ปิติ ยินดี', method: 'Selfie', time: '09:00 น.' },
+        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'GPS', time: '08:50 น.' },
+        { code: '66114400129', name: 'ดวงเดือน ศรีสุข', method: 'GPS', time: '08:55 น.' },
+        { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'Master Code', time: '09:30 น.' },
+        { code: '66114400131', name: 'กมล ขยันยิ่ง', method: 'GPS', time: '09:10 น.' },
+        { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '08:40 น.' },
+      ]
+    },
+    2: {
+      name: 'อบรมปฐมพยาบาล CPR',
+      students: [
+        { code: '66114400123', name: 'สมชาย ใจดี', method: 'Selfie', time: '09:00 น.' },
+        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'Selfie', time: '09:05 น.' },
+        { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Selfie', time: '09:10 น.' },
+        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Selfie', time: '09:20 น.' },
+      ]
+    },
+    3: {
+      name: 'บริจาคโลหิต สภากาชาดไทย',
+      students: [
+        { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '10:00 น.' },
+        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '10:15 น.' },
+        { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '10:30 น.' },
+        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '10:45 น.' },
+        { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '11:00 น.' },
+      ]
+    }
+  };
+
+  const methodBadge = {
+    'GPS': statusBadge('ready', 'GPS'),
+    'Selfie': statusBadge('open', 'Selfie'),
+    'Master Code': statusBadge('pending', 'Master Code'),
+  };
+
+  document.getElementById('roster-event').addEventListener('change', function() {
+    const val = this.value;
+    if (!val) {
+      document.getElementById('roster-detail').classList.add('hidden');
+      document.getElementById('roster-empty').classList.remove('hidden');
+      return;
+    }
+    const data = ROSTER_DATA[val];
+    if (!data) return;
+    
+    document.getElementById('roster-detail').classList.remove('hidden');
+    document.getElementById('roster-empty').classList.add('hidden');
+    document.getElementById('roster-name').textContent = data.name;
+    document.getElementById('roster-count').textContent = data.students.length;
+    
+    document.getElementById('roster-table-body').innerHTML = data.students.map((s, i) => `
+      <tr class="hover:bg-slate-50/50 transition">
+        <td class="px-4 py-3 text-sm text-slate-500 font-mono">${i + 1}</td>
+        <td class="px-4 py-3 text-sm font-mono text-slate-800">${s.code}</td>
+        <td class="px-4 py-3 text-sm text-slate-800">${s.name}</td>
+        <td class="px-4 py-3 text-center">${methodBadge[s.method] || statusBadge('info', s.method)}</td>
+        <td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">${s.time}</td>
+      </tr>`).join('');
+  });
+
+  document.getElementById('btn-confirm').addEventListener('click', function() {
+    const val = document.getElementById('roster-event').value;
+    if (!val) return;
+    const data = ROSTER_DATA[val];
+    showConfirmDialog({
+      title: 'ยืนยันรายชื่อผู้เข้าร่วม',
+      message: `กิจกรรม "${data.name}"`,
+      bullets: [
+        `ยืนยันว่ารายชื่อ ${data.students.length} คนที่เช็คอินถูกต้องครบถ้วน`,
+        'เมื่อยืนยันแล้ว Registrar จะสามารถ Export รายชื่อนี้ไปยัง UBU SAC ได้',
+        'บันทึกการยืนยันลง Audit Log',
+      ],
+      confirmText: 'ยืนยันรายชื่อ',
+      onConfirm: () => {
+        showToast(`ยืนยันรายชื่อกิจกรรม "${data.name}" เรียบร้อยแล้ว`);
+        document.getElementById('roster-event').value = '';
+        document.getElementById('roster-detail').classList.add('hidden');
+        document.getElementById('roster-empty').classList.remove('hidden');
+      },
+    });
+  });
+
+  document.getElementById('btn-reject').addEventListener('click', function() {
+    showConfirmDialog({
+      title: 'แจ้งปัญหาเรื่องรายชื่อ',
+      message: 'แจ้ง Registrar ว่ามีปัญหาเกี่ยวกับรายชื่อผู้เข้าร่วม',
+      tone: 'danger',
+      requireReason: true,
+      reasonLabel: 'รายละเอียดปัญหา (แจ้ง Registrar)',
+      confirmText: 'แจ้งปัญหา',
+      onConfirm: (reason) => {
+        showToast('แจ้งปัญหาไปยัง Registrar แล้ว (จำลอง)', 'warning');
+      },
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>กิจกรรมของฉัน — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="lead-org-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">กิจกรรมของฉัน</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">กิจกรรมของฉัน</h1>
+        <p class="text-sm text-slate-500 mt-1">รายการกิจกรรมทั้งหมดที่คุณจัด</p>
+      </div>
+      <a href="registrar-event-form.html" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" id="btn-create">สร้างกิจกรรมใหม่</a>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="flex flex-wrap gap-2" id="filter-tabs">
+      <button data-filter="all" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-800 transition">ทั้งหมด</button>
+      <button data-filter="upcoming" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">กำลังจะถึง</button>
+      <button data-filter="ongoing" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">กำลังจัด</button>
+      <button data-filter="ended" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">จบแล้ว</button>
+    </div>
+
+    <div id="events" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div id="lo-events" class="divide-y divide-slate-50"></div>
+    </div>
+
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script>
+  renderShell({ role: 'lead-org', active: 'lead-org-my-events.html', title: 'กิจกรรมของฉัน' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('btn-create').insertAdjacentHTML('afterbegin', icon('plus', 'w-4 h-4'));
+
+  const MY_EVENTS = [
+    { name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', status: 'ongoing', date: '2–3 ก.ค. 2569', joined: 51, total: 55, gps: true },
+    { name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ', status: 'ended', date: '8 ก.ค. 2569', joined: 36, total: 40, gps: false },
+    { name: 'Science Open House 2569', status: 'upcoming', date: '15 ก.ค. 2569', joined: 0, total: 250, gps: true },
+    { name: 'ค่ายอาสาพัฒนาโรงเรียนบ้านดอนงัว', status: 'ongoing', date: '20–22 ก.ค. 2569', joined: 28, total: 30, gps: true },
+    { name: 'อบรมปฐมพยาบาล CPR', status: 'ended', date: '28 มิ.ย. 2569', joined: 74, total: 80, gps: false },
+  ];
+
+  let currentFilter = 'all';
+
+  function renderEvents() {
+    const filtered = currentFilter === 'all' ? MY_EVENTS : MY_EVENTS.filter(e => e.status === currentFilter);
+    const stMap = {
+      ongoing: statusBadge('ready', 'กำลังจัด'),
+      ended: statusBadge('pending', 'จบแล้ว'),
+      upcoming: statusBadge('open', 'กำลังจะถึง'),
+    };
+    document.getElementById('lo-events').innerHTML = filtered.length ? filtered.map(e => `
+      <div class="px-5 py-4">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-slate-800">${e.name}</p>
+            <p class="text-xs text-slate-400 mt-0.5">${e.date} • เช็คอินแล้ว <span class="font-mono">${e.joined}/${e.total}</span> คน</p>
+          </div>
+          ${stMap[e.status]}
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${e.status === 'ended' ? `<a href="lead-org-rosters.html" class="text-xs font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1">${icon('check-circle', 'w-3.5 h-3.5')} ยืนยันรายชื่อ</a>` : ''}
+          ${e.status === 'ongoing' ? `<a href="field-staff-home.html" class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-800 rounded-lg px-3 py-1.5 transition">ดูหน้างาน</a>` : ''}
+          ${e.gps ? `<a href="registrar-event-form.html" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ตั้งค่า GPS</a>` : ''}
+          <button onclick="showToast('เปิดรายชื่อผู้เข้าร่วม (จำลอง)', 'info')" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition">ดูผู้เข้าร่วม</button>
+        </div>
+      </div>`).join('') : emptyState('ไม่พบกิจกรรมที่ตรงกับเงื่อนไข');
+  }
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.className = 'filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+      });
+      this.className = 'filter-btn px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-800 transition';
+      currentFilter = this.dataset.filter;
+      renderEvents();
+    });
+  });
+
+  renderEvents();
+</script>
+</body>
+</html>
