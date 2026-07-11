@@ -55,6 +55,29 @@
         </div>
       </div>
 
+      <!-- UBU SAC Excel Template Settings -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2"><span id="ic-excel"></span> เทมเพลต Excel สำหรับ UBU SAC (FR-A1)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700">อัปโหลดเทมเพลตใหม่ (.xlsx)</label>
+            <div class="flex items-center gap-2">
+              <input id="set-template-file" type="file" accept=".xlsx" class="hidden">
+              <button type="button" id="btn-upload-template" class="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl hover:bg-slate-50 transition">
+                <span id="ic-upload"></span> เลือกไฟล์...
+              </button>
+              <span id="template-file-name" class="text-sm text-slate-500 font-mono truncate">UBU_SAC_Default_Template.xlsx</span>
+            </div>
+            <p class="text-xs text-slate-400" id="template-upload-time">อัปโหลดเมื่อ: 2026-07-01 10:30</p>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700" for="set-template-columns">การกำหนดคอลัมน์นำส่ง (คั่นด้วยเครื่องหมายจุลภาค ,)</label>
+            <input id="set-template-columns" type="text" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            <p class="text-xs text-slate-400">ลำดับฟิลด์ที่ส่งออก (FR-A2): รหัสนักศึกษา, ชื่อ, นามสกุล, หน่วยกิต</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Fallback email -->
       <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
         <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2"><span id="ic-mail"></span> อีเมลติดต่อเจ้าหน้าที่ (Fallback)</h2>
@@ -79,6 +102,8 @@
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-slack').innerHTML = icon('slack', 'w-4 h-4');
   document.getElementById('ic-mcp').innerHTML = icon('settings', 'w-4 h-4');
+  document.getElementById('ic-excel').innerHTML = icon('file-text', 'w-4 h-4');
+  document.getElementById('ic-upload').innerHTML = icon('upload-cloud', 'w-4 h-4');
   document.getElementById('ic-mail').innerHTML = icon('mail', 'w-4 h-4');
   document.getElementById('ic-save').innerHTML = icon('check', 'w-5 h-5');
   document.getElementById('ic-eye').innerHTML = icon('eye', 'w-4 h-4');
