@@ -32,13 +32,23 @@
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" id="sh-progress"></div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- ซ้าย: กิจกรรมเปิดรับ -->
-      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 class="text-base font-semibold text-slate-800">กิจกรรมที่กำลังเปิดรับ</h2>
-          <a href="student-checkin.html" class="text-xs font-medium text-blue-600 hover:underline">ไปหน้าเช็คอิน</a>
+      <!-- ซ้าย: กิจกรรมที่ลงทะเบียนไว้ + กิจกรรมเปิดกว้าง -->
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">กิจกรรมที่ลงทะเบียนไว้</h2>
+            <a href="event-list.html" class="text-xs font-medium text-blue-600 hover:underline">ดูกิจกรรมทั้งหมด</a>
+          </div>
+          <div id="sh-registered" class="divide-y divide-slate-50"></div>
         </div>
-        <div id="sh-events" class="divide-y divide-slate-50"></div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">กิจกรรมเปิดกว้าง</h2>
+            <span class="text-[10px] text-slate-400">สะสมได้สูงสุด 12 หน่วย/ปีการศึกษา</span>
+          </div>
+          <div id="sh-open-category" class="divide-y divide-slate-50"></div>
+        </div>
       </div>
 
       <!-- ขวา: ประวัติ + สถิติ + LINE -->
