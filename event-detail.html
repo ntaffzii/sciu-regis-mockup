@@ -15,6 +15,8 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
@@ -211,16 +213,17 @@
 
           staffManagerCard +
 
+          '<!-- Event Map (GPS Check-in area) — เฉพาะกิจกรรมที่เปิดใช้ GPS ไม่แสดงพิกัดดิบ -->' +
+          (ev.gps ?
+          '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-3">' +
+            '<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">' + icon('map-pin', 'w-4 h-4 text-blue-600') + 'แผนที่กิจกรรม (พื้นที่เช็คอิน GPS)</h3>' +
+            '<div id="event-map" class="w-full h-56 rounded-2xl overflow-hidden border border-slate-100 bg-slate-100"></div>' +
+            '<p class="text-[10px] text-slate-400 text-center leading-relaxed">พื้นที่วงกลมสีน้ำเงินคือขอบเขตที่นักศึกษาเช็คอินด้วย GPS ได้จริง</p>' +
+          '</div>' : '') +
+
           '<!-- Actions -->' +
           '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-3">' +
             registerBtn +
-            (ev.gps ? 
-            '<div class="space-y-2 pt-2">' +
-              '<a href="event-gps.html?id=' + ev.id + '" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-semibold rounded-xl transition shadow shadow-blue-500/10">' +
-                icon('map-pin', 'w-4 h-4') + 'ดูแผนที่เช็คอิน GPS' +
-              '</a>' +
-              '<p class="text-[10px] text-slate-400 text-center font-mono">' + ev.lat + ', ' + ev.lng + ' · รัศมี ' + ev.radius + ' ม.</p>' +
-            '</div>' : '') +
             '<div class="pt-2 border-t border-slate-100">' +
               '<a href="event-list.html" class="block w-full py-2.5 border border-slate-200 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-50 transition text-center">ย้อนกลับไปหน้ากิจกรรม</a>' +
             '</div>' +
@@ -230,6 +233,52 @@
 
     document.getElementById('detail-content').innerHTML = html;
     document.title = ev.name + ' — SciU-Regis';
+
+    if (ev.gps) renderEventMap(ev);
+  }
+
+  /* แผนที่กิจกรรม (ฝัง Leaflet ในหน้ารายละเอียดโดยตรง — ไม่มีหน้า event-gps.html แยกแล้ว)
+   * แสดงเฉพาะแผนที่ + วงกลมรัศมีเช็คอิน ไม่แสดงตัวเลขพิกัด GPS ดิบ */
+  function renderEventMap(ev) {
+    var mapEl = document.getElementById('event-map');
+    if (!mapEl || typeof L === 'undefined') return;
+
+    var map = L.map('event-map', {
+      center: [ev.lat, ev.lng],
+      zoom: 16,
+      scrollWheelZoom: false,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+
+    var mapIcon = L.divIcon({
+      html: '<div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg border-2 border-white" style="box-shadow: 0 0 0 4px rgba(37,99,235,0.2);">' +
+        '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>',
+      className: '',
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+
+    L.marker([ev.lat, ev.lng], { icon: mapIcon }).addTo(map)
+      .bindPopup('<div class="text-sm font-sans" style="font-family:Sarabun,Inter,sans-serif"><p class="font-bold text-slate-800">' + ev.name + '</p><p class="text-xs text-slate-500 mt-0.5">' + (ev.location || '') + '</p></div>');
+
+    var circle = L.circle([ev.lat, ev.lng], {
+      radius: ev.radius,
+      color: '#2563eb',
+      fillColor: '#2563eb',
+      fillOpacity: 0.08,
+      weight: 2,
+      dashArray: '6, 4',
+    }).addTo(map);
+
+    map.fitBounds(circle.getBounds().pad(0.3));
+
+    // แผนที่ในการ์ดเล็กมักเรนเดอร์ก่อน layout เสร็จ ทำให้ tile ผิดขนาด — สั่ง invalidateSize อีกครั้ง
+    setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
   function assignStaffFromDetail(eventId) {
