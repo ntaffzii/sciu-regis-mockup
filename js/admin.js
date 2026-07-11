@@ -20,6 +20,13 @@ const DEFAULT_USERS = [
   { id: 6, username: 'old.staff', name: 'บุคลากรเก่า ลาออกแล้ว', email: 'old.s@ubu.ac.th', roles: ['field_staff'], active: false },
 ];
 
+const DEFAULT_WHITELIST = [
+  { id: 101, type: 'student', studentCode: '66114400999', name: 'วันดี สมศรี', major: 'วิทยาการคอมพิวเตอร์', year: 2, roles: ['student'], connected: false },
+  { id: 102, type: 'staff', email: 'newstaff.demo@ubu.ac.th', name: 'ดร.สมเกียรติ เก่งวิทย์', roles: ['lead_org'], connected: false },
+  { id: 103, type: 'staff', email: 'director.science@ubu.ac.th', name: 'ผศ.ดร.กิตติเดช ปัญญาดี', roles: ['registrar', 'lead_org'], connected: false },
+  { id: 104, type: 'student', studentCode: '66114400123', name: 'สมชาย ใจดี', major: 'เทคโนโลยีสารสนเทศ', year: 3, roles: ['student'], connected: true }
+];
+
 const DEFAULT_AUDIT = [
   { time: '2026-07-10 10:23', user: 'admin.thanakorn', role: 'admin', action: 'user_created', detail: 'สร้างบัญชี keng.staff (Field Staff)' },
   { time: '2026-07-10 09:45', user: 'registrar.sombat', role: 'registrar', action: 'credit_adjusted', detail: 'แก้หน่วยกิต วิชัย เก่งกล้า 3.0 -> 2.0 เหตุผล: มาไม่ครบวันที่ 3' },
@@ -43,9 +50,11 @@ const DEFAULT_DOCS = [
 const AdminDB = {
   users: Store.get('adm-users', DEFAULT_USERS),
   docs: Store.get('adm-docs', DEFAULT_DOCS),
+  whitelist: Store.get('adm-whitelist', DEFAULT_WHITELIST),
   save() {
     Store.set('adm-users', this.users);
     Store.set('adm-docs', this.docs);
+    Store.set('adm-whitelist', this.whitelist);
   },
 };
 
@@ -217,6 +226,31 @@ function initSettingsPage() {
   document.getElementById('set-mcp').value = s.mcpEndpoints;
   document.getElementById('set-email').value = s.email;
 
+  const templateKey = 'excel-template';
+  const defaultTemplate = {
+    fileName: 'UBU_SAC_Default_Template.xlsx',
+    uploadedAt: '2026-07-01 10:30',
+    columns: ['รหัสนักศึกษา', 'ชื่อ', 'นามสกุล', 'หน่วยกิต']
+  };
+  const t = Store.get(templateKey, defaultTemplate);
+
+  document.getElementById('template-file-name').textContent = t.fileName;
+  document.getElementById('template-upload-time').textContent = `อัปโหลดเมื่อ: ${t.uploadedAt}`;
+  document.getElementById('set-template-columns').value = t.columns.join(', ');
+
+  // อัปโหลดไฟล์จำลอง
+  const fileInp = document.getElementById('set-template-file');
+  document.getElementById('btn-upload-template').addEventListener('click', () => fileInp.click());
+  fileInp.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      document.getElementById('template-file-name').textContent = file.name;
+      document.getElementById('template-upload-time').textContent = `อัปโหลดเมื่อ: ${nowStr} (ยังไม่ได้บันทึก)`;
+      showToast(`ตรวจพบเทมเพลต: ${file.name} เรียบร้อย (กดบันทึกเพื่อยืนยัน)`, 'info');
+    }
+  });
+
   document.getElementById('settings-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const token = document.getElementById('set-token').value.trim();
@@ -225,7 +259,24 @@ function initSettingsPage() {
       mcpEndpoints: document.getElementById('set-mcp').value.trim(),
       email: document.getElementById('set-email').value.trim(),
     });
-    showToast('บันทึกการตั้งค่าแล้ว — ค่า secret ถูกเข้ารหัส (AES-256-GCM) ก่อนเก็บ');
+
+    const columnsStr = document.getElementById('set-template-columns').value;
+    const columns = columnsStr.split(',').map(c => c.trim()).filter(Boolean);
+    const uploadedTimeLabel = document.getElementById('template-upload-time').textContent;
+    const isNewUpload = uploadedTimeLabel.includes('(ยังไม่ได้บันทึก)');
+    let finalUploadedAt = t.uploadedAt;
+    if (isNewUpload) {
+      finalUploadedAt = uploadedTimeLabel.replace('อัปโหลดเมื่อ: ', '').replace(' (ยังไม่ได้บันทึก)', '');
+    }
+
+    Store.set(templateKey, {
+      fileName: document.getElementById('template-file-name').textContent,
+      uploadedAt: finalUploadedAt,
+      columns: columns
+    });
+
+    document.getElementById('template-upload-time').textContent = `อัปโหลดเมื่อ: ${finalUploadedAt}`;
+    showToast('บันทึกการตั้งค่าระบบและเทมเพลต Excel แล้ว');
     document.getElementById('set-token').value = token ? '••••••••••••' + token.slice(-4) : '';
   });
 
@@ -240,19 +291,40 @@ function initAuditPage() {
   const logs = allAuditLogs();
   const users = [...new Set(logs.map((l) => l.user))];
   const actions = [...new Set(logs.map((l) => l.action))];
+  const roles = [...new Set(logs.map((l) => l.role).filter(Boolean))];
   document.getElementById('audit-user').innerHTML = '<option value="">ผู้ใช้ทั้งหมด</option>' + users.map((u) => `<option>${u}</option>`).join('');
   document.getElementById('audit-action').innerHTML = '<option value="">ทุกประเภทการกระทำ</option>' + actions.map((a) => `<option>${a}</option>`).join('');
-  ['audit-user', 'audit-action', 'audit-search'].forEach((id) =>
-    document.getElementById(id).addEventListener(id === 'audit-search' ? 'input' : 'change', renderAuditTable));
+  // FR-F5: กรองตาม role ด้วย ไม่ใช่แค่รายชื่อผู้ใช้รายบุคคล
+  const roleFilterEl = document.getElementById('audit-role');
+  if (roleFilterEl) {
+    roleFilterEl.innerHTML = '<option value="">ทุกบทบาท (Role)</option>'
+      + roles.map((r) => `<option value="${r}">${(ROLE_LABELS[r] || { text: r }).text}</option>`).join('');
+  }
+  ['audit-user', 'audit-action', 'audit-role', 'audit-date-from', 'audit-date-to'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderAuditTable);
+  });
+  const searchEl = document.getElementById('audit-search');
+  if (searchEl) searchEl.addEventListener('input', renderAuditTable);
   renderAuditTable();
 }
 
 function renderAuditTable() {
   const user = document.getElementById('audit-user').value;
   const action = document.getElementById('audit-action').value;
+  const role = document.getElementById('audit-role')?.value || '';
+  const dateFrom = document.getElementById('audit-date-from')?.value || '';
+  const dateTo = document.getElementById('audit-date-to')?.value || '';
   const q = (document.getElementById('audit-search').value || '').toLowerCase();
-  const list = allAuditLogs().filter((l) =>
-    (!user || l.user === user) && (!action || l.action === action) && (!q || (l.detail + l.action).toLowerCase().includes(q)));
+  const list = allAuditLogs().filter((l) => {
+    const logDate = l.time.slice(0, 10); // YYYY-MM-DD
+    return (!user || l.user === user)
+      && (!action || l.action === action)
+      && (!role || l.role === role)
+      && (!dateFrom || logDate >= dateFrom)
+      && (!dateTo || logDate <= dateTo)
+      && (!q || (l.detail + l.action).toLowerCase().includes(q));
+  });
 
   document.getElementById('audit-count').textContent = `${list.length} รายการ`;
   document.getElementById('audit-table').innerHTML = list.length ? `
@@ -363,14 +435,26 @@ function initKnowledgePage() {
   dz.addEventListener('drop', (e) => {
     e.preventDefault();
     dz.classList.remove('border-blue-500', 'bg-blue-50/40');
-    if (e.dataTransfer.files.length) uploadKbDoc(e.dataTransfer.files[0].name);
+    if (e.dataTransfer.files.length) acceptKbFile(e.dataTransfer.files[0]);
   });
-  fi.addEventListener('change', () => { if (fi.files.length) uploadKbDoc(fi.files[0].name); });
+  fi.addEventListener('change', () => { if (fi.files.length) acceptKbFile(fi.files[0]); });
   renderKbTable();
 }
 
-function uploadKbDoc(name) {
-  const doc = { id: Date.now(), name, size: (Math.random() * 15 + 1).toFixed(1) + ' MB', uploaded: new Date().toISOString().slice(0, 10), status: 'processing', ocr: false, chunks: 0, text: `[ข้อความที่แกะออกมาแบบอัตโนมัติจากไฟล์ใหม่ "${name}"]\nข้อมูลแนวทางส่งเสริมการเรียนรู้และการพัฒนาทักษะวิชาการ/บำเพ็ญสาธารณประโยชน์สำหรับสโมสรนักศึกษา ม.อุบลราชธานี ประจำปีการศึกษา 2569` };
+/* FR-F8: ไฟล์ PDF เข้าฐานความรู้ต้องไม่เกิน 15 MB — เช็คจริงจาก file.size ไม่ใช่แค่ข้อความในหน้าเว็บ */
+const MAX_KB_FILE_MB = 15;
+function acceptKbFile(file) {
+  const maxBytes = MAX_KB_FILE_MB * 1024 * 1024;
+  if (file.size > maxBytes) {
+    showToast(`ไฟล์ "${file.name}" ขนาด ${(file.size / 1024 / 1024).toFixed(1)} MB เกินเพดาน ${MAX_KB_FILE_MB} MB — กรุณาเลือกไฟล์ใหม่`, 'error');
+    return;
+  }
+  uploadKbDoc(file.name, file.size);
+}
+
+function uploadKbDoc(name, sizeBytes) {
+  const sizeLabel = sizeBytes ? (sizeBytes / 1024 / 1024).toFixed(1) + ' MB' : (Math.random() * 15 + 1).toFixed(1) + ' MB';
+  const doc = { id: Date.now(), name, size: sizeLabel, uploaded: new Date().toISOString().slice(0, 10), status: 'processing', ocr: false, chunks: 0, text: `[ข้อความที่แกะออกมาแบบอัตโนมัติจากไฟล์ใหม่ "${name}"]\nข้อมูลแนวทางส่งเสริมการเรียนรู้และการพัฒนาทักษะวิชาการ/บำเพ็ญสาธารณประโยชน์สำหรับสโมสรนักศึกษา ม.อุบลราชธานี ประจำปีการศึกษา 2569` };
   AdminDB.docs.unshift(doc);
   AdminDB.save();
   renderKbTable();
@@ -522,5 +606,250 @@ function viewKbDocText(id) {
     close();
     showToast(`บันทึกการแก้ไขข้อความ RAG และปรับโครงสร้าง pgvector สำหรับ "${d.name}" สำเร็จ`);
     renderKbTable();
+  });
+}
+
+/* ---------------- Whitelist / Roster Management Functions ---------------- */
+function renderWhitelistTable() {
+  const q = (document.getElementById('user-search').value || '').toLowerCase();
+  const list = AdminDB.whitelist.filter((w) => 
+    (w.name + (w.studentCode || '') + (w.email || '')).toLowerCase().includes(q)
+  );
+
+  document.getElementById('users-table').innerHTML = list.length ? `
+    <table class="w-full">
+      <thead><tr class="border-b border-slate-100 bg-slate-50/50">
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ประเภท</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">คีย์ระบุตัวตน</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รายละเอียด / สิทธิ์</th>
+        <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ผูก Google OAuth</th>
+        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ดำเนินการ</th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        ${list.map((w) => `
+          <tr class="hover:bg-slate-50/50 transition">
+            <td class="px-4 py-3 whitespace-nowrap">
+              ${w.type === 'student' 
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">Student Roster</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200">Staff Whitelist</span>'}
+            </td>
+            <td class="px-4 py-3 font-mono text-sm text-slate-700">
+              ${w.type === 'student' ? w.studentCode : w.email}
+            </td>
+            <td class="px-4 py-3 text-sm text-slate-800 font-medium">${w.name}</td>
+            <td class="px-4 py-3">
+              ${w.type === 'student' 
+                ? `<span class="text-xs text-slate-500">${w.major} (ชั้นปีที่ ${w.year})</span>`
+                : `<div class="flex flex-wrap gap-1">${w.roles.map(roleBadge).join('')}</div>`}
+            </td>
+            <td class="px-4 py-3 text-center">
+              ${w.connected 
+                ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">' + icon('check', 'w-3 h-3 mr-1') + 'เชื่อมโยงแล้ว</span>' 
+                : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">รอเข้าใช้งานครั้งแรก</span>'}
+            </td>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-1">
+              <button onclick="openWhitelistModal(${w.id})" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold">${icon('edit', 'w-3.5 h-3.5')} แก้ไข</button>
+              <button onclick="deleteWhitelistItem(${w.id})" class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold">${icon('trash-2', 'w-3.5 h-3.5')} ลบ</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>` : emptyState('ไม่พบข้อมูล Whitelist/Roster ล่วงหน้า', 'users');
+}
+
+function deleteWhitelistItem(id) {
+  const w = AdminDB.whitelist.find((x) => x.id === id);
+  if (!w) return;
+  showConfirmDialog({
+    title: `ลบสิทธิ์เชื่อมโยงล่วงหน้า?`,
+    bullets: [
+      `ข้อมูลของ ${w.name} จะถูกนำออกจากรายการ Whitelist`,
+      w.type === 'student' ? `นักศึกษารหัส ${w.studentCode} จะไม่สามารถผูกบัญชี Google เพื่อล็อกอินได้` : `เจ้าหน้าที่อีเมล ${w.email} จะล็อกอินไม่ได้`,
+      'ไม่มีผลกระทบต่อบัญชีที่ได้ทำการเชื่อมโยงเข้าใช้ไปก่อนหน้านี้แล้ว'
+    ],
+    tone: 'danger',
+    confirmText: 'ลบสิทธิ์ล่วงหน้า',
+    onConfirm: () => {
+      AdminDB.whitelist = AdminDB.whitelist.filter((x) => x.id !== id);
+      AdminDB.save();
+      showToast('ลบรายการ Whitelist เรียบร้อยแล้ว', 'warning');
+      renderWhitelistTable();
+    }
+  });
+}
+
+function openWhitelistModal(id) {
+  const w = id ? AdminDB.whitelist.find((x) => x.id === id) : null;
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
+  
+  overlay.innerHTML = `
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-900">${w ? 'แก้ไขข้อมูลสิทธิ์ล่วงหน้า' : 'เพิ่มรายชื่อลงทะเบียนสิทธิ์ล่วงหน้า'}</h3>
+        <button id="wm-modal-close" class="text-slate-400 hover:text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <!-- เลือกประเภท -->
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="wm-type">ประเภทผู้ใช้ที่จะได้รับสิทธิ์</label>
+        <select id="wm-type" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" ${w ? 'disabled' : ''}>
+          <option value="student" ${w && w.type === 'student' ? 'selected' : ''}>นักศึกษา (Student Roster)</option>
+          <option value="staff" ${w && w.type === 'staff' ? 'selected' : ''}>เจ้าหน้าที่ / คณาจารย์ (Staff Whitelist)</option>
+        </select>
+      </div>
+
+      <!-- ฟิลด์ชื่อและสกุล -->
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="wm-name">ชื่อ-นามสกุล</label>
+        <input id="wm-name" value="${w ? w.name : ''}" placeholder="สมเกียรติ ยิ่งดี" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+
+      <!-- ส่วนของนักศึกษา -->
+      <div id="wm-student-fields" class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="wm-code">รหัสนักศึกษา (11 หลัก)</label>
+          <input id="wm-code" value="${w ? w.studentCode || '' : ''}" placeholder="66114400123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-700" for="wm-major">สาขาวิชา</label>
+            <input id="wm-major" value="${w ? w.major || '' : ''}" placeholder="วิทยาการคอมพิวเตอร์" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-700" for="wm-year">ชั้นปี</label>
+            <input id="wm-year" type="number" min="1" max="6" value="${w ? w.year || 1 : 1}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          </div>
+        </div>
+      </div>
+
+      <!-- ส่วนของเจ้าหน้าที่ -->
+      <div id="wm-staff-fields" class="space-y-4 hidden">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="wm-email">อีเมลสโมสร/อาจารย์ (@ubu.ac.th)</label>
+          <input id="wm-email" value="${w ? w.email || '' : ''}" placeholder="somkiat.y@ubu.ac.th" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="space-y-1.5">
+          <p class="text-xs font-semibold text-slate-700">บทบาทสิทธิ์เจ้าหน้าที่ (เลือกได้หลายอย่าง)</p>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="registrar" ${w && w.roles && w.roles.includes('registrar') ? 'checked' : ''}>
+              <span class="text-xs font-medium text-slate-700">Registrar</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="lead_org" ${w && w.roles && w.roles.includes('lead_org') ? 'checked' : ''}>
+              <span class="text-xs font-medium text-slate-700">Lead Org</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="field_staff" ${w && w.roles && w.roles.includes('field_staff') ? 'checked' : ''}>
+              <span class="text-xs font-medium text-slate-700">Field Staff</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="admin" ${w && w.roles && w.roles.includes('admin') ? 'checked' : ''}>
+              <span class="text-xs font-medium text-slate-700">Admin</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button id="wm-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition text-sm">ยกเลิก</button>
+        <button id="wm-save" class="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg text-sm">บันทึกสิทธิ์</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const typeSelect = overlay.querySelector('#wm-type');
+  const studentFields = overlay.querySelector('#wm-student-fields');
+  const staffFields = overlay.querySelector('#wm-staff-fields');
+
+  function toggleFields() {
+    if (typeSelect.value === 'student') {
+      studentFields.classList.remove('hidden');
+      staffFields.classList.add('hidden');
+    } else {
+      studentFields.classList.add('hidden');
+      staffFields.classList.remove('hidden');
+    }
+  }
+
+  typeSelect.addEventListener('change', toggleFields);
+  toggleFields();
+
+  const close = () => overlay.remove();
+  overlay.querySelector('#wm-modal-close').addEventListener('click', close);
+  overlay.querySelector('#wm-cancel').addEventListener('click', close);
+  overlay.querySelector('#wm-save').addEventListener('click', () => {
+    const type = typeSelect.value;
+    const name = overlay.querySelector('#wm-name').value.trim();
+    
+    if (!name) {
+      showToast('กรุณาระบุชื่อ-นามสกุล', 'error');
+      return;
+    }
+
+    if (type === 'student') {
+      const code = overlay.querySelector('#wm-code').value.trim();
+      const major = overlay.querySelector('#wm-major').value.trim();
+      const year = parseInt(overlay.querySelector('#wm-year').value, 10);
+      
+      if (!code || code.length !== 11) {
+        showToast('กรุณากรอกรหัสนักศึกษาให้ครบ 11 หลัก', 'error');
+        return;
+      }
+
+      if (w) {
+        w.name = name;
+        w.studentCode = code;
+        w.major = major;
+        w.year = year;
+      } else {
+        AdminDB.whitelist.push({
+          id: Date.now(),
+          type: 'student',
+          studentCode: code,
+          name,
+          major: major || 'วิทยาการคอมพิวเตอร์',
+          year: year || 1,
+          roles: ['student'],
+          connected: false
+        });
+      }
+    } else {
+      const email = overlay.querySelector('#wm-email').value.trim();
+      const roles = [...overlay.querySelectorAll('.wm-role:checked')].map(cb => cb.value);
+
+      if (!email || !email.includes('@')) {
+        showToast('กรุณากรอกอีเมล @ubu.ac.th ให้ถูกต้อง', 'error');
+        return;
+      }
+      if (!roles.length) {
+        showToast('กรุณาเลือกบทบาทสิทธิ์เจ้าหน้าที่อย่างน้อย 1 บทบาท', 'error');
+        return;
+      }
+
+      if (w) {
+        w.name = name;
+        w.email = email;
+        w.roles = roles;
+      } else {
+        AdminDB.whitelist.push({
+          id: Date.now(),
+          type: 'staff',
+          email,
+          name,
+          roles,
+          connected: false
+        });
+      }
+    }
+
+    AdminDB.save();
+    close();
+    showToast(w ? 'ปรับปรุงข้อมูลสิทธิ์ล่วงหน้าสำเร็จ' : 'เพิ่มรายชื่อลงทะเบียนสิทธิ์ล่วงหน้าแล้ว');
+    renderWhitelistTable();
   });
 }
