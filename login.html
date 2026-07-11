@@ -17,75 +17,104 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css">
 </head>
-<body class="min-h-screen flex flex-col font-sans text-slate-900">
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
 
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8 flex items-center justify-center">
   <div class="w-full max-w-md mx-auto px-4 py-10">
     <div class="text-center mb-6">
       <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center mx-auto shadow-xl border border-slate-100" id="login-logo"></div>
-      <h1 class="mt-4 text-2xl font-bold tracking-tight">เข้าสู่ระบบ SciU-Regis</h1>
+      <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-800">เข้าสู่ระบบ SciU-Regis</h1>
       <p class="mt-1 text-sm text-slate-500">ระบบผู้ช่วยกิจกรรมนักศึกษาฯ คณะวิทยาศาสตร์ ม.อุบลฯ</p>
     </div>
 
-    <!-- Tabs -->
-    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-2xl mb-5" role="tablist">
-      <button id="tab-student" onclick="switchTab('student')" class="py-2.5 text-sm font-medium rounded-xl transition" role="tab">นักศึกษา</button>
-      <button id="tab-staff" onclick="switchTab('staff')" class="py-2.5 text-sm font-medium rounded-xl transition" role="tab">บุคลากร / เจ้าหน้าที่</button>
-    </div>
+    <!-- Unified Google Login Panel (Unified Google OAuth 2.0) -->
+    <div id="login-panel" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-md space-y-5">
+      <div class="text-center space-y-2">
+        <h2 class="text-lg font-semibold text-slate-700">เข้าใช้งานด้วยบัญชีมหาวิทยาลัย</h2>
+        <p class="text-xs text-slate-500 leading-relaxed">แอดมินระบบจะลงทะเบียนรายชื่อและอีเมลของนักศึกษาและบุคลากรไว้ล่วงหน้า ผู้ใช้เข้าใช้งานผ่าน Google Account ของ ม.อุบลฯ โดยไม่ต้องตั้งรหัสผ่านแยก</p>
+      </div>
 
-    <!-- Student: Google OAuth (docs/12) -->
-    <div id="pane-student" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-      <p class="text-sm text-slate-600 leading-relaxed">นักศึกษาเข้าสู่ระบบด้วยบัญชี Google ของมหาวิทยาลัย (<span class="font-mono text-xs">@ubu.ac.th</span>) — ระบบจะตรวจสอบรหัสนักศึกษาจากอีเมลอัตโนมัติ</p>
-      <button onclick="mockGoogleLogin()" class="w-full inline-flex items-center justify-center gap-3 py-3 border border-slate-300 rounded-xl font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition">
+      <button onclick="openGoogleAccountChooser()" class="w-full inline-flex items-center justify-center gap-3 py-3.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:shadow-sm active:bg-slate-100 transition duration-150">
         <svg class="w-5 h-5" viewBox="0 0 24 24" role="img" aria-label="Google">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0012 23z"/>
           <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 010-4.2V7.06H2.18a11 11 0 000 9.88l3.66-2.84z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A11 11 0 002.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        เข้าสู่ระบบด้วย Google
+        เข้าสู่ระบบด้วย Google Account
       </button>
-      <p class="text-xs text-slate-400 text-center">รองรับเฉพาะบัญชี Google ของมหาวิทยาลัยเท่านั้น</p>
-    </div>
-
-    <!-- Staff: username/password + role selector (mock) -->
-    <div id="pane-staff" class="hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <form onsubmit="mockStaffLogin(event)" class="space-y-4">
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="staff-user">ชื่อผู้ใช้</label>
-          <input id="staff-user" type="text" value="registrar.sombat" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="staff-pass">รหัสผ่าน</label>
-          <input id="staff-pass" type="password" value="password" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="staff-role">บทบาท (จำลองสำหรับ mock-up)</label>
-          <select id="staff-role" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-            <option value="registrar-home.html">Registrar (เจ้าหน้าที่ทะเบียน)</option>
-            <option value="lead-org-home.html">Lead Org (ผู้จัดกิจกรรม)</option>
-            <option value="field-staff-home.html">Field Staff (สตาฟหน้างาน)</option>
-            <option value="admin-home.html">Admin (ผู้ดูแลระบบ/IT)</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">เข้าสู่ระบบ</button>
-      </form>
+      <p class="text-[11px] text-slate-400 text-center">รองรับอีเมลโดเมน <span class="font-mono text-slate-500">@ubu.ac.th</span> หรือ <span class="font-mono text-slate-500">@sci.ubu.ac.th</span> เท่านั้น</p>
     </div>
 
     <!-- PDPA notice (docs/14 §4 — consent จุดสมัคร/ล็อกอินครั้งแรก) -->
     <div class="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 flex items-start gap-3">
       <span class="text-blue-500 shrink-0 mt-0.5" id="pdpa-icon"></span>
       <p class="text-xs text-blue-900/80 leading-relaxed">
-        การเข้าสู่ระบบครั้งแรกถือว่าคุณ<strong>ยินยอมให้ระบบเก็บ ชื่อ, อีเมล และรหัสนักศึกษา</strong>
+        การเข้าสู่ระบบครั้งแรกถือว่าคุณ<strong>ยินยอมให้ระบบเก็บชื่อ, อีเมล และรหัสนักศึกษา</strong>
         เพื่อใช้บันทึกชั่วโมงกิจกรรมตามภารกิจของคณะ (PDPA มาตรา 24)
         อ่านรายละเอียดใน <a href="#" class="underline font-medium">นโยบายความเป็นส่วนตัว</a>
-        — ความยินยอมเรื่อง Selfie และ LINE จะขอแยกต่างหากเมื่อใช้งานฟีเจอร์นั้น
+        — ความยินยอมเรื่องภาพถ่าย Geofencing และ LINE จะขอแยกตามฟีเจอร์เมื่อใช้งาน
       </p>
     </div>
 
-    <p class="mt-4 text-center"><a href="index.html" class="text-sm text-slate-400 hover:text-blue-600 transition inline-flex items-center gap-1" id="back-link">กลับหน้าแรก</a></p>
+    <p class="mt-6 text-center"><a href="index.html" class="text-sm text-slate-400 hover:text-blue-600 transition inline-flex items-center gap-1" id="back-link">กลับหน้าแรก</a></p>
   </div>
 </main>
+
+<!-- Mock Google Account Chooser Modal -->
+<div id="google-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0012 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 010-4.2V7.06H2.18a11 11 0 000 9.88l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A11 11 0 002.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span class="text-sm font-semibold text-slate-700">ลงชื่อเข้าใช้งานด้วย Google</span>
+      </div>
+      <button onclick="closeGoogleAccountChooser()" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+    </div>
+
+    <div class="text-xs text-slate-500 mb-2">เลือกบัญชีผู้ใช้จำลองของ ม.อุบลฯ เพื่อทดสอบระบบ (ดึงข้อมูลเรียลไทม์จากระบบ Whitelist):</div>
+
+    <div id="google-accounts-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+      <!-- จะถูกเรนเดอร์ไดนามิกผ่าน Javascript -->
+    </div>
+  </div>
+</div>
+
+<!-- Mock Student Verification Modal (First-time Login) -->
+<div id="verify-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+    <div class="text-center space-y-1">
+      <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mx-auto text-blue-600" id="verify-icon"></div>
+      <h3 class="text-lg font-bold text-slate-800 mt-2">ยืนยันตัวตนนิสิตใหม่</h3>
+      <p class="text-xs text-slate-500">ระบบพบการล็อกอินครั้งแรกผ่าน Google จำเป็นต้องผูกกับประวัติตะเบียนนักศึกษา (Roster) ที่แอดมินนำเข้าไว้</p>
+    </div>
+
+    <div class="space-y-3">
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-slate-500" for="v-code">รหัสนักศึกษา 11 หลัก</label>
+        <input id="v-code" type="text" placeholder="เช่น 66114400999" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-slate-500" for="v-name">ชื่อจริง (ภาษาไทยไม่ต้องมีคำนำหน้า)</label>
+        <input id="v-name" type="text" placeholder="เช่น วันดี" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      
+      <div class="bg-blue-50/50 p-2.5 rounded-lg text-[11px] text-blue-800 leading-relaxed border border-blue-100">
+        💡 <strong>คำแนะนำการทดสอบ:</strong> ป้อนรหัสและชื่อให้ตรงกับรายชื่อ Student Roster ที่ยังไม่เชื่อมต่อ (เช่น <code>66114400999</code> ชื่อ <code>วันดี</code>) เพื่อจำลองการเชื่อมต่อสิทธิ์ล่วงหน้าสำเร็จ
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button onclick="closeVerifyModal()" class="w-full py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">ยกเลิก</button>
+        <button onclick="submitStudentVerification()" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition">ผูกบัญชีและเข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="js/shared.js"></script>
 <script>
@@ -93,50 +122,287 @@
   document.getElementById('login-logo').innerHTML = '<img src="img/sci-faculty-2569.png" class="w-8 h-8 object-contain" alt="SciU-Regis">';
   document.getElementById('pdpa-icon').innerHTML = icon('shield', 'w-4 h-4');
   document.getElementById('back-link').insertAdjacentHTML('afterbegin', icon('arrow-left', 'w-4 h-4'));
+  document.getElementById('verify-icon').innerHTML = icon('user', 'w-5 h-5');
 
-  function switchTab(tab) {
-    const isStudent = tab === 'student';
-    document.getElementById('pane-student').classList.toggle('hidden', !isStudent);
-    document.getElementById('pane-staff').classList.toggle('hidden', isStudent);
-    document.getElementById('tab-student').className = 'py-2.5 text-sm font-medium rounded-xl transition ' + (isStudent ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700');
-    document.getElementById('tab-staff').className = 'py-2.5 text-sm font-medium rounded-xl transition ' + (!isStudent ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700');
+  // ข้อมูลจำลองผู้ใช้เริ่มต้น กรณีใน LocalStorage ยังว่างเปล่า
+  const DEFAULT_USERS_MOCK = [
+    { id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true },
+    { id: 2, username: 'registrar.sombat', name: 'สมบัติ วงศ์ทะเบียน', email: 'sombat.w@ubu.ac.th', roles: ['registrar', 'lead_org'], active: true },
+    { id: 3, username: 'wichai.lead', name: 'วิชัย จัดกิจกรรม', email: 'wichai.j@ubu.ac.th', roles: ['lead_org'], active: true },
+    { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['field_staff'], active: true },
+    { id: 5, username: 'somchai.ja', name: 'สมชาย ใจดี', email: 'somchai.ja@ubu.ac.th', roles: ['student'], active: true },
+  ];
+
+  const DEFAULT_WHITELIST_MOCK = [
+    { id: 101, type: 'student', studentCode: '66114400999', name: 'วันดี สมศรี', major: 'วิทยาการคอมพิวเตอร์', year: 2, roles: ['student'], connected: false },
+    { id: 102, type: 'staff', email: 'newstaff.demo@ubu.ac.th', name: 'ดร.สมเกียรติ เก่งวิทย์', roles: ['lead_org'], connected: false },
+    { id: 103, type: 'staff', email: 'director.science@ubu.ac.th', name: 'ผศ.ดร.กิตติเดช ปัญญาดี', roles: ['registrar', 'lead_org'], connected: false },
+    { id: 104, type: 'student', studentCode: '66114400123', name: 'สมชาย ใจดี', major: 'เทคโนโลยีสารสนเทศ', year: 3, roles: ['student'], connected: true }
+  ];
+
+  function getActiveUsers() {
+    return Store.get('adm-users', DEFAULT_USERS_MOCK);
   }
-  switchTab(new URLSearchParams(location.search).get('tab') === 'staff' ? 'staff' : 'student');
 
-  function mockGoogleLogin() {
-    // จำลองหน้า /auth/verify ของ Google OAuth (docs/12) + consent ครั้งแรก (docs/14 §4)
+  function getWhitelist() {
+    return Store.get('adm-whitelist', DEFAULT_WHITELIST_MOCK);
+  }
+
+  function openGoogleAccountChooser() {
+    renderGoogleAccounts();
+    document.getElementById('google-modal').classList.remove('hidden');
+  }
+
+  function closeGoogleAccountChooser() {
+    document.getElementById('google-modal').classList.add('hidden');
+  }
+
+  function closeVerifyModal() {
+    document.getElementById('verify-modal').classList.add('hidden');
+  }
+
+  function renderGoogleAccounts() {
+    const activeUsers = getActiveUsers().filter(u => u.active);
+    const whitelist = getWhitelist();
+    const container = document.getElementById('google-accounts-list');
+    container.innerHTML = '';
+
+    // 1. เรนเดอร์ผู้ใช้ปกติที่เชื่อมบัญชีแล้ว
+    activeUsers.forEach(u => {
+      let roleText = u.roles.join(' & ');
+      let badgeCls = 'bg-slate-100 text-slate-700';
+      if (u.roles.includes('admin')) badgeCls = 'bg-purple-100 text-purple-800';
+      else if (u.roles.includes('registrar')) badgeCls = 'bg-blue-100 text-blue-800';
+      else if (u.roles.includes('lead_org')) badgeCls = 'bg-amber-100 text-amber-800';
+      else if (u.roles.includes('field_staff')) badgeCls = 'bg-emerald-100 text-emerald-800';
+
+      const btn = document.createElement('button');
+      btn.className = 'w-full text-left p-3 hover:bg-slate-50 border border-slate-200 rounded-xl transition flex items-center justify-between';
+      btn.onclick = () => selectActiveAccount(u.id);
+      btn.innerHTML = `
+        <div>
+          <div class="text-xs font-semibold text-slate-800">${u.name}</div>
+          <div class="text-[10px] text-slate-500 font-mono">${u.email}</div>
+        </div>
+        <span class="px-2 py-0.5 text-[9px] font-semibold rounded-full ${badgeCls}">${roleText}</span>
+      `;
+      container.appendChild(btn);
+    });
+
+    // 2. เรนเดอร์เจ้าหน้าที่ใน Whitelist ที่ยังไม่ได้เข้าใช้
+    const pendingStaff = whitelist.filter(w => w.type === 'staff' && !w.connected);
+    pendingStaff.forEach(w => {
+      const btn = document.createElement('button');
+      btn.className = 'w-full text-left p-3 hover:bg-sky-50/50 border border-sky-200 bg-sky-50/20 rounded-xl transition flex items-center justify-between';
+      btn.onclick = () => selectWhitelistStaff(w.id);
+      btn.innerHTML = `
+        <div>
+          <div class="text-xs font-semibold text-sky-900">${w.name}</div>
+          <div class="text-[10px] text-sky-600 font-mono">${w.email}</div>
+        </div>
+        <span class="px-2 py-0.5 text-[9px] font-semibold bg-sky-100 text-sky-700 rounded-full">Whitelist: ${w.roles.join(', ')}</span>
+      `;
+      container.appendChild(btn);
+    });
+
+    // 3. ปุ่มสำหรับการเชื่อมต่อนักศึกษาใหม่ (First-time Roster login)
+    const btnFirstTime = document.createElement('button');
+    btnFirstTime.className = 'w-full text-left p-3 hover:bg-indigo-50 border border-indigo-200 rounded-xl transition flex items-center justify-between bg-indigo-50/20';
+    btnFirstTime.onclick = () => {
+      closeGoogleAccountChooser();
+      document.getElementById('verify-modal').classList.remove('hidden');
+    };
+    btnFirstTime.innerHTML = `
+      <div>
+        <div class="text-xs font-semibold text-indigo-900">นิสิตใหม่เข้าใช้งานครั้งแรก (Roster Verification)</div>
+        <div class="text-[10px] text-indigo-500 font-mono">new.student@ubu.ac.th</div>
+      </div>
+      <span class="px-2 py-0.5 text-[9px] font-semibold bg-indigo-100 text-indigo-800 rounded-full">First-time</span>
+    `;
+    container.appendChild(btnFirstTime);
+
+    // 4. ปุ่มสำหรับคนไม่มีสิทธิ์
+    const btnStranger = document.createElement('button');
+    btnStranger.className = 'w-full text-left p-3 hover:bg-red-50/50 border border-red-200 rounded-xl transition flex items-center justify-between bg-red-50/20';
+    btnStranger.onclick = () => {
+      closeGoogleAccountChooser();
+      showAlertDialog({
+        title: 'ล็อกอินล้มเหลว (Access Denied)',
+        message: 'ขออภัย บัญชีอีเมล stranger@gmail.com ไม่ได้รับสิทธิ์เข้าใช้งานระบบ SciU-Regis เนื่องจากไม่ได้อยู่ใน Whitelist ทะเบียนล่วงหน้าของคณะ กรุณาแจ้ง Registrar เพื่อทำการเพิ่มสิทธิ์ก่อนเข้าสู่ระบบ'
+      });
+    };
+    btnStranger.innerHTML = `
+      <div>
+        <div class="text-xs font-semibold text-red-900">บุคคลภายนอกทั่วไป</div>
+        <div class="text-[10px] text-red-500 font-mono">stranger@gmail.com</div>
+      </div>
+      <span class="px-2 py-0.5 text-[9px] font-semibold bg-red-100 text-red-700 rounded-full">Unauthorized</span>
+    `;
+    container.appendChild(btnStranger);
+  }
+
+  // เข้าสู่ระบบด้วยบัญชีผู้ใช้ปัจจุบันที่ active อยู่แล้ว
+  function selectActiveAccount(userId) {
+    closeGoogleAccountChooser();
+    const users = getActiveUsers();
+    const u = users.find(x => x.id === userId);
+    if (!u) return;
+
+    handleLoginRedirect(u);
+  }
+
+  // เข้าสู่ระบบด้วยบัญชี Whitelist เจ้าหน้าที่
+  function selectWhitelistStaff(whitelistId) {
+    closeGoogleAccountChooser();
+    const whitelist = getWhitelist();
+    const item = whitelist.find(x => x.id === whitelistId);
+    if (!item) return;
+
+    // 1. เพิ่มเข้าผู้ใช้งานจริง
+    const activeUsers = getActiveUsers();
+    const newUsername = item.email.split('@')[0];
+    const newUser = {
+      id: Date.now(),
+      username: newUsername,
+      name: item.name,
+      email: item.email,
+      roles: item.roles,
+      active: true
+    };
+    activeUsers.push(newUser);
+    Store.set('adm-users', activeUsers);
+
+    // 2. ปรับสถานะเชื่อมโยงสำเร็จใน whitelist
+    item.connected = true;
+    Store.set('adm-whitelist', whitelist);
+
+    showToast(`เชื่อมโยงสิทธิ์เจ้าหน้าที่สำเร็จสำหรับ ${item.email}`);
+    setTimeout(() => { handleLoginRedirect(newUser); }, 800);
+  }
+
+  // ฟังก์ชันสากลควบคุมการ Redirect ตามบทบาทผู้ใช้งาน (รองรับ Multi-role)
+  function handleLoginRedirect(user) {
+    if (user.roles.length > 1) {
+      // มีมากกว่า 1 บทบาท
+      let confirmText = 'พอร์ทัลทะเบียน (Registrar)';
+      let cancelText = 'พอร์ทัลผู้จัดกิจกรรม (Lead Org)';
+      if (user.roles.includes('admin')) {
+        confirmText = 'แผงแอดมิน (Admin)';
+        cancelText = 'พอร์ทัลทะเบียน (Registrar)';
+      }
+
+      showConfirmDialog({
+        title: 'พบบัญชีถือครองหลายบทบาท',
+        message: `บัญชี ${user.email} มีสิทธิ์ระดับ ${user.roles.join(', ')} กรุณาเลือกพอร์ทัลสิทธิ์การเข้าถึงหลักที่ต้องการใช้งาน:`,
+        confirmText: confirmText,
+        cancelText: cancelText,
+        onConfirm: () => {
+          if (user.roles.includes('admin')) {
+            Store.set('role', 'admin');
+            showToast('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ');
+            setTimeout(() => { location.href = 'admin-home.html'; }, 600);
+          } else {
+            Store.set('role', 'registrar');
+            showToast('เข้าสู่ระบบงานทะเบียนสำเร็จ');
+            setTimeout(() => { location.href = 'registrar-home.html'; }, 600);
+          }
+        },
+        onCancel: () => {
+          if (user.roles.includes('admin')) {
+            Store.set('role', 'registrar');
+            showToast('เข้าสู่ระบบงานทะเบียนสำเร็จ');
+            setTimeout(() => { location.href = 'registrar-home.html'; }, 600);
+          } else {
+            Store.set('role', 'lead-org');
+            showToast('เข้าสู่ระบบผู้จัดกิจกรรมสำเร็จ');
+            setTimeout(() => { location.href = 'lead-org-home.html'; }, 600);
+          }
+        }
+      });
+    } else {
+      // บทบาทเดียว
+      const primaryRole = user.roles[0];
+      Store.set('role', primaryRole === 'lead_org' ? 'lead-org' : primaryRole === 'field_staff' ? 'field-staff' : primaryRole);
+      
+      if (primaryRole === 'admin') {
+        showToast('เข้าสู่ระบบผู้ดูแลระบบ (Admin) สำเร็จ');
+        setTimeout(() => { location.href = 'admin-home.html'; }, 600);
+      } else if (primaryRole === 'registrar') {
+        showToast('เข้าสู่ระบบงานทะเบียน (Registrar) สำเร็จ');
+        setTimeout(() => { location.href = 'registrar-home.html'; }, 600);
+      } else if (primaryRole === 'lead_org') {
+        showToast('เข้าสู่ระบบผู้จัดงาน (Lead Org) สำเร็จ');
+        setTimeout(() => { location.href = 'lead-org-home.html'; }, 600);
+      } else if (primaryRole === 'field_staff') {
+        showToast('เข้าสู่ระบบสตาฟหน้างาน (Field Staff) สำเร็จ');
+        setTimeout(() => { location.href = 'field-staff-home.html'; }, 600);
+      } else if (primaryRole === 'student') {
+        showToast(`เข้าสู่ระบบสำเร็จ ยินดีต้อนรับนิสิต คุณ ${user.name}`);
+        setTimeout(() => { location.href = 'student-home.html'; }, 600);
+      }
+    }
+  }
+
+  // ส่งข้อมูลผูกประวัตินิสิตใหม่
+  function submitStudentVerification() {
+    const code = document.getElementById('v-code').value.trim();
+    const name = document.getElementById('v-name').value.trim();
+
+    if (!code || !name) {
+      showToast('กรุณากรอกรหัสนักศึกษาและชื่อจริงให้ครบถ้วน');
+      return;
+    }
+
+    if (!/^\d{11}$/.test(code)) {
+      showToast('รหัสนักศึกษาต้องเป็นตัวเลข 11 หลักเท่านั้น');
+      return;
+    }
+
+    // ค้นหารายชื่อนักศึกษาใน Whitelist
+    const whitelist = getWhitelist();
+    const item = whitelist.find(w => w.type === 'student' && w.studentCode === code);
+
+    if (!item) {
+      showAlertDialog({
+        title: 'ไม่พบข้อมูลในทะเบียน (Roster Match Failed)',
+        message: `ขออภัย ไม่พบข้อมูลนิสิตรหัสนักศึกษา ${code} ในบัญชีรายชื่อนำเข้าล่วงหน้าของคณะวิทยาศาสตร์ กรุณาตรวจสอบและลองใหม่อีกครั้ง หรือติดต่อผู้ช่วยแชทบอท SciU-Buddy เพื่อให้ registrar ตรวจสอบการบันทึกรายชื่อของคุณ`
+      });
+      return;
+    }
+
+    // ทำการผูกสิทธิ์
+    closeVerifyModal();
     showConfirmDialog({
-      title: 'ยืนยันการเข้าสู่ระบบครั้งแรก',
-      message: 'บัญชี: somchai.ja@ubu.ac.th (รหัสนักศึกษา 66114400123)',
-      bullets: [
-        'ยินยอมให้ระบบเก็บชื่อ, อีเมล และรหัสนักศึกษา เพื่อบันทึกชั่วโมงกิจกรรม',
-        'ข้อมูลจะไม่ถูกส่งให้ AI ภายนอกระบบ (ประมวลผลใน LLM ภายในเท่านั้น)',
-        'คุณถอนความยินยอมได้ตามสิทธิใน PDPA',
-      ],
-      confirmText: 'ยินยอม และเข้าสู่ระบบ',
+      title: 'ยินยอมข้อตกลงความเป็นส่วนตัว (PDPA Consent)',
+      message: `พบบัญชีประวัติทะเบียนนิสิต คุณ${item.name} ตรงกับรหัส ${code} คุณต้องการยืนยันเชื่อมโยง Google Account นี้เข้ากับโปรไฟล์เพื่อบันทึกและสะสมชั่วโมงกิจกรรมตาม PDPA หรือไม่`,
+      confirmText: 'ยินยอมและเชื่อมโยงบัญชี',
       onConfirm: () => {
+        // 1. ปรับสถานะ Whitelist
+        item.connected = true;
+        Store.set('adm-whitelist', whitelist);
+
+        // 2. เพิ่มเข้าบัญชีผู้ใช้ปกติ
+        const activeUsers = getActiveUsers();
+        if (!activeUsers.some(u => u.username === code)) {
+          activeUsers.push({
+            id: Date.now(),
+            username: code,
+            name: item.name,
+            email: 'new.student@ubu.ac.th',
+            roles: ['student'],
+            active: true
+          });
+          Store.set('adm-users', activeUsers);
+        }
+
         Store.set('consent:base', true);
-        Store.set('role', 'student');          // ← persist session role
-        showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับคุณสมชาย ใจดี');
+        Store.set('role', 'student');
+        showToast(`ผูกบัญชีสำเร็จ ยินดีต้อนรับนักศึกษาใหม่ คุณ ${item.name}`);
         setTimeout(() => { location.href = 'student-home.html'; }, 900);
-      },
+      }
     });
   }
-
-  function mockStaffLogin(e) {
-    e.preventDefault();
-    const dest = document.getElementById('staff-role').value;
-    // Map destination page to a role key and persist it to session
-    const roleMap = {
-      'registrar-home.html': 'registrar',
-      'lead-org-home.html': 'lead-org',
-      'field-staff-home.html': 'field-staff',
-      'admin-home.html': 'admin',
-    };
-    Store.set('role', roleMap[dest] || 'registrar');
-    showToast('เข้าสู่ระบบสำเร็จ');
-    setTimeout(() => { location.href = dest; }, 700);
-  }
 </script>
+
 </body>
 </html>
