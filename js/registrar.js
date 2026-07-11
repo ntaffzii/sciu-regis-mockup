@@ -64,12 +64,16 @@ const RegDB = {
   proofs: Store.get('proofs', DEFAULT_PROOFS),
   ledger: Store.get('ledger', DEFAULT_LEDGER),
   cycles: Store.get('cycles', DEFAULT_CYCLES),
+  // FR-C14: ยอดสะสมของปีการศึกษาก่อนหน้าต้องถูก archive (เก็บ snapshot จริง) ไม่ใช่แค่ metadata
+  // โครงสร้าง: { [year]: [ ...deep copy ของ ledger ตอนปิดรอบปีนั้น ] }
+  archivedLedgers: Store.get('archived-ledgers', {}),
   save() {
     Store.set('events', this.events);
     Store.set('students', this.students);
     Store.set('proofs', this.proofs);
     Store.set('ledger', this.ledger);
     Store.set('cycles', this.cycles);
+    Store.set('archived-ledgers', this.archivedLedgers);
   },
 };
 
@@ -86,31 +90,28 @@ function isValidStudentCode(code) { return /^\d{11}$/.test(code); }
 function pendingProofs() { return RegDB.proofs.filter((p) => p.status === 'pending'); }
 
 /* ---------------- Screen 1: Export Excel --------------------------------- */
+const EXCEL_TEMPLATE_KEY = 'excel-template';
+const DEFAULT_EXCEL_TEMPLATE = {
+  fileName: 'UBU_SAC_Default_Template.xlsx',
+  uploadedAt: '2026-07-01 10:30',
+  columns: ['รหัสนักศึกษา', 'ชื่อ', 'นามสกุล', 'หน่วยกิต']
+};
+
 function initExportPage() {
+  const t = Store.get(EXCEL_TEMPLATE_KEY, DEFAULT_EXCEL_TEMPLATE);
+
+  const activeNameEl = document.getElementById('active-template-name');
+  const activeColumnsEl = document.getElementById('active-template-columns');
+  if (activeNameEl) activeNameEl.textContent = t.fileName;
+  if (activeColumnsEl) activeColumnsEl.textContent = t.columns.join(', ');
+
   const sel = document.getElementById('export-event');
   sel.innerHTML = RegDB.events.map((e) => `<option value="${e.id}">${e.name} (${thDate(e.date)})</option>`).join('');
   sel.addEventListener('change', renderExportTable);
   document.getElementById('export-search').addEventListener('input', renderExportTable);
   renderExportTable();
 
-  document.getElementById('btn-export').addEventListener('click', () => {
-    const ev = currentExportEvent();
-    const invalid = RegDB.students.filter((s) => !isValidStudentCode(s.code)).length;
-    if (invalid) showToast(`ข้าม ${invalid} รายชื่อที่รหัสนักศึกษาไม่ผ่านเงื่อนไข (ต้องเป็นตัวเลข 11 หลัก)`, 'warning');
-    // จำลองไฟล์ .xlsx ด้วย CSV ง่ายๆ ให้กดดาวน์โหลดได้จริง
-    const rows = [['รหัสนักศึกษา', 'ชื่อ', 'นามสกุล', 'หน่วยกิต'],
-      ...RegDB.students.filter((s) => isValidStudentCode(s.code)).map((s) => [s.code, s.first, s.last, s.credits])];
-    const blob = new Blob(['﻿' + rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `UBUSAC_export_${ev.id}.csv`;
-    a.click();
-    ev.exportStatus = ev.exportStatus === 'confirmed' ? 'confirmed' : 'exported';
-    RegDB.save();
-    appendAudit('sac_export', `Export Excel กิจกรรม "${ev.name}"`);
-    showToast('สร้างไฟล์ Excel ตามฟอร์แมต UBU SAC แล้ว (จำลอง)');
-    renderExportTable();
-  });
+  document.getElementById('btn-export').addEventListener('click', attemptExport);
 
   document.getElementById('btn-confirm-import').addEventListener('click', () => {
     const ev = currentExportEvent();
@@ -140,10 +141,104 @@ function currentExportEvent() {
   return RegDB.events.find((e) => e.id === id);
 }
 
+/* FR-A5 + UC-R1 <<include>> UC-R9: ปุ่ม Export ต้อง (1) บล็อกทั้งหมดถ้ามีรหัสผิด
+ * (2) บังคับผ่านการตรวจสอบ/ล็อกหน่วยกิตกิจกรรมเปิดกว้างของปีปัจจุบันก่อนเสมอ */
+function attemptExport() {
+  const ev = currentExportEvent();
+  const invalid = RegDB.students.filter((s) => !isValidStudentCode(s.code));
+
+  if (invalid.length) {
+    showConfirmDialog({
+      title: 'ไม่สามารถ Export ได้ — พบรหัสนักศึกษาไม่ถูกต้อง',
+      tone: 'danger',
+      cancelText: 'ปิด',
+      confirmText: 'รับทราบ',
+      bullets: [
+        `พบ ${invalid.length} รายชื่อที่รหัสนักศึกษาไม่ผ่านเงื่อนไข (ต้องเป็นตัวเลข 11 หลัก): ${invalid.map((s) => `${s.code || '(ว่าง)'} (${s.first} ${s.last})`).join(', ')}`,
+        'ระบบจะ<strong>ไม่สร้างไฟล์ Excel</strong>จนกว่าจะแก้ไขรหัสนักศึกษาให้ถูกต้องครบทุกคน (FR-A5)',
+        'แก้ไขรหัสนักศึกษาที่ผิดในตารางด้านล่าง แล้วกด Export อีกครั้ง',
+      ],
+    });
+    return; // บล็อกทั้งหมด — ไม่สร้างไฟล์แม้แต่ของคนที่รหัสถูกต้อง
+  }
+
+  const currentCycleYear = RegDB.cycles[0].year;
+  const lockRunYear = Store.get('quota-lock-run-year', null);
+  if (lockRunYear !== currentCycleYear) {
+    showConfirmDialog({
+      title: 'ต้องตรวจสอบ/ล็อกหน่วยกิตก่อน Export',
+      tone: 'warning',
+      confirmText: 'ตรวจสอบ/ล็อก แล้ว Export ต่อ',
+      bullets: [
+        'ตาม Use Case Diagram: "Export Excel" (UC-R1) รวมขั้นตอน "ตรวจสอบ/ล็อกหน่วยกิตกิจกรรมเปิดกว้าง" (UC-R9) แบบ &lt;&lt;include&gt;&gt; เสมอ',
+        `ปีการศึกษา ${currentCycleYear} ยังไม่เคยรันการตรวจสอบ/ล็อกโควต้ารอบนี้`,
+        'กดยืนยันเพื่อให้ระบบรันการตรวจสอบ/ล็อกให้อัตโนมัติก่อน แล้วจึงสร้างไฟล์ Excel ต่อทันที',
+      ],
+      onConfirm: () => {
+        const n = performQuotaLock();
+        showToast(n ? `ตรวจสอบ/ล็อกโควต้าอัตโนมัติ ${n} คนก่อน Export แล้ว` : 'ตรวจสอบโควต้าแล้ว ไม่มีรายชื่อต้องล็อกเพิ่ม');
+        doExportFile(ev);
+      },
+    });
+    return;
+  }
+
+  doExportFile(ev);
+}
+
+function doExportFile(ev) {
+  const currentT = Store.get(EXCEL_TEMPLATE_KEY, DEFAULT_EXCEL_TEMPLATE);
+  // จำลองไฟล์ .xlsx ด้วย CSV ง่ายๆ โดย map คอลัมน์ตามหัวตารางในระบบ
+  const rows = [currentT.columns];
+  RegDB.students.forEach((s) => {
+    const row = currentT.columns.map((colName) => {
+      const cleaned = colName.trim().toLowerCase();
+      if (cleaned.includes('รหัส')) return s.code;
+      if (cleaned.includes('นามสกุล') || cleaned.includes('สกุล')) return s.last;
+      if (cleaned.includes('ชื่อ')) return s.first;
+      if (cleaned.includes('หน่วยกิต') || cleaned.includes('ชั่วโมง') || cleaned.includes('ชม')) return s.credits;
+      return '';
+    });
+    rows.push(row);
+  });
+
+  const blob = new Blob(['﻿' + rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `UBUSAC_export_${ev.id}.csv`;
+  a.click();
+  ev.exportStatus = ev.exportStatus === 'confirmed' ? 'confirmed' : 'exported';
+  RegDB.save();
+  appendAudit('sac_export', `Export Excel กิจกรรม "${ev.name}" (ใช้เทมเพลต: ${currentT.fileName}, ผ่านการตรวจสอบ/ล็อกโควต้าปี ${RegDB.cycles[0].year} แล้ว)`);
+  showToast('สร้างไฟล์ Excel ตามฟอร์แมต UBU SAC แล้ว (จำลอง)');
+  renderExportTable();
+}
+
 function renderExportTable() {
   const ev = currentExportEvent();
   const q = (document.getElementById('export-search').value || '').toLowerCase();
   const list = RegDB.students.filter((s) => (s.code + s.first + s.last).toLowerCase().includes(q));
+  const t = Store.get(EXCEL_TEMPLATE_KEY, DEFAULT_EXCEL_TEMPLATE);
+
+  // FR-A5: มีรหัสผิดรูปแบบอยู่ → ต้องบล็อก Export ทั้งหมด ไม่ใช่แค่ข้ามแถวที่ผิด
+  const invalidStudents = RegDB.students.filter((s) => !isValidStudentCode(s.code));
+  const blockBanner = document.getElementById('export-block-banner');
+  const btnExport = document.getElementById('btn-export');
+  if (blockBanner) {
+    blockBanner.innerHTML = invalidStudents.length ? `
+      <div class="border-l-4 border-red-400 bg-red-50 p-3 rounded-r-xl flex items-start gap-2.5 mb-4">
+        <span class="text-red-600 mt-0.5">${icon('alert-triangle', 'w-4 h-4')}</span>
+        <p class="text-xs text-red-800">
+          พบ ${invalidStudents.length} รายชื่อที่รหัสนักศึกษาไม่ผ่านเงื่อนไข (ต้องเป็นตัวเลข 11 หลัก) —
+          <strong>ระบบจะไม่สร้างไฟล์ Excel จนกว่าจะแก้ไขให้ถูกต้องครบทุกคน</strong> ตาม FR-A5
+        </p>
+      </div>` : '';
+  }
+  if (btnExport) {
+    btnExport.disabled = invalidStudents.length > 0;
+    btnExport.classList.toggle('opacity-50', invalidStudents.length > 0);
+    btnExport.classList.toggle('cursor-not-allowed', invalidStudents.length > 0);
+  }
 
   // แถบสถานะ 3 ขั้น
   const statusMap = {
@@ -161,20 +256,29 @@ function renderExportTable() {
   document.getElementById('export-table').innerHTML = list.length ? `
     <table class="w-full">
       <thead><tr class="border-b border-slate-100 bg-slate-50/50">
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รหัสนักศึกษา</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">นามสกุล</th>
-        <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">หน่วยกิต</th>
+        ${t.columns.map(col => `<th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">${col}</th>`).join('')}
         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รหัสถูกต้อง</th>
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
         ${list.map((s) => {
           const ok = isValidStudentCode(s.code);
           return `<tr class="hover:bg-slate-50/50 transition ${ok ? '' : 'bg-red-50/40'}">
-            <td class="px-4 py-3 text-sm font-mono ${ok ? 'text-slate-800' : 'text-red-600 font-semibold'}">${s.code}</td>
-            <td class="px-4 py-3 text-sm text-slate-800">${s.first}</td>
-            <td class="px-4 py-3 text-sm text-slate-800">${s.last}</td>
-            <td class="px-4 py-3 text-sm text-center font-mono text-slate-800">${s.credits.toFixed(1)}</td>
+            ${t.columns.map(col => {
+              const cleaned = col.trim().toLowerCase();
+              let val = '';
+              let cls = 'text-left';
+              if (cleaned.includes('รหัส')) {
+                val = s.code;
+                cls = `text-left font-mono ${ok ? 'text-slate-800' : 'text-red-600 font-semibold'}`;
+              }
+              else if (cleaned.includes('นามสกุล') || cleaned.includes('สกุล')) { val = s.last; }
+              else if (cleaned.includes('ชื่อ')) { val = s.first; }
+              else if (cleaned.includes('หน่วยกิต') || cleaned.includes('ชั่วโมง') || cleaned.includes('ชม')) {
+                val = s.credits.toFixed(1);
+                cls = 'text-center font-mono text-slate-800';
+              }
+              return `<td class="px-4 py-3 text-sm ${cls}">${val}</td>`;
+            }).join('')}
             <td class="px-4 py-3 text-center">${ok ? statusBadge('ready', 'ผ่าน') : statusBadge('rejected', 'ไม่ผ่าน (ต้องเป็นเลข 11 หลัก)')}</td>
           </tr>`;
         }).join('')}
@@ -397,8 +501,36 @@ function initEventFormPage() {
 
   document.getElementById('event-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    // UC-R3 exception: กรอกฟิลด์บังคับไม่ครบหรือวันที่/ตัวเลขคลาดเคลื่อน -> แสดงข้อผิดพลาดและระงับการบันทึกทั้งหมด
     const name = document.getElementById('ev-name').value.trim();
-    if (!name) { showToast('กรุณากรอกชื่อกิจกรรม', 'error'); return; }
+    const dateVal = document.getElementById('ev-date').value;
+    const daysVal = Number(document.getElementById('ev-days').value);
+    const creditsVal = parseFloat(document.getElementById('ev-credits').value);
+    const gpsEnabled = gpsToggle.checked;
+    const latVal = parseFloat(document.getElementById('ev-lat').value);
+    const lngVal = parseFloat(document.getElementById('ev-lng').value);
+    const radiusVal = Number(radius.value);
+
+    const errors = [];
+    if (!name) errors.push('กรุณากรอกชื่อกิจกรรม');
+    if (!dateVal) errors.push('กรุณาเลือกวันที่จัดกิจกรรม');
+    if (!Number.isFinite(daysVal) || daysVal < 1) errors.push('จำนวนวันจัดกิจกรรมต้องเป็นตัวเลขตั้งแต่ 1 วันขึ้นไป');
+    if (!Number.isFinite(creditsVal) || creditsVal <= 0) errors.push('หน่วยกิตที่ได้รับต้องมากกว่า 0');
+    if (gpsEnabled) {
+      if (!Number.isFinite(latVal) || !Number.isFinite(lngVal)) errors.push('เปิดใช้ GPS แล้วต้องปักหมุดพิกัดบนแผนที่ก่อนบันทึก');
+      if (!Number.isFinite(radiusVal) || radiusVal <= 0) errors.push('รัศมี geofencing ต้องมากกว่า 0 เมตร');
+    }
+    if (errors.length) {
+      showConfirmDialog({
+        title: 'ไม่สามารถบันทึกกิจกรรมได้ — ข้อมูลไม่ครบถ้วน',
+        tone: 'danger',
+        cancelText: 'ปิด',
+        confirmText: 'รับทราบ',
+        bullets: errors,
+      });
+      return; // ระงับการบันทึกทั้งหมดจนกว่าจะแก้ไขครบ
+    }
+
     const open = document.getElementById('ev-open').checked;
     const objectives = document.getElementById('ev-objectives').value.trim();
     const description = document.getElementById('ev-desc').value.trim();
@@ -418,14 +550,14 @@ function initEventFormPage() {
     RegDB.events.unshift({
       id: Date.now(),
       name,
-      date: document.getElementById('ev-date').value || '2026-08-01',
-      days: Number(document.getElementById('ev-days').value) || 1,
-      credits: parseFloat(document.getElementById('ev-credits').value) || 1,
+      date: dateVal,
+      days: daysVal,
+      credits: creditsVal,
       open,
-      gps: gpsToggle.checked,
-      lat: parseFloat(document.getElementById('ev-lat').value) || null,
-      lng: parseFloat(document.getElementById('ev-lng').value) || null,
-      radius: Number(radius.value),
+      gps: gpsEnabled,
+      lat: gpsEnabled ? latVal : null,
+      lng: gpsEnabled ? lngVal : null,
+      radius: radiusVal,
       selfie,
       masterCode,
       staffId,
@@ -604,39 +736,84 @@ function decideProof(approve) {
 }
 
 /* ---------------- Screen 5: ตรวจสอบ/ล็อกโควต้า --------------------------- */
+/* ตรรกะการล็อกโควต้าจริง — ใช้ร่วมกันทั้งจากปุ่มในหน้า Quotas และจากขั้นตอน
+ * <<include>> อัตโนมัติก่อน Export Excel (UC-R1 include UC-R9) */
+function performQuotaLock() {
+  const toLock = RegDB.ledger.filter((l) => l.units >= QUOTA_MAX && !l.locked);
+  toLock.forEach((l) => { l.locked = true; });
+  RegDB.save();
+  Store.set('quota-lock-run-year', RegDB.cycles[0].year);
+  Store.set('quota-lock-run-at', new Date().toISOString().slice(0, 16).replace('T', ' '));
+  appendAudit('quota_locked', `ตรวจสอบ/ล็อกโควต้า — ล็อกเพิ่ม ${toLock.length} คน`);
+  return toLock.length;
+}
+
+/* FR-C14: อ่าน ?year= จาก URL เพื่อดูยอดสะสม archive ของปีก่อนหน้าได้ (อ่านอย่างเดียว) */
+function getViewedYear() {
+  const param = new URLSearchParams(location.search).get('year');
+  return param ? Number(param) : RegDB.cycles[0].year;
+}
+function isViewingCurrentYear() { return getViewedYear() === RegDB.cycles[0].year; }
+function ledgerForViewedYear() {
+  const year = getViewedYear();
+  if (isViewingCurrentYear()) return RegDB.ledger;
+  return RegDB.archivedLedgers[year] || [];
+}
+
 function initQuotasPage() {
+  const year = getViewedYear();
+  const readOnly = !isViewingCurrentYear();
+  const banner = document.getElementById('quota-archive-banner');
+  const btnLock = document.getElementById('btn-lock-check');
+
+  if (banner) {
+    banner.innerHTML = readOnly ? `
+      <div class="border-l-4 border-blue-400 bg-blue-50 p-3 rounded-r-xl flex items-center justify-between gap-3 mb-4">
+        <p class="text-xs text-blue-800 inline-flex items-center gap-2">${icon('file-text', 'w-4 h-4')} กำลังดูข้อมูล <strong>archive ปีการศึกษา ${year}</strong> (อ่านอย่างเดียว — แก้ไข/ล็อกโควต้าไม่ได้)</p>
+        <a href="registrar-quotas.html" class="text-xs font-medium text-blue-700 hover:underline shrink-0">← กลับไปปีปัจจุบัน (${RegDB.cycles[0].year})</a>
+      </div>` : '';
+  }
+  if (btnLock) {
+    btnLock.classList.toggle('hidden', readOnly);
+  }
+
   document.getElementById('quota-search').addEventListener('input', renderQuotaTable);
   renderQuotaTable();
-  document.getElementById('btn-lock-check').addEventListener('click', () => {
-    const toLock = RegDB.ledger.filter((l) => l.units >= QUOTA_MAX && !l.locked);
-    showConfirmDialog({
-      title: 'ตรวจสอบ/ล็อกหน่วยกิตกิจกรรมเปิดกว้าง',
-      bullets: [
-        `ตรวจยอดสะสมของนักศึกษาทุกคนในปีการศึกษา 2569`,
-        toLock.length ? `ล็อกเพิ่ม ${toLock.length} คนที่ยอดถึง ${QUOTA_MAX} หน่วย` : 'ไม่มีรายชื่อใหม่ที่ต้องล็อกเพิ่ม',
-        'สถานะล็อกจะหยุดนับหน่วยกิตกิจกรรมเปิดกว้างของคนนั้นในปีนี้',
-      ],
-      confirmText: 'ยืนยันตรวจสอบ/ล็อก',
-      onConfirm: () => {
-        toLock.forEach((l) => { l.locked = true; });
-        RegDB.save();
-        appendAudit('quota_locked', `ตรวจสอบ/ล็อกโควต้า — ล็อกเพิ่ม ${toLock.length} คน`);
-        showToast(toLock.length ? `ล็อกโควต้าเพิ่ม ${toLock.length} คนแล้ว` : 'ตรวจสอบแล้ว ไม่มีรายชื่อที่ต้องล็อกเพิ่ม');
-        renderQuotaTable();
-      },
+  if (btnLock && !readOnly) {
+    btnLock.addEventListener('click', () => {
+      const toLock = RegDB.ledger.filter((l) => l.units >= QUOTA_MAX && !l.locked);
+      showConfirmDialog({
+        title: 'ตรวจสอบ/ล็อกหน่วยกิตกิจกรรมเปิดกว้าง',
+        bullets: [
+          `ตรวจยอดสะสมของนักศึกษาทุกคนในปีการศึกษา ${RegDB.cycles[0].year}`,
+          toLock.length ? `ล็อกเพิ่ม ${toLock.length} คนที่ยอดถึง ${QUOTA_MAX} หน่วย` : 'ไม่มีรายชื่อใหม่ที่ต้องล็อกเพิ่ม',
+          'สถานะล็อกจะหยุดนับหน่วยกิตกิจกรรมเปิดกว้างของคนนั้นในปีนี้',
+          'ขั้นตอนนี้จะทำอัตโนมัติก่อน Export Excel เสมอด้วย (UC-R1 include UC-R9)',
+        ],
+        confirmText: 'ยืนยันตรวจสอบ/ล็อก',
+        onConfirm: () => {
+          const n = performQuotaLock();
+          showToast(n ? `ล็อกโควต้าเพิ่ม ${n} คนแล้ว` : 'ตรวจสอบแล้ว ไม่มีรายชื่อที่ต้องล็อกเพิ่ม');
+          renderQuotaTable();
+        },
+      });
     });
-  });
+  }
 }
 
 function renderQuotaTable() {
+  const year = getViewedYear();
+  const readOnly = !isViewingCurrentYear();
+  const source = ledgerForViewedYear();
   const q = (document.getElementById('quota-search').value || '').toLowerCase();
-  const list = RegDB.ledger.filter((l) => (l.code + l.name).toLowerCase().includes(q));
-  const locked = RegDB.ledger.filter((l) => l.locked).length;
+  const list = source.filter((l) => (l.code + l.name).toLowerCase().includes(q));
+  const locked = source.filter((l) => l.locked).length;
+  const cycleMeta = RegDB.cycles.find((c) => c.year === year) || RegDB.cycles[0];
   document.getElementById('quota-stats').innerHTML =
-    statsCard('นักศึกษาทั้งหมด', RegDB.ledger.length, 'ในปีการศึกษา 2569')
+    statsCard('นักศึกษาทั้งหมด', source.length, `ในปีการศึกษา ${year}`)
     + statsCard('ครบโควต้า/ล็อกแล้ว', locked, 'คนที่ล็อกแล้ว', { valueCls: 'text-purple-600', icon: 'lock' })
-    + statsCard('ใกล้ครบ (>=10)', RegDB.ledger.filter((l) => !l.locked && l.units >= 10).length, 'ควรจับตา', { valueCls: 'text-amber-600' })
-    + statsCard('ปีการศึกษา', '2569', `เริ่ม ${thDate(RegDB.cycles[0].start)}`);
+    + statsCard('ใกล้ครบ (>=10)', source.filter((l) => !l.locked && l.units >= 10).length, 'ควรจับตา', { valueCls: 'text-amber-600' })
+    + statsCard('ปีการศึกษา', String(year), readOnly ? 'ข้อมูล archive' : `เริ่ม ${thDate(cycleMeta.start)}`);
 
   document.getElementById('quota-table').innerHTML = list.length ? `
     <table class="w-full">
@@ -684,11 +861,15 @@ function initCyclesPage() {
       tone: 'danger',
       confirmText: `ยืนยัน เปิดรอบปี ${newYear}`,
       onConfirm: () => {
+        const oldYear = RegDB.cycles[0].year;
+        // FR-C14: snapshot ยอดสะสมปีเก่าไว้ก่อนรีเซ็ต ห้ามลบทิ้ง/เขียนทับ
+        RegDB.archivedLedgers[oldYear] = RegDB.ledger.map((l) => ({ ...l }));
         RegDB.cycles.unshift({ year: newYear, start: dateVal, by: 'พี่สมบัติ วงศ์ทะเบียน', at: new Date().toISOString().slice(0, 16).replace('T', ' ') });
         RegDB.ledger.forEach((l) => { l.units = 0; l.locked = false; });
+        Store.remove('quota-lock-run-year'); // ปีใหม่ยังไม่เคยล็อกโควต้า
         RegDB.save();
-        appendAudit('cycle_opened', `เปิดรอบปีการศึกษา ${newYear} (เริ่ม ${dateVal}) และรีเซ็ตยอดสะสมทุกคน`);
-        showToast(`เปิดรอบปีการศึกษา ${newYear} แล้ว — ยอดสะสมทุกคนถูกรีเซ็ตและเก็บประวัติปีเก่า`);
+        appendAudit('cycle_opened', `เปิดรอบปีการศึกษา ${newYear} (เริ่ม ${dateVal}) — archive ยอดสะสมปี ${oldYear} (${RegDB.archivedLedgers[oldYear].length} รายชื่อ) แล้วรีเซ็ตยอดสะสมทุกคนสำหรับปีใหม่`);
+        showToast(`เปิดรอบปีการศึกษา ${newYear} แล้ว — ยอดสะสมปี ${oldYear} ถูก archive ไว้ครบ ${RegDB.archivedLedgers[oldYear].length} รายชื่อ`);
         renderCycles();
       },
     });
@@ -697,6 +878,15 @@ function initCyclesPage() {
 
 function renderCycles() {
   const cur = RegDB.cycles[0];
+
+  // FR-E2 (3/4) + FR-E6: ใกล้ถึงกำหนดควรเปิดรอบปีการศึกษาใหม่ -> เตือน Registrar ผ่าน Slack DM
+  // หมายเหตุ: ของจริงรอบปีการศึกษาห่างกัน ~365 วัน และเตือนซ้ำทุกสัปดาห์ (ต้องมี scheduler ฝั่ง backend)
+  // mock นิ่งจำลองด้วยธรณีประตู 30 วันแทน เพื่อให้เห็นกลไกทำงานจริงโดยไม่ต้องรอเป็นปี
+  const daysSinceStart = Math.floor((Date.now() - new Date(cur.start).getTime()) / 86400000);
+  if (daysSinceStart >= 30 && daysSinceStart < 400) {
+    fireSlackDM('cycle_reminder', { year: cur.year, daysSinceStart });
+  }
+
   document.getElementById('current-cycle').innerHTML = `
     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">ปีการศึกษาปัจจุบัน</p>
     <p class="text-4xl font-bold font-mono text-slate-900 mt-1">${cur.year}</p>
@@ -707,7 +897,7 @@ function renderCycles() {
         <p class="text-sm font-semibold text-slate-800 font-mono">ปีการศึกษา ${c.year} ${i === 0 ? statusBadge('ready', 'ปัจจุบัน') : ''}</p>
         <p class="text-xs text-slate-400 mt-0.5">เริ่ม ${thDate(c.start)} • เปิดรอบโดย ${c.by} (${c.at})</p>
       </div>
-      ${i !== 0 ? `<a href="registrar-quotas.html" class="text-xs text-blue-600 hover:underline shrink-0">ดูยอดสะสม (archive)</a>` : ''}
+      ${i !== 0 ? `<a href="registrar-quotas.html?year=${c.year}" class="text-xs text-blue-600 hover:underline shrink-0">ดูยอดสะสม (archive)</a>` : ''}
     </div>`).join('');
 }
 
@@ -773,11 +963,24 @@ function renderSlackConnection(connected) {
   if (!connected) btn.insertAdjacentHTML('afterbegin', icon('slack', 'w-4 h-4'));
 }
 
+/* กันยิง Slack DM ซ้ำเกินจำเป็นภายใน session เดียวกัน (คนละ trigger คนละ flag) */
+const slackFiredThisSession = new Set();
+function fireSlackDM(type, detail) {
+  if (slackFiredThisSession.has(type)) return;
+  slackFiredThisSession.add(type);
+  console.info('[MOCK Slack DM -> Registrar]', { type, ...detail, time: new Date().toISOString() });
+}
+
 /* ---------------- Registrar Home ----------------------------------------- */
 function initRegistrarHome() {
   const pending = pendingProofs().length;
   const locked = RegDB.ledger.filter((l) => l.locked).length;
   const overdue = RegDB.events.filter((e) => e.rosterOverdue).length;
+
+  // FR-E2 (2/4): กิจกรรมยังไม่ส่งรายชื่อเกิน 3 วัน -> แจ้งเตือน Registrar ผ่าน Slack DM (ยิงครั้งเดียวต่อ session ที่พบค้าง)
+  if (overdue > 0) {
+    fireSlackDM('roster_overdue', { count: overdue, events: RegDB.events.filter((e) => e.rosterOverdue).map((e) => e.name) });
+  }
 
   document.getElementById('home-stats').innerHTML =
     statsCard('รอตรวจ', pending, 'หลักฐานรอการอนุมัติ', { valueCls: pending ? 'text-amber-600' : 'text-slate-900' })
