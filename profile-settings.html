@@ -279,7 +279,8 @@
 <script src="js/shared.js"></script>
 <script>
   // Get active role from session (no longer relies on ?role= URL param)
-  const user = currentUser(getSessionRole());
+  const activeRole = getSessionRole();
+  const user = currentUser(activeRole);
 
   renderShell({ active: 'profile-settings.html', title: 'ตั้งค่าบัญชี' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
@@ -345,7 +346,8 @@
       document.getElementById('line-user-id').textContent = lineId;
       
       document.getElementById('line-toggle-notif').checked = Store.get('line-notif-enabled', true);
-      document.getElementById('line-toggle-chat').checked = Store.get('line-chat-enabled', true);
+      // FR-D9: สวิตช์แชทบอทผ่าน LINE ต้อง default ปิดเสมอ (opt-in เท่านั้น) แยกจาก consent แจ้งเตือนของ FR-D2
+      document.getElementById('line-toggle-chat').checked = Store.get('line-chat-enabled', false);
     } else {
       viewCon.classList.add('hidden');
       viewDis.classList.remove('hidden');
@@ -365,12 +367,13 @@
     Store.set('line-user-name', user.name.split(' ')[0] + '.ubu');
     Store.set('line-user-id', 'U' + Math.random().toString(16).slice(2, 28));
     Store.set('line-notif-enabled', true);
-    Store.set('line-chat-enabled', true);
-    
+    // FR-D9: ต้อง default ปิดเสมอตอนเชื่อมบัญชีครั้งแรก — ผู้ใช้ต้องกดเปิดสวิตช์แชทบอทเอง (opt-in แยกจากการผูกบัญชี)
+    Store.set('line-chat-enabled', false);
+
     closeLineOAuth();
-    showToast('เชื่อมโยงบัญชี LINE สำเร็จแล้ว!');
+    showToast('เชื่อมโยงบัญชี LINE สำเร็จแล้ว! (แชทบอทผ่าน LINE ยังปิดอยู่ — เปิดเองได้ด้านล่าง)');
     renderLineState();
-    appendAudit('line_connected', 'ผูกบัญชี LINE สำเร็จ');
+    appendAudit('line_connected', 'ผูกบัญชี LINE สำเร็จ (แชทบอทผ่าน LINE default ปิด — รอผู้ใช้เปิดเอง)');
   }
 
   function disconnectLINE() {
