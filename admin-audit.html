@@ -34,10 +34,17 @@
       <span id="audit-count" class="text-xs text-slate-400 border border-slate-200 rounded-full px-3 py-1 bg-white"></span>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters (FR-F5: user / action / role / ช่วงวันที่ / คำค้น) -->
     <div class="flex flex-wrap items-center gap-3">
       <select id="audit-user" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="กรองตามผู้ใช้"></select>
       <select id="audit-action" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="กรองตามการกระทำ"></select>
+      <select id="audit-role" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="กรองตามบทบาท (Role)"></select>
+      <div class="flex items-center gap-2">
+        <label for="audit-date-from" class="text-xs text-slate-500 shrink-0">จากวันที่</label>
+        <input id="audit-date-from" type="date" class="px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="จากวันที่">
+        <label for="audit-date-to" class="text-xs text-slate-500 shrink-0">ถึงวันที่</label>
+        <input id="audit-date-to" type="date" class="px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="ถึงวันที่">
+      </div>
       <div class="relative flex-1 min-w-[200px]">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" id="ic-search"></span>
         <input id="audit-search" type="text" placeholder="ค้นหาในรายละเอียด..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="ค้นหา log">
