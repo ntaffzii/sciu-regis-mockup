@@ -56,6 +56,25 @@
         </div>
       </div>
 
+      <!-- แถวที่ 2: ช่วงเวลา + สถานะการลงทะเบียนของฉัน -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 border-t border-slate-100">
+        <select id="time-filter" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <option value="">ทุกช่วงเวลา</option>
+          <option value="upcoming">กำลังจะถึง / เปิดรับอยู่</option>
+          <option value="past">ผ่านไปแล้ว</option>
+        </select>
+        <select id="status-filter" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="สถานะการลงทะเบียนของฉัน">
+          <option value="">กิจกรรมทั้งหมด</option>
+          <option value="registered">ลงทะเบียนแล้ว (ของฉัน)</option>
+          <option value="not-registered">ยังไม่ได้ลงทะเบียน</option>
+        </select>
+        <select id="sort-order" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="เรียงลำดับ">
+          <option value="date-asc">เรียง: วันจัดใกล้ที่สุดก่อน</option>
+          <option value="date-desc">เรียง: วันจัดล่าสุดก่อน</option>
+          <option value="credits-desc">เรียง: หน่วยกิตมากไปน้อย</option>
+        </select>
+      </div>
+
       <!-- Quick Toggles -->
       <div class="flex flex-wrap items-center gap-4 pt-1 border-t border-slate-100 text-sm text-slate-600">
         <span class="font-medium text-slate-700">ตัวกรองเพิ่มเติม:</span>
@@ -101,17 +120,33 @@
   // Get active database list
   const dbEvents = DEFAULT_EVENTS;
 
+  // กิจกรรมที่นักศึกษา "ลงทะเบียนไว้แล้ว" (ตรงกับ myRegisteredEvents() ใน js/student.js — id 2, 5)
+  const MY_REGISTERED_IDS = [2, 5];
+  const TODAY = '2026-07-11'; // อ้างอิงวันที่ปัจจุบันของระบบ (ตาม currentDate)
+
+  // ตัวกรองสถานะการลงทะเบียนของฉัน ใช้ได้เฉพาะตอนล็อกอินเป็นนักศึกษาเท่านั้น
+  const statusFilterEl = document.getElementById('status-filter');
+  if (getSessionRole() !== 'student') {
+    statusFilterEl.classList.add('hidden');
+  }
+
   // Bind UI elements
   document.getElementById('search-input').addEventListener('input', filterEvents);
   document.getElementById('subcat-filter').addEventListener('change', filterEvents);
   document.getElementById('open-filter').addEventListener('change', filterEvents);
   document.getElementById('gps-filter').addEventListener('change', filterEvents);
+  document.getElementById('time-filter').addEventListener('change', filterEvents);
+  document.getElementById('status-filter').addEventListener('change', filterEvents);
+  document.getElementById('sort-order').addEventListener('change', filterEvents);
 
   function resetFilters() {
     document.getElementById('search-input').value = '';
     document.getElementById('subcat-filter').value = '';
     document.getElementById('open-filter').checked = false;
     document.getElementById('gps-filter').checked = false;
+    document.getElementById('time-filter').value = '';
+    document.getElementById('status-filter').value = '';
+    document.getElementById('sort-order').value = 'date-asc';
     filterEvents();
   }
 
@@ -120,13 +155,25 @@
     const subcat = document.getElementById('subcat-filter').value;
     const openOnly = document.getElementById('open-filter').checked;
     const gpsOnly = document.getElementById('gps-filter').checked;
+    const timing = document.getElementById('time-filter').value;
+    const regStatus = document.getElementById('status-filter').value;
+    const sortOrder = document.getElementById('sort-order').value;
 
-    const filtered = dbEvents.filter((ev) => {
+    let filtered = dbEvents.filter((ev) => {
       const matchQuery = (ev.name + (ev.objectives || '') + (ev.location || '')).toLowerCase().includes(q);
       const matchSubcat = !subcat || ev.subcategory === subcat;
       const matchOpen = !openOnly || ev.open;
       const matchGps = !gpsOnly || ev.gps;
-      return matchQuery && matchSubcat && matchOpen && matchGps;
+      const matchTiming = !timing || (timing === 'upcoming' ? ev.date >= TODAY : ev.date < TODAY);
+      const isRegistered = MY_REGISTERED_IDS.includes(ev.id);
+      const matchStatus = !regStatus || (regStatus === 'registered' ? isRegistered : !isRegistered);
+      return matchQuery && matchSubcat && matchOpen && matchGps && matchTiming && matchStatus;
+    });
+
+    filtered = filtered.slice().sort((a, b) => {
+      if (sortOrder === 'date-desc') return b.date.localeCompare(a.date);
+      if (sortOrder === 'credits-desc') return b.credits - a.credits;
+      return a.date.localeCompare(b.date); // date-asc (default) — วันจัดใกล้ที่สุดก่อน
     });
 
     renderEvents(filtered);
@@ -148,13 +195,16 @@
       
       const openBadge = ev.open ? `<span class="bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm">กิจกรรมเปิดกว้าง</span>` : '';
       const gpsBadge = ev.gps ? `<span class="bg-blue-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm inline-flex items-center gap-0.5">${icon('map-pin', 'w-3 h-3')} GPS</span>` : '';
-      
+      const registeredBadge = (getSessionRole() === 'student' && MY_REGISTERED_IDS.includes(ev.id))
+        ? `<span class="bg-emerald-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm inline-flex items-center gap-0.5">${icon('check-circle', 'w-3 h-3')} ลงทะเบียนแล้ว</span>` : '';
+
       return `
         <div onclick="Store.set('eventId','${ev.id}');window.location.href='event-detail.html'" class="group rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200 transition flex flex-col relative cursor-pointer">
           <div class="overflow-hidden relative bg-slate-100">
             ${imgHtml}
             <div class="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
               ${openBadge}
+              ${registeredBadge}
             </div>
             <div class="absolute top-3 right-3">
               ${gpsBadge}
