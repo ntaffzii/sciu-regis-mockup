@@ -15,7 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css">
 </head>
-<body class="min-h-screen flex flex-col font-sans text-slate-900">
+<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
 
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -23,22 +23,32 @@
     <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
       <a href="admin-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">แผงควบคุม</a>
       <span class="text-slate-300">/</span>
-      <span class="text-slate-600 font-medium">ผู้ใช้</span>
+      <span class="text-slate-600 font-medium">ผู้ใช้และสิทธิ์การเข้าใช้งาน</span>
     </nav>
 
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">จัดการบัญชีผู้ใช้และบทบาท</h1>
-        <p class="text-sm text-slate-500 mt-1">บทบาทเป็นสิทธิ์ — บัญชีเดียวถือได้หลายบทบาทพร้อมกัน (เช่น Registrar + Lead Org)</p>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">จัดการบัญชีผู้ใช้และสิทธิ์</h1>
+        <p class="text-sm text-slate-500 mt-1">กำหนดสิทธิ์และ whitelist อีเมลผู้ใช้งานล่วงหน้า เพื่อผูกเชื่อม Google OAuth 2.0 (SSO)</p>
       </div>
       <button id="btn-add-user" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" type="button">
-        <span id="ic-add"></span> สร้างบัญชีใหม่
+        <span id="ic-add"></span> <span id="btn-add-text">สร้างบัญชีใหม่</span>
+      </button>
+    </div>
+
+    <!-- Tabs for Normalization & Whitelist Design -->
+    <div class="flex border-b border-slate-200" role="tablist">
+      <button id="tab-active" onclick="switchUserTab('active')" class="py-3 px-6 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 transition focus:outline-none" role="tab">
+        บัญชีที่เปิดใช้งานแล้ว (Active Accounts)
+      </button>
+      <button id="tab-whitelist" onclick="switchUserTab('whitelist')" class="py-3 px-6 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition focus:outline-none" role="tab">
+        รายชื่อทะเบียน & Whitelist (Roster / Whitelist)
       </button>
     </div>
 
     <div class="relative max-w-md">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" id="ic-search"></span>
-      <input id="user-search" type="text" placeholder="ค้นหาชื่อ / username / อีเมล..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="ค้นหาผู้ใช้">
+      <input id="user-search" type="text" placeholder="ค้นหาชื่อ / รหัสประจำตัว / อีเมล..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600" aria-label="ค้นหา">
     </div>
 
     <div id="users-table" class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"></div>
@@ -52,7 +62,56 @@
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-add').innerHTML = icon('plus', 'w-4 h-4');
   document.getElementById('ic-search').innerHTML = icon('search', 'w-4 h-4');
-  initUsersPage();
+
+  // แท็บปัจจุบัน: 'active' หรือ 'whitelist'
+  let currentTab = 'active';
+
+  function switchUserTab(tab) {
+    currentTab = tab;
+    const isActive = tab === 'active';
+
+    // เปลี่ยนสีแท็บ
+    document.getElementById('tab-active').className = `py-3 px-6 text-sm font-semibold border-b-2 transition focus:outline-none ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`;
+    document.getElementById('tab-whitelist').className = `py-3 px-6 text-sm font-semibold border-b-2 transition focus:outline-none ${!isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`;
+
+    // ปรับเปลี่ยนปุ่มสร้างและ placeholder ค้นหา
+    const btnText = document.getElementById('btn-add-text');
+    const searchInput = document.getElementById('user-search');
+
+    if (isActive) {
+      btnText.innerText = 'เพิ่มผู้ใช้ตรงเข้าระบบ';
+      searchInput.placeholder = 'ค้นหาชื่อ / อีเมล / บทบาท...';
+    } else {
+      btnText.innerText = 'เพิ่มสิทธิ์ล่วงหน้า (Whitelist / Roster)';
+      searchInput.placeholder = 'ค้นหาด้วยรหัสนักศึกษา / อีเมลสตาฟ / ชื่อ...';
+    }
+
+    renderCurrentTable();
+  }
+
+  // เรียกใช้ฟังก์ชัน Render ที่เชื่อมกับ admin.js
+  function renderCurrentTable() {
+    if (currentTab === 'active') {
+      renderUsersTable();
+    } else {
+      renderWhitelistTable();
+    }
+  }
+
+  // ผูกตัวดักจับค้นหา
+  document.getElementById('user-search').addEventListener('input', renderCurrentTable);
+  
+  // ผูกการคลิกปุ่ม Add
+  document.getElementById('btn-add-user').addEventListener('click', () => {
+    if (currentTab === 'active') {
+      openUserModal();
+    } else {
+      openWhitelistModal();
+    }
+  });
+
+  // เรียกใช้งานครั้งแรก
+  switchUserTab('active');
 </script>
 </body>
 </html>
