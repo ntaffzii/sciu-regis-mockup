@@ -56,7 +56,7 @@
               <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0" id="ic-con-mail"></span>
               <div>
                 <p class="text-xs text-slate-400">อีเมลทางการ</p>
-                <p class="text-sm font-semibold text-slate-800 font-mono">registrar@sci.ubu.ac.th</p>
+                <p class="text-sm font-semibold text-slate-800 font-mono" id="con-mail-text">registrar@sci.ubu.ac.th</p>
               </div>
             </div>
             <div class="flex items-start gap-3">
@@ -157,12 +157,14 @@
 
 <script src="js/shared.js"></script>
 <script>
+  const activeRole = getSessionRole();
   renderShell({ active: 'contact.html', title: 'ติดต่อเรา' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
 
   // Load Icons
   document.getElementById('ic-con-phone').innerHTML = icon('phone', 'w-4 h-4');
   document.getElementById('ic-con-mail').innerHTML = icon('mail', 'w-4 h-4');
+  document.getElementById('con-mail-text').textContent = getContactEmail(); // FR-D6: อ่านจากค่าที่ Admin ตั้งไว้ ไม่ hardcode
   document.getElementById('ic-con-loc').innerHTML = icon('map-pin', 'w-4 h-4');
   document.getElementById('ic-con-line').innerHTML = icon('message-circle', 'w-4 h-4');
   document.getElementById('map-pin').innerHTML = icon('map-pin', 'w-8 h-8');
