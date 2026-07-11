@@ -69,6 +69,12 @@ const Store = {
   remove(key) { localStorage.removeItem('sciu:' + key); },
 };
 
+/* FR-D6: อีเมลติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
+ * ห้าม hardcode ในโค้ดของแต่ละหน้าจอ — ทุกจุดที่ต้องแสดงอีเมลติดต่อให้เรียกฟังก์ชันนี้ */
+function getContactEmail() {
+  return Store.get('adm-settings', { email: 'registrar@sci.ubu.ac.th' }).email || 'registrar@sci.ubu.ac.th';
+}
+
 const MOCK_USERS = {
   registrar: { name: 'พี่สมบัติ วงศ์ทะเบียน', roleLabel: 'Registrar (เจ้าหน้าที่ทะเบียน)', roles: ['registrar', 'lead_org'] },
   student: { name: 'สมชาย ใจดี', studentCode: '66114400123', roleLabel: 'นักศึกษา', roles: ['student'] },
@@ -106,6 +112,7 @@ const NAV_MENUS = {
     { label: 'กิจกรรม', icon: 'calendar', href: 'registrar-event-form.html' },
     { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-ocr-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
+    { label: 'แก้ไขหน่วยกิต', icon: 'edit', href: 'registrar-adjust.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'รอบปี', icon: 'calendar', href: 'registrar-cycles.html' },
   ],
@@ -325,7 +332,7 @@ function renderShell(opts) {
           <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">ติดต่อ</h4>
           <ul class="space-y-2 text-sm text-slate-600">
             <li class="flex items-center gap-2"><span class="text-slate-400">${icon('phone', 'w-4 h-4')}</span>045-353-xxx</li>
-            <li class="flex items-center gap-2"><span class="text-slate-400">${icon('mail', 'w-4 h-4')}</span><a href="mailto:registrar@sci.ubu.ac.th" class="hover:text-blue-600 transition">registrar@sci.ubu.ac.th</a></li>
+            <li class="flex items-center gap-2"><span class="text-slate-400">${icon('mail', 'w-4 h-4')}</span><a href="mailto:${getContactEmail()}" class="hover:text-blue-600 transition">${getContactEmail()}</a></li>
             <li class="flex items-center gap-2"><span class="text-slate-400">${icon('map-pin', 'w-4 h-4')}</span>คณะวิทยาศาสตร์ ม.อุบลราชธานี</li>
           </ul>
         </div>
@@ -392,12 +399,14 @@ function showToast(message, type = 'success') {
 
 /**
  * Confirm dialog (docs/09 Component F) — บังคับใช้กับทุก action ที่ย้อนกลับยาก
- * opts: { title, message, bullets[], confirmText, cancelText, tone: 'warning'|'danger', requireReason, onConfirm(reason) }
+ * opts: { title, message, bullets[], confirmText, cancelText, tone: 'warning'|'danger', requireReason, onConfirm(reason), onCancel }
+ * onCancel เป็น optional — ถ้าไม่ส่งมา ปุ่ม cancel จะแค่ปิด dialog เฉยๆ เหมือนเดิม
+ * ถ้าส่งมา จะถูกเรียกเมื่อกดปุ่ม cancel เท่านั้น (ไม่เรียกตอนคลิกพื้นหลังปิด dialog)
  */
 function showConfirmDialog(opts) {
   const {
     title, message = '', bullets = [], confirmText = 'ยืนยัน', cancelText = 'ยกเลิก',
-    tone = 'warning', requireReason = false, reasonLabel = 'เหตุผล (บังคับกรอก)', onConfirm,
+    tone = 'warning', requireReason = false, reasonLabel = 'เหตุผล (บังคับกรอก)', onConfirm, onCancel,
   } = opts;
   const toneCls = tone === 'danger'
     ? { bg: 'bg-red-100', txt: 'text-red-600', box: 'bg-red-50 border-red-200 text-red-800', li: 'text-red-700', btn: 'bg-red-600 hover:bg-red-700' }
@@ -429,7 +438,10 @@ function showConfirmDialog(opts) {
       </div>
     </div>`;
   document.body.appendChild(overlay);
-  overlay.querySelector('#confirm-cancel').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#confirm-cancel').addEventListener('click', () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('#confirm-ok').addEventListener('click', () => {
     let reason = '';
