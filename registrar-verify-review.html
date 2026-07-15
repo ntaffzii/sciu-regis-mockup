@@ -29,7 +29,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตรวจหลักฐานกิจกรรมเปิดกว้าง</h1>
-        <p class="text-sm text-slate-500 mt-1">ตรวจภาพต้นฉบับคู่กับผล OCR — ระบบไม่อนุมัติอัตโนมัติ ทุกใบต้องผ่านคน</p>
+        <p class="text-sm text-slate-500 mt-1">กรอกเอง (ไม่ใช้ OCR) + ตารางรายชื่อกลุ่ม (OCR) — ระบบไม่อนุมัติอัตโนมัติ ทุกรายการต้องผ่านคน</p>
       </div>
       <span id="queue-count"></span>
     </div>
@@ -38,7 +38,7 @@
       <!-- คิวซ้าย -->
       <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
         <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
-          <h2 class="text-sm font-semibold text-slate-700">คิวรอตรวจ</h2>
+          <h2 class="text-sm font-semibold text-slate-700">คิวรอตรวจ (รายแถว/รายชื่อ)</h2>
         </div>
         <div id="proof-queue" class="divide-y divide-slate-50 max-h-[560px] overflow-y-auto"></div>
       </div>
@@ -48,42 +48,43 @@
         <div id="proof-empty" class="hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div class="py-16 text-center">
             <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-3" id="empty-icon"></div>
-            <p class="text-sm text-slate-500 font-medium">ตรวจครบทุกใบแล้ว</p>
+            <p class="text-sm text-slate-500 font-medium">ตรวจครบทุกรายการแล้ว</p>
             <p class="text-xs text-slate-400 mt-1">ไม่มีหลักฐานค้างในคิว</p>
           </div>
         </div>
 
         <div id="proof-detail" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <!-- ซ้าย: เอกสารต้นฉบับ -->
-          <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <!-- ซ้าย: เอกสารต้นฉบับ (ตรึงไว้) -->
+          <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm xl:sticky xl:top-4 xl:self-start">
             <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
               <span class="text-slate-500" id="ic-doc"></span>
               <h3 class="text-sm font-semibold text-slate-700">เอกสารต้นฉบับ</h3>
             </div>
-            <div class="p-4" id="proof-doc"></div>
+            <div class="p-4 space-y-3" id="proof-doc"></div>
           </div>
 
-          <!-- ขวา: ผล OCR -->
+          <!-- ขวา: ข้อมูลที่กรอกเอง / รายชื่อที่ OCR สกัด -->
           <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
             <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-slate-500" id="ic-ocr"></span>
-                <h3 class="text-sm font-semibold text-slate-700">ผลการอ่าน (OCR) — แก้ไขได้ก่อนอนุมัติ</h3>
+                <h3 class="text-sm font-semibold text-slate-700" id="proof-panel-title">ข้อมูลหลักฐาน — แก้ไขได้ก่อนอนุมัติ</h3>
               </div>
-              <span id="ocr-confidence" class="text-xs text-slate-400 font-mono"></span>
+              <span id="ocr-confidence" class="text-xs text-slate-400 font-medium"></span>
             </div>
             <div class="p-4 space-y-4">
+              <div id="daily-cap-box"></div>
               <div id="ocr-fields" class="space-y-3"></div>
               <div id="mismatch-box"></div>
               <div class="flex gap-3 pt-1">
-                <button onclick="decideProof(true)" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition" type="button">
+                <button onclick="decideProof(true)" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition disabled:opacity-40 disabled:cursor-not-allowed" type="button" id="btn-approve">
                   <span id="ic-approve"></span> อนุมัติ
                 </button>
                 <button onclick="decideProof(false)" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 border border-red-300 text-red-600 font-medium rounded-xl hover:bg-red-50 transition" type="button">
                   <span id="ic-reject"></span> ปฏิเสธ
                 </button>
               </div>
-              <p class="text-xs text-slate-400 leading-relaxed">แก้ไขค่าที่ OCR อ่านผิดในช่องด้านบนได้เลย ก่อนกดอนุมัติ — การตัดสินใจทั้งหมดถูกบันทึกลง Audit Log</p>
+              <p class="text-xs text-slate-400 leading-relaxed" id="proof-panel-note">แก้ไขค่าที่กรอกผิดในช่องด้านบนได้เลย ก่อนกดอนุมัติ — การตัดสินใจทั้งหมดถูกบันทึกลง Audit Log</p>
             </div>
           </div>
         </div>
@@ -95,10 +96,10 @@
 <script src="js/shared.js"></script>
 <script src="js/registrar.js"></script>
 <script>
-  renderShell({ role: 'registrar', active: 'registrar-ocr-review.html', title: 'ตรวจหลักฐาน OCR' });
+  renderShell({ role: 'registrar', active: 'registrar-verify-review.html', title: 'ตรวจหลักฐาน' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-doc').innerHTML = icon('file-text', 'w-4 h-4');
-  document.getElementById('ic-ocr').innerHTML = icon('robot', 'w-4 h-4');
+  document.getElementById('ic-ocr').innerHTML = icon('edit', 'w-4 h-4');
   document.getElementById('ic-approve').innerHTML = icon('check', 'w-4 h-4');
   document.getElementById('ic-reject').innerHTML = icon('x', 'w-4 h-4');
   document.getElementById('empty-icon').innerHTML = icon('check-circle', 'w-7 h-7');

@@ -122,20 +122,34 @@
             <input id="ev-open" type="checkbox" class="mt-0.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
             <span>
               <span class="block text-sm font-medium text-slate-800">กิจกรรมเปิดกว้าง (Open Category)</span>
-              <span class="block text-xs text-slate-500 mt-0.5 leading-relaxed">นักศึกษาส่งหลักฐานจากภายนอกได้ ระบบตรวจด้วย OCR และนับเข้าโควต้า 12 หน่วย/ปีการศึกษา</span>
+              <span class="block text-xs text-slate-500 mt-0.5 leading-relaxed">นักศึกษาส่งหลักฐานจากภายนอกได้ และนับเข้าโควต้า 12 หน่วย/ปีการศึกษา</span>
             </span>
           </label>
-          
-          <!-- Staff assignment select field (Optional) -->
+
+          <div id="ev-accept-doctypes" class="hidden space-y-2 pl-4 border-l-2 border-amber-200 ml-2">
+            <p class="text-xs font-medium text-slate-600">กิจกรรมนี้รับหลักฐานแบบไหนบ้าง (เลือกได้มากกว่า 1) <span class="text-red-500">*</span></p>
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input id="ev-accept-individual" type="checkbox" checked class="rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              บันทึกการเข้าร่วมโครงการที่มุ่งจิตอาสา (รายบุคคล)
+            </label>
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input id="ev-accept-project" type="checkbox" checked class="rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              แบบบันทึกการเข้าร่วมกิจกรรมของนักศึกษา ม.อุบลราชธานี (ระดับโครงการ)
+            </label>
+          </div>
+
+          <!-- Staff assignment: multi-staff chip picker + จำนวนจำกัดต่อกิจกรรม (Feature 1) -->
           <div class="space-y-1.5 pt-2">
-            <label class="text-sm font-medium text-slate-700" for="ev-staff-id">แต่งตั้งสตาฟหน้างานดูแลกิจกรรม (Field Staff) - <span class="text-slate-400">ไม่บังคับ</span></label>
-            <select id="ev-staff-id" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-              <option value="">-- ไม่แต่งตั้ง (สามารถมอบหมายงานทีหลังได้) --</option>
-              <option value="4">น้องเก่ง สตาฟดี (keng.staff)</option>
-              <option value="6">บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน</option>
-              <option value="99">น้องเบล สตาฟใหม่ (bell.staff)</option>
+            <label class="text-sm font-medium text-slate-700" for="ev-staff-limit">จำนวนสตาฟหน้างานสูงสุด (Field Staff Capacity)</label>
+            <input id="ev-staff-limit" type="number" min="1" max="10" value="3" class="w-32 px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700" for="ev-staff-add">แต่งตั้งสตาฟหน้างานดูแลกิจกรรม (Field Staff) - <span class="text-slate-400">ไม่บังคับ</span></label>
+            <select id="ev-staff-add" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <option value="">-- เลือกเพื่อเพิ่มสตาฟ --</option>
             </select>
-            <p class="text-[11px] text-slate-400">ผู้จัดกิจกรรมหรือ Registrar สามารถเพิ่ม/แก้ไขรายชื่อผู้ดูแลผ่านหน้าข้อมูลกิจกรรมได้ภายหลัง</p>
+            <div id="ev-staff-chips" class="flex flex-wrap gap-2 mt-2"></div>
+            <p class="text-[11px] text-slate-400">ผู้จัดกิจกรรมหรือ Registrar สามารถเพิ่ม/แก้ไขรายชื่อผู้ดูแลผ่านหน้าข้อมูลกิจกรรมได้ภายหลัง — เพิ่มสตาฟได้ไม่เกินจำนวนจำกัดด้านบน</p>
           </div>
         </div>
 

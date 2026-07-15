@@ -7,12 +7,12 @@
 const QUOTA_MAX = 12; // 12 หน่วย (36 ชม.) ต่อปีการศึกษา — FR-C group
 
 const DEFAULT_EVENTS = [
-  { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', rosterOverdue: false, staffId: 99 },
-  { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', rosterOverdue: false, staffId: null },
-  { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', rosterOverdue: false, staffId: null },
-  { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', rosterOverdue: false, staffId: null },
-  { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', rosterOverdue: true, staffId: 4 },
-  { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', rosterOverdue: true, staffId: null },
+  { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, exportStatus: 'none', rosterOverdue: false, staffIds: [99], staffLimit: 3 },
+  { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, exportStatus: 'none', rosterOverdue: false, staffIds: [], staffLimit: 5 },
+  { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, acceptedDocTypes: ['individual', 'project'], gps: false, participants: 60, checkedIn: 58, exportStatus: 'confirmed', rosterOverdue: false, staffIds: [], staffLimit: 3 },
+  { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, exportStatus: 'exported', rosterOverdue: false, staffIds: [], staffLimit: 3 },
+  { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, exportStatus: 'none', rosterOverdue: true, staffIds: [4, 99], staffLimit: 2 },
+  { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, acceptedDocTypes: ['individual', 'project'], gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', rosterOverdue: true, staffIds: [], staffLimit: 3 },
 ];
 
 const DEFAULT_STUDENTS = [
@@ -30,12 +30,74 @@ const DEFAULT_STUDENTS = [
   { code: '66114400134', first: 'ศุภชัย', last: 'เรืองรอง', credits: 3.0, attend: [true, true, true] },
 ];
 
+/* หลักฐานกิจกรรมเปิดกว้าง (FR-C4-C7, C19) — ไม่ผูกกับ event_id ใดๆ ในระบบ
+ * submissionMethod: 'logbook' (สูงสุด 4 แถว, กรอกเอง) | 'group_roster' (OCR อ่านตารางรายชื่อ)
+ * logbook: items[] คือแถวที่นักศึกษากรอกเอง ไม่มี OCR
+ * group_roster: rosterEntries[] คือแถวที่ OCR สกัดจากรูปตาราง — matchedCode ต้องจับคู่กับ students ก่อนอนุมัติได้ */
 const DEFAULT_PROOFS = [
-  { id: 101, student: 'สมชาย ใจดี', code: '66114400123', title: 'จิตอาสาช่วยงานวัดป่านานาชาติ', submitted: '2026-07-08', hours: 6, units: 2.0, file: 'ใบรับรอง_วัดป่าฯ.pdf', status: 'pending', mismatch: false, ocr: { name: 'นายสมชาย ใจดี', date: '5 ก.ค. 2569', hours: 6, confidence: 92 } },
-  { id: 102, student: 'สมปอง ใจงาม', code: '66114400140', title: 'อาสาสมัครช่วยงานกาชาดจังหวัด', submitted: '2026-07-08', hours: 9, units: 3.0, file: 'certificate_redcross.jpg', status: 'pending', mismatch: true, ocr: { name: 'นายสมชาย ใจดี', date: '1 ก.ค. 2569', hours: 9, confidence: 87 } },
-  { id: 103, student: 'มานี มีนา', code: '66114400126', title: 'จิตอาสาสอนหนังสือน้อง ร.ร.บ้านหนองแสง', submitted: '2026-07-09', hours: 3, units: 1.0, file: 'ใบรับรอง_สอนหนังสือ.pdf', status: 'pending', mismatch: false, ocr: { name: 'นางสาวมานี มีนา', date: '6 ก.ค. 2569', hours: 3, confidence: 95 } },
-  { id: 104, student: 'ปิติ ยินดี', code: '66114400127', title: 'อาสาพัฒนาชุมชนริมมูล', submitted: '2026-07-09', hours: 12, units: 4.0, file: 'proof_rimmun.jpg', status: 'pending', mismatch: true, ocr: { name: 'นายปิติ ยินดี', date: '30 มิ.ย. 2569', hours: 18, confidence: 64 } },
-  { id: 105, student: 'รุ่งนภา แสงทอง', code: '66114400132', title: 'จิตอาสาบริการน้ำดื่มงานบุญมหาชาติ', submitted: '2026-07-10', hours: 6, units: 2.0, file: 'ใบรับรอง_งานบุญ.pdf', status: 'pending', mismatch: false, ocr: { name: 'นางสาวรุ่งนภา แสงทอง', date: '8 ก.ค. 2569', hours: 6, confidence: 90 } },
+  {
+    id: 101, submissionMethod: 'logbook', submittedBy: { name: 'สมชาย ใจดี', code: '66114400123' }, submittedAt: '2026-07-08',
+    coverImage: 'cover_สมชาย.jpg', tableImage: 'แบบบันทึกกิจกรรม_วัดป่าฯ.jpg',
+    items: [
+      {
+        rowIndex: 1, activityName: 'จิตอาสาช่วยงานวัดป่านานาชาติ', location: 'วัดป่านานาชาติ อ.วารินชำราบ', activityDate: '2026-07-05', timeRange: '08:00-14:00',
+        hours: 6, detail: 'ช่วยทำความสะอาดศาลาปฏิบัติธรรมและจัดสถานที่รับเสด็จ', approverName: 'พระอาจารย์สมชาย ปัญญาวุฑโฒ', approverPosition: 'เจ้าอาวาส', approverPhone: '081-234-5678',
+        photos: ['activity_1a.jpg', 'activity_1b.jpg'], status: 'pending', approvedHours: null, rejectionReason: null
+      },
+    ]
+  },
+  {
+    id: 102, submissionMethod: 'logbook', submittedBy: { name: 'สมปอง ใจงาม', code: '66114400140' }, submittedAt: '2026-07-08',
+    coverImage: 'cover_สมปอง.jpg', tableImage: 'table_สมปอง.jpg',
+    items: [
+      {
+        rowIndex: 1, activityName: 'อาสาสมัครช่วยงานกาชาดจังหวัด', location: 'สำนักงานกาชาดจังหวัดอุบลราชธานี', activityDate: '2026-07-01', timeRange: '08:00-17:00',
+        hours: 9, detail: 'ช่วยลงทะเบียนผู้บริจาคโลหิตและจัดเตรียมอุปกรณ์', approverName: 'นางสาวจิราภรณ์ ใจบุญ', approverPosition: 'เจ้าหน้าที่กาชาดจังหวัด', approverPhone: '045-123-456',
+        photos: ['certificate_redcross.jpg'], status: 'pending', approvedHours: null, rejectionReason: null
+      },
+      {
+        rowIndex: 2, activityName: 'อาสาสมัครแจกน้ำดื่มงานวิ่งการกุศล', location: 'สนามกีฬาจังหวัดอุบลราชธานี', activityDate: '2026-07-01', timeRange: '05:00-09:00',
+        hours: 4, detail: 'ดูแลจุดบริการน้ำดื่มระหว่างเส้นทางวิ่ง', approverName: 'นายประวิทย์ ขยันงาน', approverPosition: 'ผู้ประสานงานอาสาสมัคร', approverPhone: '089-111-2222',
+        photos: ['run_event_1.jpg'], status: 'pending', approvedHours: null, rejectionReason: null
+      },
+    ]
+  },
+  {
+    id: 103, submissionMethod: 'logbook', submittedBy: { name: 'มานี มีนา', code: '66114400126' }, submittedAt: '2026-07-09',
+    coverImage: 'cover_มานี.jpg', tableImage: 'table_มานี.jpg',
+    items: [
+      {
+        rowIndex: 1, activityName: 'จิตอาสาสอนหนังสือน้อง ร.ร.บ้านหนองแสง', location: 'โรงเรียนบ้านหนองแสง', activityDate: '2026-07-06', timeRange: '09:00-12:00',
+        hours: 3, detail: 'สอนวิชาภาษาอังกฤษพื้นฐานให้นักเรียนชั้นประถม', approverName: 'นางสมศรี รักเด็ก', approverPosition: 'ผู้อำนวยการโรงเรียน', approverPhone: '045-987-654',
+        photos: ['teaching_1.jpg'], status: 'pending', approvedHours: null, rejectionReason: null
+      },
+    ]
+  },
+  {
+    id: 104, submissionMethod: 'logbook', submittedBy: { name: 'ปิติ ยินดี', code: '66114400127' }, submittedAt: '2026-07-09',
+    coverImage: 'cover_ปิติ.jpg', tableImage: 'proof_rimmun.jpg',
+    items: [
+      {
+        rowIndex: 1, activityName: 'อาสาพัฒนาชุมชนริมมูล', location: 'องค์การบริหารส่วนตำบลริมมูล', activityDate: '2026-06-28', timeRange: '07:00-19:00',
+        hours: 12, detail: 'ช่วยขุดลอกคลองและปลูกต้นไม้ริมแม่น้ำมูล', approverName: 'นายก อบต. ริมมูล', approverPosition: 'นายกองค์การบริหารส่วนตำบล', approverPhone: '081-999-8888',
+        photos: ['rimmun_1.jpg', 'rimmun_2.jpg'], status: 'pending', approvedHours: null, rejectionReason: null
+      },
+    ]
+  },
+  {
+    id: 105, submissionMethod: 'group_roster', submittedBy: { name: 'ชมรมอาสาพัฒนา ม.อุบลฯ', code: '66114400132' }, submittedAt: '2026-07-10',
+    groupFormImage: 'แบบบันทึกกิจกรรม_ปลูกป่า.jpg', rosterImage: 'roster_ปลูกป่า.jpg',
+    groupActivity: {
+      name: 'ปลูกป่าชายเลนชุมชนบ้านโนนงาม', location: 'ชุมชนบ้านโนนงาม อ.เมือง', date: '2026-07-08', hours: 6,
+      detail: 'ปลูกต้นโกงกางและทำความสะอาดชายฝั่ง', approverName: 'นายประสาน ดูแลดี', approverPosition: 'ผู้ใหญ่บ้าน', approverPhone: '086-555-4444'
+    },
+    rosterEntries: [
+      { rowIndex: 1, ocrFirstName: 'รุ่งนภา', ocrLastName: 'แสงทอง', ocrStudentCode: '66114400132', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 2, ocrFirstName: 'กมล', ocrLastName: 'ขยันยิ่ง', ocrStudentCode: '66114400131', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 3, ocrFirstName: 'ดวงเดือน', ocrLastName: 'ศรีสุข', ocrStudentCode: '6611440O129', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null }, // OCR อ่านเลข 0 เป็นตัว O ผิด
+      { rowIndex: 4, ocrFirstName: 'ธนพล', ocrLastName: 'แก้วมณี', ocrStudentCode: '66114499999', ocrFaculty: 'วิศวกรรมศาสตร์', signaturePresent: false, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null }, // รหัสไม่ตรงกับใครในระบบ + ไม่มีลายเซ็น
+    ]
+  },
 ];
 
 const DEFAULT_LEDGER = [
@@ -57,6 +119,57 @@ const DEFAULT_CYCLES = [
   { year: 2567, start: '2024-06-10', by: 'เจ้าหน้าที่คนก่อน', at: '2024-06-01 08:55' },
 ];
 
+/* Feature 2: รายชื่อผู้เช็คอินต่อกิจกรรม — เดิมเป็น ROSTER_DATA hardcode แยกอยู่แค่ใน
+ * lead-org-rosters.html (คีย์ 1/2/3 ไม่ตรงกับ event id จริงเลย) ย้ายมารวมที่นี่และคีย์ด้วย
+ * event id จริงจาก DEFAULT_EVENTS เพื่อให้ field-staff-home.html เชื่อมกับ lead-org-rosters.html ได้ */
+const DEFAULT_ROSTERS = {
+  3: {
+    name: 'บริจาคโลหิต สภากาชาดไทย',
+    students: [
+      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '10:00 น.' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '10:15 น.' },
+      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '10:30 น.' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '10:45 น.' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '11:00 น.' },
+    ],
+  },
+  4: {
+    name: 'อบรมปฐมพยาบาล CPR',
+    students: [
+      { code: '66114400123', name: 'สมชาย ใจดี', method: 'Selfie', time: '09:00 น.' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'Selfie', time: '09:05 น.' },
+      { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Selfie', time: '09:10 น.' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Selfie', time: '09:20 น.' },
+    ],
+  },
+  5: {
+    name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์',
+    students: [
+      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '09:05 น.' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '09:07 น.' },
+      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '09:12 น.' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '09:20 น.' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '09:22 น.' },
+      { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '09:25 น.' },
+    ],
+  },
+  6: {
+    name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ',
+    students: [
+      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '08:23 น.' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '08:30 น.' },
+      { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Master Code', time: '09:15 น.' },
+      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '08:45 น.' },
+      { code: '66114400127', name: 'ปิติ ยินดี', method: 'Selfie', time: '09:00 น.' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'GPS', time: '08:50 น.' },
+      { code: '66114400129', name: 'ดวงเดือน ศรีสุข', method: 'GPS', time: '08:55 น.' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'Master Code', time: '09:30 น.' },
+      { code: '66114400131', name: 'กมล ขยันยิ่ง', method: 'GPS', time: '09:10 น.' },
+      { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '08:40 น.' },
+    ],
+  },
+};
+
 /* state ต่อ key — reset ได้ด้วยการลบ localStorage */
 const RegDB = {
   events: Store.get('events', DEFAULT_EVENTS),
@@ -64,6 +177,7 @@ const RegDB = {
   proofs: Store.get('proofs', DEFAULT_PROOFS),
   ledger: Store.get('ledger', DEFAULT_LEDGER),
   cycles: Store.get('cycles', DEFAULT_CYCLES),
+  rosters: Store.get('rosters', DEFAULT_ROSTERS),
   // FR-C14: ยอดสะสมของปีการศึกษาก่อนหน้าต้องถูก archive (เก็บ snapshot จริง) ไม่ใช่แค่ metadata
   // โครงสร้าง: { [year]: [ ...deep copy ของ ledger ตอนปิดรอบปีนั้น ] }
   archivedLedgers: Store.get('archived-ledgers', {}),
@@ -73,6 +187,7 @@ const RegDB = {
     Store.set('proofs', this.proofs);
     Store.set('ledger', this.ledger);
     Store.set('cycles', this.cycles);
+    Store.set('rosters', this.rosters);
     Store.set('archived-ledgers', this.archivedLedgers);
   },
 };
@@ -86,8 +201,6 @@ function appendAudit(action, detail, actor = 'registrar.sombat') {
 
 /* validate รหัสนักศึกษา: ตัวเลขล้วน 11 หลัก (FR-A, AGENTS.md §8.1) */
 function isValidStudentCode(code) { return /^\d{11}$/.test(code); }
-
-function pendingProofs() { return RegDB.proofs.filter((p) => p.status === 'pending'); }
 
 /* ---------------- Screen 1: Export Excel --------------------------------- */
 const EXCEL_TEMPLATE_KEY = 'excel-template';
@@ -119,7 +232,12 @@ function initExportPage() {
     showConfirmDialog({
       title: 'ยืนยันนำเข้า UBU SAC สำเร็จ',
       message: `กิจกรรม "${ev.name}"`,
-      bullets: [
+      bullets: ev.open ? [
+        'บันทึกสถานะว่ารายชื่อชุดนี้ถูกนำเข้าระบบ UBU SAC เรียบร้อยแล้ว',
+        'หน่วยกิตกิจกรรมเปิดกว้างของนักศึกษาที่เกี่ยวข้องจะถูกบวกเข้ายอดสะสม 12 หน่วย/ปีการศึกษา ณ จุดนี้ (ไม่ใช่ตอนอนุมัติหลักฐาน)',
+        'ระบบจะแจ้งเตือนนักศึกษาที่เกี่ยวข้องว่าชั่วโมงเข้าระบบแล้ว',
+        'การกระทำนี้ถูกบันทึกลง Audit Log',
+      ] : [
         'บันทึกสถานะว่ารายชื่อชุดนี้ถูกนำเข้าระบบ UBU SAC เรียบร้อยแล้ว',
         'ระบบจะแจ้งเตือนนักศึกษาที่เกี่ยวข้องว่าชั่วโมงเข้าระบบแล้ว',
         'การกระทำนี้ถูกบันทึกลง Audit Log',
@@ -127,8 +245,21 @@ function initExportPage() {
       confirmText: 'ยืนยันนำเข้าแล้ว',
       onConfirm: () => {
         ev.exportStatus = 'confirmed';
+        let creditedCount = 0;
+        if (ev.open) {
+          const roster = RegDB.rosters[ev.id];
+          if (roster) {
+            roster.students.forEach((row) => {
+              let ledgerRow = RegDB.ledger.find((l) => l.code === row.code);
+              if (!ledgerRow) { ledgerRow = { code: row.code, name: row.name, units: 0, locked: false }; RegDB.ledger.push(ledgerRow); }
+              ledgerRow.units = Math.min(QUOTA_MAX, ledgerRow.units + (row.units || 0));
+              if (ledgerRow.units >= QUOTA_MAX) ledgerRow.locked = true;
+              creditedCount++;
+            });
+          }
+        }
         RegDB.save();
-        appendAudit('sac_import_confirmed', `ยืนยันนำเข้า UBU SAC กิจกรรม "${ev.name}"`);
+        appendAudit('sac_import_confirmed', `ยืนยันนำเข้า UBU SAC กิจกรรม "${ev.name}"${ev.open ? ` — บวกหน่วยกิตกิจกรรมเปิดกว้างให้ ${creditedCount} คน` : ''}`);
         showToast('บันทึกสถานะนำเข้า UBU SAC สำเร็จ และแจ้งเตือนนักศึกษาแล้ว');
         renderExportTable();
       },
@@ -141,11 +272,23 @@ function currentExportEvent() {
   return RegDB.events.find((e) => e.id === id);
 }
 
+/* กิจกรรมเปิดกว้าง: รายชื่อที่ export ต้องมาจากรายชื่อลงทะเบียนจริงของกิจกรรมนั้น (RegDB.rosters — เช็คอิน + หลักฐานที่ Registrar อนุมัติแล้ว)
+ * ไม่ใช่ RegDB.students ทั้งก้อนเหมือนกิจกรรมปกติ (กิจกรรมปกติยังคงพฤติกรรมเดิมไว้ก่อนตามที่ยืนยัน) */
+function exportSourceStudents(ev) {
+  if (!ev.open) return RegDB.students;
+  const roster = RegDB.rosters[ev.id];
+  if (!roster) return [];
+  return roster.students.map((row) => {
+    const parts = row.name.split(' ');
+    return { code: row.code, first: parts[0] || row.name, last: parts.slice(1).join(' '), credits: row.units != null ? row.units : ev.credits };
+  });
+}
+
 /* FR-A5 + UC-R1 <<include>> UC-R9: ปุ่ม Export ต้อง (1) บล็อกทั้งหมดถ้ามีรหัสผิด
  * (2) บังคับผ่านการตรวจสอบ/ล็อกหน่วยกิตกิจกรรมเปิดกว้างของปีปัจจุบันก่อนเสมอ */
 function attemptExport() {
   const ev = currentExportEvent();
-  const invalid = RegDB.students.filter((s) => !isValidStudentCode(s.code));
+  const invalid = exportSourceStudents(ev).filter((s) => !isValidStudentCode(s.code));
 
   if (invalid.length) {
     showConfirmDialog({
@@ -190,7 +333,7 @@ function doExportFile(ev) {
   const currentT = Store.get(EXCEL_TEMPLATE_KEY, DEFAULT_EXCEL_TEMPLATE);
   // จำลองไฟล์ .xlsx ด้วย CSV ง่ายๆ โดย map คอลัมน์ตามหัวตารางในระบบ
   const rows = [currentT.columns];
-  RegDB.students.forEach((s) => {
+  exportSourceStudents(ev).forEach((s) => {
     const row = currentT.columns.map((colName) => {
       const cleaned = colName.trim().toLowerCase();
       if (cleaned.includes('รหัส')) return s.code;
@@ -217,11 +360,12 @@ function doExportFile(ev) {
 function renderExportTable() {
   const ev = currentExportEvent();
   const q = (document.getElementById('export-search').value || '').toLowerCase();
-  const list = RegDB.students.filter((s) => (s.code + s.first + s.last).toLowerCase().includes(q));
+  const sourceStudents = exportSourceStudents(ev);
+  const list = sourceStudents.filter((s) => (s.code + s.first + s.last).toLowerCase().includes(q));
   const t = Store.get(EXCEL_TEMPLATE_KEY, DEFAULT_EXCEL_TEMPLATE);
 
   // FR-A5: มีรหัสผิดรูปแบบอยู่ → ต้องบล็อก Export ทั้งหมด ไม่ใช่แค่ข้ามแถวที่ผิด
-  const invalidStudents = RegDB.students.filter((s) => !isValidStudentCode(s.code));
+  const invalidStudents = sourceStudents.filter((s) => !isValidStudentCode(s.code));
   const blockBanner = document.getElementById('export-block-banner');
   const btnExport = document.getElementById('btn-export');
   if (blockBanner) {
@@ -262,30 +406,30 @@ function renderExportTable() {
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
         ${list.map((s) => {
-          const ok = isValidStudentCode(s.code);
-          return `<tr class="hover:bg-slate-50/50 transition ${ok ? '' : 'bg-red-50/40'}">
+    const ok = isValidStudentCode(s.code);
+    return `<tr class="hover:bg-slate-50/50 transition ${ok ? '' : 'bg-red-50/40'}">
             ${t.columns.map(col => {
-              const cleaned = col.trim().toLowerCase();
-              let val = '';
-              let cls = 'text-left';
-              if (cleaned.includes('รหัส')) {
-                val = s.code;
-                cls = `text-left font-mono ${ok ? 'text-slate-800' : 'text-red-600 font-semibold'}`;
-              }
-              else if (cleaned.includes('นามสกุล') || cleaned.includes('สกุล')) { val = s.last; }
-              else if (cleaned.includes('ชื่อ')) { val = s.first; }
-              else if (cleaned.includes('หน่วยกิต') || cleaned.includes('ชั่วโมง') || cleaned.includes('ชม')) {
-                val = s.credits.toFixed(1);
-                cls = 'text-center font-mono text-slate-800';
-              }
-              return `<td class="px-4 py-3 text-sm ${cls}">${val}</td>`;
-            }).join('')}
+      const cleaned = col.trim().toLowerCase();
+      let val = '';
+      let cls = 'text-left';
+      if (cleaned.includes('รหัส')) {
+        val = s.code;
+        cls = `text-left font-mono ${ok ? 'text-slate-800' : 'text-red-600 font-semibold'}`;
+      }
+      else if (cleaned.includes('นามสกุล') || cleaned.includes('สกุล')) { val = s.last; }
+      else if (cleaned.includes('ชื่อ')) { val = s.first; }
+      else if (cleaned.includes('หน่วยกิต') || cleaned.includes('ชั่วโมง') || cleaned.includes('ชม')) {
+        val = s.credits.toFixed(1);
+        cls = 'text-center font-mono text-slate-800';
+      }
+      return `<td class="px-4 py-3 text-sm ${cls}">${val}</td>`;
+    }).join('')}
             <td class="px-4 py-3 text-center">${ok ? statusBadge('ready', 'ผ่าน') : statusBadge('rejected', 'ไม่ผ่าน (ต้องเป็นเลข 11 หลัก)')}</td>
             <td class="px-4 py-3 text-right">
-              <button onclick="openAdjustDialog(['${s.code}'])" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>
+              ${ev.open ? '' : `<button onclick="openAdjustDialog(['${s.code}'])" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>`}
             </td>
           </tr>`;
-        }).join('')}
+  }).join('')}
       </tbody>
     </table>` : emptyState('ไม่พบรายชื่อที่ค้นหา');
   document.getElementById('export-count').textContent = `${list.filter((s) => isValidStudentCode(s.code)).length}/${list.length} รายชื่อพร้อม export`;
@@ -325,8 +469,8 @@ function renderAdjustTable() {
             <td class="px-4 py-3 text-sm font-mono text-slate-800">${s.code}</td>
             <td class="px-4 py-3 text-sm text-slate-800">${s.first} ${s.last}</td>
             ${s.attend.map((a) => `<td class="px-2 py-3 text-center">${a
-              ? `<span class="inline-flex text-emerald-600">${icon('check-circle', 'w-4 h-4')}</span>`
-              : `<span class="inline-flex text-red-400">${icon('x-circle', 'w-4 h-4')}</span>`}</td>`).join('')}
+    ? `<span class="inline-flex text-emerald-600">${icon('check-circle', 'w-4 h-4')}</span>`
+    : `<span class="inline-flex text-red-400">${icon('x-circle', 'w-4 h-4')}</span>`}</td>`).join('')}
             <td class="px-4 py-3 text-sm text-center font-mono font-semibold text-slate-900">${s.credits.toFixed(1)}</td>
             <td class="px-4 py-3 text-right">
               <button onclick="openAdjustDialog(['${s.code}'])" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>
@@ -412,6 +556,13 @@ function initEventFormPage() {
   const gpsFields = document.getElementById('gps-fields');
   gpsToggle.addEventListener('change', () => gpsFields.classList.toggle('hidden', !gpsToggle.checked));
 
+  // Feature: กิจกรรมเปิดกว้างเลือกได้ว่ารับหลักฐานแบบไหนบ้าง (individual/project)
+  const openToggle = document.getElementById('ev-open');
+  const acceptDocTypesBox = document.getElementById('ev-accept-doctypes');
+  if (openToggle && acceptDocTypesBox) {
+    openToggle.addEventListener('change', () => acceptDocTypesBox.classList.toggle('hidden', !openToggle.checked));
+  }
+
   const radius = document.getElementById('ev-radius');
   const radiusVal = document.getElementById('ev-radius-val');
   const circle = document.getElementById('geofence-circle');
@@ -483,25 +634,28 @@ function initEventFormPage() {
     if (placeholder) placeholder.classList.remove('hidden');
   };
 
-  const staffSelect = document.getElementById('ev-staff-id');
-  if (staffSelect) {
-    let optionsHtml = '<option value="">-- ไม่แต่งตั้ง (สามารถมอบหมายงานทีหลังได้) --</option>' +
-      '<option value="4">น้องเก่ง สตาฟดี (keng.staff)</option>' +
-      '<option value="6">บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน</option>' +
-      '<option value="99">น้องเบล สตาฟใหม่ (bell.staff)</option>';
-
-    RegDB.students.forEach((s) => {
-      const val = Number(s.code);
-      if (val) {
-        optionsHtml += `<option value="${val}">${s.first} ${s.last} (${s.code})</option>`;
+  // Screen 3 + Feature 1: แต่งตั้งสตาฟหน้างานได้หลายคน + จำกัดจำนวนสูงสุดต่อกิจกรรม (chip picker)
+  let formStaffIds = [];
+  const staffLimitInput = document.getElementById('ev-staff-limit');
+  const staffAddSelect = document.getElementById('ev-staff-add');
+  const refreshStaffChips = () => renderStaffChips('ev-staff-chips', staffAddSelect, formStaffIds, Number(staffLimitInput.value) || 3);
+  if (staffAddSelect && staffLimitInput) {
+    refreshStaffChips();
+    staffAddSelect.addEventListener('change', () => {
+      if (staffAddSelect.value) {
+        formStaffIds.push(Number(staffAddSelect.value));
+        refreshStaffChips();
       }
     });
-    staffSelect.innerHTML = optionsHtml;
+    staffLimitInput.addEventListener('input', refreshStaffChips);
   }
 
   document.getElementById('event-form').addEventListener('reset', () => {
     clearImage();
     gpsFields.classList.add('hidden');
+    if (acceptDocTypesBox) acceptDocTypesBox.classList.add('hidden');
+    formStaffIds = [];
+    refreshStaffChips();
   });
 
   document.getElementById('event-form').addEventListener('submit', (e) => {
@@ -515,6 +669,9 @@ function initEventFormPage() {
     const latVal = parseFloat(document.getElementById('ev-lat').value);
     const lngVal = parseFloat(document.getElementById('ev-lng').value);
     const radiusVal = Number(radius.value);
+    const openEnabled = document.getElementById('ev-open').checked;
+    const acceptIndividual = document.getElementById('ev-accept-individual').checked;
+    const acceptProject = document.getElementById('ev-accept-project').checked;
 
     const errors = [];
     if (!name) errors.push('กรุณากรอกชื่อกิจกรรม');
@@ -524,6 +681,13 @@ function initEventFormPage() {
     if (gpsEnabled) {
       if (!Number.isFinite(latVal) || !Number.isFinite(lngVal)) errors.push('เปิดใช้ GPS แล้วต้องปักหมุดพิกัดบนแผนที่ก่อนบันทึก');
       if (!Number.isFinite(radiusVal) || radiusVal <= 0) errors.push('รัศมี geofencing ต้องมากกว่า 0 เมตร');
+    }
+    if (openEnabled && !acceptIndividual && !acceptProject) {
+      errors.push('กิจกรรมเปิดกว้างต้องเลือกรับหลักฐานอย่างน้อย 1 แบบ (รายบุคคล หรือ ระดับโครงการ)');
+    }
+    const staffLimit = Number(staffLimitInput.value) || 3;
+    if (formStaffIds.length > staffLimit) {
+      errors.push(`มีสตาฟที่เพิ่มไว้ (${formStaffIds.length} คน) เกินจำนวนจำกัด (${staffLimit} คน) — กรุณาลบออกหรือเพิ่มจำนวนจำกัด`);
     }
     if (errors.length) {
       showConfirmDialog({
@@ -536,7 +700,8 @@ function initEventFormPage() {
       return; // ระงับการบันทึกทั้งหมดจนกว่าจะแก้ไขครบ
     }
 
-    const open = document.getElementById('ev-open').checked;
+    const open = openEnabled;
+    const acceptedDocTypes = open ? [...(acceptIndividual ? ['individual'] : []), ...(acceptProject ? ['project'] : [])] : [];
     const objectives = document.getElementById('ev-objectives').value.trim();
     const description = document.getElementById('ev-desc').value.trim();
     const schedule = document.getElementById('ev-schedule').value.trim();
@@ -549,8 +714,6 @@ function initEventFormPage() {
 
     const selfie = document.getElementById('ev-selfie').checked;
     const masterCode = document.getElementById('ev-code').checked;
-    const staffIdInput = document.getElementById('ev-staff-id');
-    const staffId = staffIdInput && staffIdInput.value ? Number(staffIdInput.value) : null;
 
     RegDB.events.unshift({
       id: Date.now(),
@@ -559,13 +722,15 @@ function initEventFormPage() {
       days: daysVal,
       credits: creditsVal,
       open,
+      acceptedDocTypes,
       gps: gpsEnabled,
       lat: gpsEnabled ? latVal : null,
       lng: gpsEnabled ? lngVal : null,
       radius: radiusVal,
       selfie,
       masterCode,
-      staffId,
+      staffIds: formStaffIds.slice(),
+      staffLimit,
       participants: 0,
       checkedIn: 0,
       exportStatus: 'none',
@@ -587,6 +752,8 @@ function initEventFormPage() {
     e.target.reset();
     clearImage();
     gpsFields.classList.add('hidden');
+    formStaffIds = [];
+    refreshStaffChips();
   });
   renderRecentEvents();
 }
@@ -595,7 +762,7 @@ function renderRecentEvents() {
   const box = document.getElementById('recent-events');
   if (!box) return;
   box.innerHTML = RegDB.events.slice(0, 5).map((ev) => {
-    const imgHtml = ev.image_url 
+    const imgHtml = ev.image_url
       ? `<img src="${ev.image_url}" class="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-100 border border-slate-100">`
       : `<div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0 border border-blue-200">${ev.name.charAt(0)}</div>`;
     const subcatBadge = ev.subcategory ? `<span class="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5 rounded border border-blue-100 shrink-0 font-medium">${ev.subcategory}</span>` : '';
@@ -624,81 +791,200 @@ function renderRecentEvents() {
   }).join('');
 }
 
-/* ---------------- Screen 4: ตรวจหลักฐาน OCR ------------------------------ */
-let activeProofId = null;
+/* ---------------- Screen 4: ตรวจหลักฐานกิจกรรมเปิดกว้าง ------------------
+ * FR-C4-C7, C19: logbook กรอกเอง (ไม่ใช้ OCR) — group_roster ใช้ OCR เฉพาะตารางรายชื่อ
+ * คิวรอตรวจนับเป็นรายแถว/รายชื่อ (ไม่ใช่รายเอกสาร) อนุมัติ/ปฏิเสธแยกอิสระต่อกัน + คุมเพดาน 9 ชม./วัน (FR-C6) */
+const DAILY_HOUR_CAP = 9;
+let activeQueueKey = null; // "<proofId>:item:<rowIndex>" หรือ "<proofId>:roster:<rowIndex>"
+
+function pendingProofs() {
+  const rows = [];
+  RegDB.proofs.forEach((p) => {
+    (p.items || []).forEach((it) => { if (it.status === 'pending') rows.push({ key: `${p.id}:item:${it.rowIndex}`, proof: p, item: it }); });
+    (p.rosterEntries || []).forEach((en) => { if (en.status === 'pending') rows.push({ key: `${p.id}:roster:${en.rowIndex}`, proof: p, entry: en }); });
+  });
+  return rows;
+}
+
+function findQueueRow(key) { return pendingProofs().find((r) => r.key === key) || null; }
+
+/* จับคู่นักศึกษาอัตโนมัติจากรหัสที่ OCR อ่านได้ (ทำครั้งเดียวตอนโหลดหน้า เหมือน backend จับคู่ตอน ingest)
+ * ถ้ารหัสไม่ตรงกับใครในระบบเลย matchedCode ยังเป็น null ให้ Registrar แก้ไขเอง (FR-C19) */
+function autoMatchRosterEntries() {
+  RegDB.proofs.forEach((p) => (p.rosterEntries || []).forEach((en) => {
+    if (!en.matchedCode) {
+      const hit = RegDB.students.find((s) => s.code === en.ocrStudentCode);
+      if (hit) en.matchedCode = hit.code;
+    }
+  }));
+}
+
+/* เพดาน 9 ชม./วัน (FR-C6) รวมทุกแหล่งหน่วยกิตของนักศึกษาคนเดียวกันในระบบนี้:
+ * off_campus_volunteer_proof_items + off_campus_volunteer_roster_entries ที่อนุมัติแล้ว
+ * (mock นี้ยังไม่มีฟิลด์ชั่วโมงรายวันของเช็คอินกิจกรรมในมหาวิทยาลัย — ดูหมายเหตุใน AGENTS.md §5.2) */
+function approvedHoursOnDate(code, date) {
+  let total = 0;
+  RegDB.proofs.forEach((p) => {
+    (p.items || []).forEach((it) => { if (it.status === 'approved' && it.activityDate === date && p.submittedBy.code === code) total += it.approvedHours || 0; });
+    (p.rosterEntries || []).forEach((en) => { if (en.status === 'approved' && p.groupActivity && p.groupActivity.date === date && en.matchedCode === code) total += en.approvedHours || 0; });
+  });
+  return total;
+}
+function remainingAllowance(code, date) { return Math.max(0, DAILY_HOUR_CAP - approvedHoursOnDate(code, date)); }
+function defaultApprovedHours(code, date, reportedHours) { return Math.min(reportedHours, remainingAllowance(code, date)); }
 
 function initOcrPage() {
+  autoMatchRosterEntries();
   renderProofQueue();
   const first = pendingProofs()[0];
-  if (first) selectProof(first.id);
+  if (first) selectQueueRow(first.key);
 }
 
 function renderProofQueue() {
   const list = pendingProofs();
   document.getElementById('queue-count').innerHTML = statusBadge('pending', `รอตรวจ ${list.length} รายการ`);
-  document.getElementById('proof-queue').innerHTML = list.length ? list.map((p) => `
-    <button onclick="selectProof(${p.id})" class="w-full text-left px-4 py-3 hover:bg-slate-50 transition ${activeProofId === p.id ? 'bg-blue-50/70 border-l-4 border-blue-600' : 'border-l-4 border-transparent'}">
-      <div class="flex items-center justify-between gap-2">
-        <p class="text-sm font-medium text-slate-800 truncate">${p.student}</p>
-        ${p.mismatch ? `<span class="text-yellow-500 shrink-0" title="ข้อมูลไม่ตรง">${icon('alert-triangle', 'w-4 h-4')}</span>` : ''}
-      </div>
-      <p class="text-xs text-slate-400 truncate mt-0.5">${p.title}</p>
-      <p class="text-[10px] text-slate-300 mt-0.5 font-mono">ส่งเมื่อ ${thDate(p.submitted)}</p>
-    </button>`).join('') : emptyState('ไม่มีหลักฐานรอตรวจ', 'check-circle');
+  document.getElementById('proof-queue').innerHTML = list.length ? list.map((r) => {
+    const displayName = r.item ? r.proof.submittedBy.name : `${r.entry.ocrFirstName} ${r.entry.ocrLastName}`;
+    const displaySub = r.item ? r.item.activityName : `รายชื่อกลุ่ม • ${r.proof.groupActivity.name}`;
+    return `
+    <button onclick="selectQueueRow('${r.key}')" class="w-full text-left px-4 py-3 hover:bg-slate-50 transition ${activeQueueKey === r.key ? 'bg-blue-50/70 border-l-4 border-blue-600' : 'border-l-4 border-transparent'}">
+      <p class="text-sm font-medium text-slate-800 truncate">${displayName}</p>
+      <p class="text-xs text-slate-400 truncate mt-0.5">${displaySub}</p>
+      <p class="text-[10px] text-slate-300 mt-0.5 font-mono">ส่งเมื่อ ${thDate(r.proof.submittedAt)}</p>
+    </button>`;
+  }).join('') : emptyState('ไม่มีหลักฐานรอตรวจ', 'check-circle');
 }
 
-function selectProof(id) {
-  activeProofId = id;
-  const p = RegDB.proofs.find((x) => x.id === id);
+function selectQueueRow(key) {
+  activeQueueKey = key;
+  const row = findQueueRow(key);
   renderProofQueue();
-  if (!p) return;
+  if (!row) return;
   document.getElementById('proof-detail').classList.remove('hidden');
   document.getElementById('proof-empty').classList.add('hidden');
+  if (row.item) renderItemDetail(row); else renderRosterDetail(row);
+}
 
-  // ซ้าย: เอกสารต้นฉบับ (จำลองใบรับรอง)
-  const categoryBadge = p.categoryTitle ? `<div class="mt-1"><span class="bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-medium px-2 py-0.5 rounded-full inline-block">หมวดหมู่: ${p.categoryTitle}</span></div>` : '';
+function docThumb(label, filename) {
+  return `
+    <div class="mock-certificate rounded-xl p-4 text-center min-h-[120px] flex flex-col items-center justify-center gap-1">
+      <p class="text-[9px] uppercase tracking-[0.2em] text-amber-700/60">${label}</p>
+      <p class="text-xs text-slate-600 font-mono">${filename || '(ไม่มีไฟล์)'}</p>
+    </div>`;
+}
+
+function bindDailyCapBox(code, date, reportedHours) {
+  const remaining = remainingAllowance(code, date);
+  document.getElementById('daily-cap-box').innerHTML = `
+    <div class="border-l-4 border-sky-400 bg-sky-50 p-3 rounded-r-xl text-xs text-sky-700">
+      คงเหลือโควตาวันนี้ (${date ? thDate(date) : '-'}): <strong>${remaining} ชม.</strong> จาก ${DAILY_HOUR_CAP} ชม./วัน (นับรวมทุกแหล่งในระบบที่อนุมัติแล้ว) — ชั่วโมงที่อนุมัติต้องไม่เกินยอดนี้
+    </div>`;
+  const approvedInput = document.getElementById('pf-approved-hours');
+  if (approvedInput) {
+    approvedInput.max = remaining;
+    if (parseFloat(approvedInput.value) > remaining) approvedInput.value = remaining;
+  }
+}
+
+/* -------- ตรวจแถวที่กรอกเอง (logbook) — ไม่มี OCR ----------- */
+function renderItemDetail(row) {
+  const { proof: p, item: it } = row;
+  document.getElementById('proof-panel-title').textContent = 'ข้อมูลที่กรอกเอง — แก้ไขได้ก่อนอนุมัติ';
+  document.getElementById('ocr-confidence').textContent = `แถวที่ ${it.rowIndex} • สมุดบันทึกจิตอาสา`;
+
   document.getElementById('proof-doc').innerHTML = `
-    <div class="mock-certificate rounded-xl p-6 text-center space-y-3 min-h-[280px] flex flex-col justify-center">
-      <p class="text-[10px] uppercase tracking-[0.3em] text-amber-700/60">Certificate of Volunteer Work</p>
-      <p class="text-lg font-semibold text-slate-700">ใบรับรองการเข้าร่วมกิจกรรมจิตอาสา</p>
-      ${categoryBadge}
-      <p class="text-sm text-slate-500">ขอรับรองว่า <span class="font-semibold text-slate-800 underline decoration-dotted">${p.ocr.name}</span></p>
-      <p class="text-sm text-slate-500">ได้เข้าร่วม "${p.title}"</p>
-      <p class="text-sm text-slate-500">เมื่อวันที่ ${p.ocr.date} รวม <span class="font-mono font-semibold">${p.ocr.hours}</span> ชั่วโมง</p>
-      <p class="text-xs text-slate-400 pt-3">(ภาพจำลองเอกสาร • ${p.file})</p>
+    ${docThumb('หน้าปก', p.coverImage)}
+    ${docThumb('หน้าตารางกิจกรรม', p.tableImage)}
+    <div class="pt-2 border-t border-slate-100">
+      <p class="text-xs text-slate-400">บัญชีผู้ส่ง (auto-fill จากบัญชี login)</p>
+      <p class="text-sm font-semibold text-slate-800">${p.submittedBy.name} <span class="font-mono text-xs text-slate-400">(${p.submittedBy.code})</span></p>
+    </div>
+    <div>
+      <p class="text-xs text-slate-400 mb-1.5">รูปทำกิจกรรมจริง (แถวนี้)</p>
+      <div class="grid grid-cols-3 gap-1.5">${it.photos.map((f) => `<div class="mock-certificate rounded-lg h-16 flex items-center justify-center text-[9px] text-amber-700/60 px-1 text-center">${f}</div>`).join('')}</div>
     </div>`;
 
-  // ขวา: ผล OCR + เทียบโปรไฟล์
-  document.getElementById('ocr-confidence').textContent = `Confidence: ${p.ocr.confidence}%`;
   document.getElementById('ocr-fields').innerHTML = `
-    ${ocrRow('ชื่อในเอกสาร', `<input id="ocr-name" value="${p.ocr.name}" class="ocr-input">`)}
-    ${p.categoryTitle ? ocrRow('หมวดหมู่ระบบ (event_id)', `<span class="text-sm font-semibold text-slate-800 text-right">${p.categoryTitle}</span>`) : ''}
-    ${ocrRow('ชื่อกิจกรรมเฉพาะ', `<input id="ocr-title" value="${p.title}" class="ocr-input">`)}
-    ${ocrRow('วันที่จัดกิจกรรม', `<input id="ocr-date" value="${p.ocr.date}" class="ocr-input">`)}
-    ${ocrRow('จำนวนชั่วโมง', `<input id="ocr-hours" type="number" value="${p.ocr.hours}" class="ocr-input font-mono w-24 text-right">`)}
-    ${ocrRow('คิดเป็นหน่วยกิต', `<span class="text-sm font-mono font-semibold text-slate-800">${p.units.toFixed(1)} หน่วย</span>`)}
-    ${ocrRow('บัญชีผู้ส่ง', `<span class="text-sm font-semibold text-slate-800">${p.student} <span class="font-mono text-xs text-slate-400">(${p.code})</span></span>`)}`;
+    ${ocrRow('ชื่อโครงการ/กิจกรรม', `<input id="pf-title" value="${it.activityName}" class="ocr-input">`)}
+    ${ocrRow('สถานที่', `<input id="pf-location" value="${it.location || ''}" class="ocr-input">`)}
+    ${ocrRow('วันที่ทำกิจกรรม', `<input id="pf-date" type="date" value="${it.activityDate}" class="ocr-input">`)}
+    ${ocrRow('จำนวนชั่วโมงที่แจ้ง', `<input id="pf-hours" type="number" value="${it.hours}" class="ocr-input font-mono w-24 text-right">`)}
+    ${ocrRow('ผู้รับรอง', `<span class="text-sm font-semibold text-slate-800 text-right">${it.approverName}${it.approverPosition ? ' (' + it.approverPosition + ')' : ''}</span>`)}
+    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" value="${defaultApprovedHours(p.submittedBy.code, it.activityDate, it.hours)}" class="ocr-input font-mono w-24 text-right text-emerald-700">`)}`;
   document.querySelectorAll('.ocr-input').forEach((el) => {
     el.className += ' text-sm font-semibold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none text-right';
   });
 
-  document.getElementById('mismatch-box').innerHTML = p.mismatch ? `
-    <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-r-xl">
-      <div class="flex items-start gap-3">
-        <span class="text-yellow-600 shrink-0 mt-0.5">${icon('alert-triangle', 'w-5 h-5')}</span>
-        <div>
-          <p class="text-sm font-semibold text-yellow-800">คำเตือน: ชื่อ/ข้อมูลบนใบรับรองไม่ตรงกับบัญชีผู้ใช้</p>
-          <p class="text-xs text-yellow-700 mt-1 leading-relaxed">
-            ชื่อในเอกสาร (OCR): <strong>${p.ocr.name}</strong><br/>
-            ชื่อในระบบ: <strong>${p.student}</strong> — ต้องตรวจสอบด้วยตนเองก่อนอนุมัติ (ระบบไม่อนุมัติอัตโนมัติ)
-          </p>
-        </div>
-      </div>
-    </div>` : `
-    <div class="border-l-4 border-emerald-400 bg-emerald-50 p-3 rounded-r-xl flex items-center gap-2.5">
-      <span class="text-emerald-600">${icon('check-circle', 'w-4 h-4')}</span>
-      <p class="text-xs text-emerald-800">ข้อมูล OCR ตรงกับบัญชีผู้ใช้ที่ล็อกอิน</p>
+  bindDailyCapBox(p.submittedBy.code, it.activityDate, it.hours);
+
+  document.getElementById('pf-title').addEventListener('input', (e) => { it.activityName = e.target.value; });
+  document.getElementById('pf-location').addEventListener('input', (e) => { it.location = e.target.value; });
+  document.getElementById('pf-date').addEventListener('input', (e) => { it.activityDate = e.target.value; bindDailyCapBox(p.submittedBy.code, it.activityDate, it.hours); });
+  document.getElementById('pf-hours').addEventListener('input', (e) => { it.hours = parseFloat(e.target.value) || 0; bindDailyCapBox(p.submittedBy.code, it.activityDate, it.hours); });
+
+  document.getElementById('mismatch-box').innerHTML = '';
+  document.getElementById('btn-approve').disabled = false;
+  document.getElementById('proof-panel-note').textContent = 'แก้ไขค่าที่กรอกผิดในช่องด้านบนได้เลย ก่อนกดอนุมัติ — การตัดสินใจทั้งหมดถูกบันทึกลง Audit Log';
+}
+
+/* -------- ตรวจรายชื่อกลุ่ม (group_roster) — OCR สกัด ต้องจับคู่ก่อนอนุมัติ ----------- */
+function renderRosterDetail(row) {
+  const { proof: p, entry: en } = row;
+  document.getElementById('proof-panel-title').textContent = 'รายชื่อที่ OCR สกัดได้ — แก้ไขได้ก่อนอนุมัติ';
+  document.getElementById('ocr-confidence').textContent = `แถวที่ ${en.rowIndex} • กิจกรรมกลุ่ม`;
+
+  document.getElementById('proof-doc').innerHTML = `
+    ${docThumb('แบบบันทึกการเข้าร่วมกิจกรรม (หน้าเอกสาร — ไม่มี OCR)', p.groupFormImage)}
+    ${docThumb('รูปตารางรายชื่อ (OCR)', p.rosterImage)}
+    <div class="pt-2 border-t border-slate-100 space-y-1">
+      <p class="text-xs text-slate-400">กิจกรรมกลาง (ใช้ร่วมกันทุกคนในตาราง กรอกเองโดยผู้ส่ง ไม่ใช้ OCR)</p>
+      <p class="text-sm font-semibold text-slate-800">${p.groupActivity.name}</p>
+      <p class="text-xs text-slate-500">${p.groupActivity.location || '-'} • ${thDate(p.groupActivity.date)} • ${p.groupActivity.hours} ชม.</p>
+      <p class="text-xs text-slate-500">ผู้รับรอง: ${p.groupActivity.approverName}${p.groupActivity.approverPosition ? ' (' + p.groupActivity.approverPosition + ')' : ''}</p>
+      <p class="text-xs text-slate-400 pt-1">ส่งโดย ${p.submittedBy.name}</p>
     </div>`;
+
+  document.getElementById('ocr-fields').innerHTML = `
+    ${ocrRow('ชื่อ (OCR)', `<input id="pf-first" value="${en.ocrFirstName}" class="ocr-input">`)}
+    ${ocrRow('นามสกุล (OCR)', `<input id="pf-last" value="${en.ocrLastName}" class="ocr-input">`)}
+    ${ocrRow('รหัสนักศึกษา (OCR)', `<input id="pf-code" value="${en.ocrStudentCode}" class="ocr-input font-mono">`)}
+    ${ocrRow('คณะ (OCR)', `<input id="pf-faculty" value="${en.ocrFaculty || ''}" class="ocr-input">`)}
+    ${ocrRow('ลายมือชื่อ', en.signaturePresent ? statusBadge('ready', 'มีลายเซ็น') : statusBadge('rejected', 'ไม่พบลายเซ็น'))}
+    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" value="${en.matchedCode ? defaultApprovedHours(en.matchedCode, p.groupActivity.date, p.groupActivity.hours) : 0}" class="ocr-input font-mono w-24 text-right text-emerald-700" ${en.matchedCode ? '' : 'disabled'}>`)}`;
+  document.querySelectorAll('.ocr-input').forEach((el) => {
+    el.className += ' text-sm font-semibold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none text-right';
+  });
+
+  ['pf-first', 'pf-last', 'pf-code', 'pf-faculty'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', () => {
+      en.ocrFirstName = document.getElementById('pf-first').value;
+      en.ocrLastName = document.getElementById('pf-last').value;
+      en.ocrFaculty = document.getElementById('pf-faculty').value;
+      en.ocrStudentCode = document.getElementById('pf-code').value.trim();
+      const hit = RegDB.students.find((s) => s.code === en.ocrStudentCode);
+      en.matchedCode = hit ? hit.code : null;
+      renderRosterDetail(row);
+    });
+  });
+
+  if (en.matchedCode) {
+    const matched = RegDB.students.find((s) => s.code === en.matchedCode);
+    bindDailyCapBox(en.matchedCode, p.groupActivity.date, p.groupActivity.hours);
+    document.getElementById('mismatch-box').innerHTML = `
+      <div class="border-l-4 border-emerald-400 bg-emerald-50 p-3 rounded-r-xl text-xs text-emerald-700">
+        จับคู่กับนักศึกษาในระบบแล้ว: <strong>${matched.first} ${matched.last}</strong> (${matched.code})
+      </div>`;
+    document.getElementById('btn-approve').disabled = false;
+    document.getElementById('proof-panel-note').textContent = 'แก้ไขข้อมูลที่ OCR อ่านผิดในช่องด้านบนได้เลย ก่อนกดอนุมัติ — การตัดสินใจทั้งหมดถูกบันทึกลง Audit Log';
+  } else {
+    document.getElementById('daily-cap-box').innerHTML = '';
+    document.getElementById('mismatch-box').innerHTML = `
+      <div class="border-l-4 border-amber-400 bg-amber-50 p-3 rounded-r-xl text-xs text-amber-800">
+        ${icon('alert-triangle', 'w-4 h-4 inline -mt-0.5 mr-1')}<strong>ยังจับคู่นักศึกษาไม่ได้</strong> — รหัสนักศึกษา "${en.ocrStudentCode}" ไม่ตรงกับใครในระบบ กรุณาแก้ไขรหัสในช่องด้านบนให้ถูกต้องก่อนจึงจะอนุมัติได้
+      </div>`;
+    document.getElementById('btn-approve').disabled = true;
+    document.getElementById('proof-panel-note').textContent = 'ต้องจับคู่นักศึกษาให้สำเร็จก่อน ปุ่มอนุมัติจึงจะใช้งานได้ (FR-C19)';
+  }
 }
 
 function ocrRow(label, valueHtml) {
@@ -706,36 +992,59 @@ function ocrRow(label, valueHtml) {
     <span class="text-sm text-slate-500 shrink-0">${label}</span>${valueHtml}</div>`;
 }
 
+function matchedNameFor(code) {
+  const s = RegDB.students.find((x) => x.code === code);
+  return s ? `${s.first} ${s.last}` : code;
+}
+
 function decideProof(approve) {
-  const p = RegDB.proofs.find((x) => x.id === activeProofId);
-  if (!p) return;
+  const row = findQueueRow(activeQueueKey);
+  if (!row) return;
+  const { proof: p, item: it, entry: en } = row;
+  const isRoster = !!en;
+  const target = isRoster ? en : it;
+  if (approve && isRoster && !en.matchedCode) { showToast('ยังจับคู่นักศึกษาไม่ได้ ไม่สามารถอนุมัติได้', 'error'); return; }
+
+  const code = isRoster ? en.matchedCode : p.submittedBy.code;
+  const date = isRoster ? p.groupActivity.date : it.activityDate;
+  const reportedHours = isRoster ? p.groupActivity.hours : it.hours;
+  const label = isRoster ? `${en.ocrFirstName} ${en.ocrLastName}` : it.activityName;
+  const remaining = remainingAllowance(code, date);
+  const approvedInput = document.getElementById('pf-approved-hours');
+  const approvedHours = approvedInput ? Math.min(parseFloat(approvedInput.value) || 0, remaining) : 0;
+
   showConfirmDialog({
-    title: approve ? 'อนุมัติหลักฐานนี้?' : 'ปฏิเสธหลักฐานนี้?',
-    message: `${p.student} — ${p.title} (${p.units.toFixed(1)} หน่วย)`,
+    title: approve ? 'อนุมัติรายการนี้?' : 'ปฏิเสธรายการนี้?',
+    message: approve ? `${label} — ${approvedHours.toFixed(1)} ชม. (${(approvedHours / 3).toFixed(1)} หน่วย)` : `${label} — ${reportedHours} ชม.`,
     bullets: approve
-      ? ['บวกหน่วยกิตเข้ายอดสะสมกิจกรรมเปิดกว้างของปีการศึกษา 2569', 'ถ้ายอดถึง 12 หน่วย ระบบจะล็อกโควต้าอัตโนมัติ', 'บันทึกการอนุมัติลง Audit Log']
-      : ['หลักฐานนี้จะไม่ถูกนับหน่วยกิต', 'ระบบแจ้งเตือนนักศึกษาพร้อมเหตุผล', 'บันทึกการปฏิเสธลง Audit Log'],
+      ? ['บวกหน่วยกิตเข้ายอดสะสมของนักศึกษาทันที', `เพดาน ${DAILY_HOUR_CAP} ชม./วัน ถูกคุมไว้แล้ว (คงเหลือ ${remaining} ชม. ก่อนอนุมัติแถวนี้)`, 'บันทึกการอนุมัติลง Audit Log']
+      : ['รายการนี้จะไม่ถูกนับหน่วยกิต', 'ระบบแจ้งเตือนผู้ส่งพร้อมเหตุผล', 'บันทึกการปฏิเสธลง Audit Log'],
     tone: approve ? 'warning' : 'danger',
     confirmText: approve ? 'อนุมัติ' : 'ปฏิเสธ',
     requireReason: !approve,
-    reasonLabel: 'เหตุผลที่ปฏิเสธ (แจ้งนักศึกษา)',
+    reasonLabel: 'เหตุผลที่ปฏิเสธ (แจ้งผู้ส่ง)',
     onConfirm: (reason) => {
-      p.status = approve ? 'approved' : 'rejected';
+      target.status = approve ? 'approved' : 'rejected';
       if (approve) {
-        const row = RegDB.ledger.find((l) => l.code === p.code);
-        if (row) {
-          row.units = Math.min(QUOTA_MAX, row.units + p.units);
-          if (row.units >= QUOTA_MAX) row.locked = true;
-        }
+        target.approvedHours = approvedHours;
+        const approvedCredits = approvedHours / 3;
+        let led = RegDB.ledger.find((l) => l.code === code);
+        if (!led) { led = { code, name: matchedNameFor(code), units: 0, locked: false }; RegDB.ledger.push(led); }
+        led.units = Math.min(QUOTA_MAX, led.units + approvedCredits);
+        led.locked = led.units >= QUOTA_MAX;
+      } else {
+        target.rejectionReason = reason;
       }
       RegDB.save();
-      appendAudit(approve ? 'proof_approved' : 'proof_rejected', `${approve ? 'อนุมัติ' : 'ปฏิเสธ'}หลักฐาน "${p.title}" ของ ${p.student}${reason ? ' เหตุผล: ' + reason : ''}`);
-      showToast(approve ? `อนุมัติแล้ว — บวก ${p.units.toFixed(1)} หน่วยให้ ${p.student}` : 'ปฏิเสธหลักฐานและแจ้งนักศึกษาแล้ว', approve ? 'success' : 'warning');
-      activeProofId = null;
+      appendAudit(approve ? 'proof_approved' : 'proof_rejected', approve
+        ? `อนุมัติ "${label}" (${code}) — ${approvedHours} ชม. (${(approvedHours / 3).toFixed(1)} หน่วย) เข้ายอดสะสมทันที`
+        : `ปฏิเสธ "${label}"${reason ? ' เหตุผล: ' + reason : ''}`);
+      showToast(approve ? `อนุมัติแล้ว — บวก ${(approvedHours / 3).toFixed(1)} หน่วยเข้ายอดสะสมแล้ว` : 'ปฏิเสธรายการและแจ้งผู้ส่งแล้ว', approve ? 'success' : 'warning');
+      activeQueueKey = null;
       document.getElementById('proof-detail').classList.add('hidden');
       document.getElementById('proof-empty').classList.remove('hidden');
       const next = pendingProofs()[0];
-      if (next) selectProof(next.id); else renderProofQueue();
+      if (next) selectQueueRow(next.key); else renderProofQueue();
     },
   });
 }
@@ -831,8 +1140,8 @@ function renderQuotaTable() {
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
         ${list.map((l) => {
-          const pct = Math.min(100, (l.units / QUOTA_MAX) * 100);
-          return `<tr class="hover:bg-slate-50/50 transition">
+    const pct = Math.min(100, (l.units / QUOTA_MAX) * 100);
+    return `<tr class="hover:bg-slate-50/50 transition">
             <td class="px-4 py-3 text-sm font-mono text-slate-800">${l.code}</td>
             <td class="px-4 py-3 text-sm text-slate-800">${l.name}</td>
             <td class="px-4 py-3">
@@ -848,7 +1157,7 @@ function renderQuotaTable() {
               <button onclick="openLedgerAdjustDialog('${l.code}')" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-4 h-4')} แก้ไข</button>
             </td>`}
           </tr>`;
-        }).join('')}
+  }).join('')}
       </tbody>
     </table>` : emptyState('ไม่พบนักศึกษาที่ค้นหา');
 }
@@ -957,7 +1266,6 @@ const SLACK_TOGGLES = [
   { key: 'proof', label: 'หลักฐานกิจกรรมเปิดกว้างรอตรวจ', desc: 'DM ทันทีเมื่อนักศึกษาส่งหลักฐานใหม่ และเตือนซ้ำถ้าค้างเกิน 2 วัน' },
   { key: 'roster', label: 'กิจกรรมที่ยังไม่ส่งรายชื่อ', desc: 'เตือนเมื่อจบกิจกรรมแล้ว 3 วันแต่ Lead Org ยังไม่ส่งรายชื่อ' },
   { key: 'cycle', label: 'ใกล้เปิดรอบปีการศึกษาใหม่', desc: 'เตือนรายสัปดาห์ช่วงเดือนพ.ค.-มิ.ย. ถ้ายังไม่เปิดรอบใหม่' },
-  { key: 'chatbot', label: 'บอทตอบคำถามไม่ได้', desc: 'DM คำถาม + รหัสนักศึกษา เมื่อ SciU-Buddy ต้อง fallback' },
 ];
 
 function initSlackPage() {
@@ -1040,7 +1348,7 @@ function initRegistrarHome() {
     + statsCard('ปีการศึกษา', RegDB.cycles[0].year, `เริ่ม ${thDate(RegDB.cycles[0].start)}`);
 
   const tasks = [
-    { icon: 'file-text', text: `หลักฐานรอตรวจ (${pending} รายการ)`, href: 'registrar-ocr-review.html', cta: 'ไปตรวจ' },
+    { icon: 'file-text', text: `หลักฐานรอตรวจ (${pending} รายการ)`, href: 'registrar-verify-review.html', cta: 'ไปตรวจ' },
     { icon: 'alert-triangle', text: `กิจกรรมค้างส่งรายชื่อ (${overdue} รายการ)`, href: 'registrar-export.html', cta: 'ตามเรื่อง' },
     { icon: 'lock', text: `นักศึกษาใกล้ครบโควต้า (${RegDB.ledger.filter((l) => !l.locked && l.units >= 10).length} คน)`, href: 'registrar-quotas.html', cta: 'ตรวจสอบ' },
   ];
