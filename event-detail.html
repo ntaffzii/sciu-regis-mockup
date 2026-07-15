@@ -45,12 +45,12 @@
   renderShell({ active: '', title: 'รายละเอียดกิจกรรม' });
 
   var DEFAULT_EVENTS = [
-    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ', staffId: 99 },
-    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม', staffId: null },
-    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่', staffId: null },
-    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม', staffId: null },
-    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ', staffId: 4 },
-    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU', staffId: null }
+    { id: 1, name: 'ค่ายจิตอาสาพัฒนาโรงเรียนบ้านดอนงัว', date: '2026-06-20', days: 3, credits: 3.0, open: false, gps: true, lat: 15.1183, lng: 104.9057, radius: 30, participants: 100, checkedIn: 45, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'โรงเรียนบ้านดอนงัว', contact_info: 'พี่ประยูร โทร. 081-234-xxxx', objectives: 'เพื่อบูรณะอาคารเรียน ทาสีสนามเด็กเล่น และส่งเสริมจิตสาธารณะของนิสิตวิทย์', schedule: 'วันแรก: 08:30 - ออกเดินทางคณะวิทย์ UBU\nวันที่สอง: 09:00 - กิจกรรมพัฒนาโรงเรียนเต็มวัน\nวันสุดท้าย: 13:00 - สรุปค่ายและเดินทางกลับ', staffIds: [99], staffLimit: 3 },
+    { id: 2, name: 'Science Open House 2569', date: '2026-07-15', days: 1, credits: 1.5, open: false, gps: true, lat: 15.1215, lng: 104.9101, radius: 50, participants: 250, checkedIn: 0, subcategory: 'วิชาการและวิชาชีพ', eligible_participants: 'นักศึกษาชั้นปีที่ 1 - 4', location: 'อาคารเคมี คณะวิทยาศาสตร์', contact_info: 'ดร.วิชัย งานวิชาการ คณะวิทย์', objectives: 'เพื่อเปิดบ้านแสดงผลงานนวัตกรรม และแนะแนววิทยาศาสตร์เชิงปฏิบัติการแก่นักเรียนภายนอก', registration_deadline: '2026-07-10', description: 'งาน Science Open House ประจำปี 2569 จัดโดยคณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี เพื่อเปิดโอกาสให้นักเรียนระดับมัธยมศึกษาและนักศึกษาได้สัมผัสกับนวัตกรรมทางวิทยาศาสตร์ในสาขาต่าง ๆ อาทิ เคมี ชีววิทยา ฟิสิกส์ คณิตศาสตร์ และเทคโนโลยีสารสนเทศ พร้อมกิจกรรมเวิร์คช็อปเชิงปฏิบัติการ', schedule: '09:00 - พิธีเปิดโครงการ ณ หอประชุมคณะ\n10:00 - แยกย้ายประจำบูธแต่ละสาขา\n16:00 - พิธีปิดและมอบชั่วโมงกิจกรรม', staffIds: [], staffLimit: 5 },
+    { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)', date: '2026-06-05', days: 1, credits: 1.0, open: true, gps: false, participants: 60, checkedIn: 58, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'นักศึกษาทุกคณะ/ชั้นปี', location: 'หอประชุมไพจิตร คณะวิทย์', contact_info: 'สโมสรนักศึกษาคณะวิทยาศาสตร์ UBU', objectives: 'สนับสนุนโลหิตสำรองให้แก่โรงพยาบาลสรรพสิทธิประสงค์ และส่งเสริมการเสียสละเพื่อสังคม', schedule: '08:30 - เริ่มลงทะเบียนตรวจร่างกาย\n09:00 - 15:00 - ช่วงรับบริจาคโลหิตโดยหน่วยแพทย์เคลื่อนที่', staffIds: [], staffLimit: 3 },
+    { id: 4, name: 'อบรมปฐมพยาบาลเบื้องต้น CPR', date: '2026-06-28', days: 1, credits: 1.5, open: false, gps: false, participants: 80, checkedIn: 74, subcategory: 'กีฬา/สุขภาพ', eligible_participants: 'ทุกชั้นปี (เน้นสาขาวิทยาศาสตร์สุขภาพ)', location: 'ตึกฟิสิกส์ ห้อง 3102', contact_info: 'พี่สมจิตร งานพัฒนานักศึกษา', objectives: 'เพื่อเรียนรู้ทักษะการปฐมพยาบาลขั้นพื้นฐานและการกู้ชีพแบบ CPR อย่างถูกต้องปลอดภัย', schedule: '09:00 - บรรยายภาคทฤษฎี CPR\n13:00 - ฝึกปฏิบัติจริงกับหุ่นจำลอง\n16:00 - ประเมินผลหลังการอบรม', staffIds: [], staffLimit: 3 },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', date: '2026-07-02', days: 2, credits: 2.0, open: false, gps: true, lat: 15.1198, lng: 104.9077, radius: 40, participants: 55, checkedIn: 51, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี', location: 'ตึก SC18 และลานหน้าตึกวิจัย', contact_info: 'งานบริหารและสถานที่ คณะวิทย์', objectives: 'ช่วยบำรุงรักษาภูมิทัศน์ ทำความสะอาดจุดสาธารณะ ตึก SC18 ต้อนรับเปิดเทอมใหม่', schedule: 'วันที่ 1: 09:00 - 12:00 - เก็บกวาดลานกิจกรรมตึก SC18\nวันที่ 2: 13:00 - 16:30 - จัดระเบียบโต๊ะเก้าอี้และห้องสโมฯ', staffIds: [4, 99], staffLimit: 2 },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU', staffIds: [], staffLimit: 3 }
   ];
 
   var EVENTS = Store.get('events', DEFAULT_EVENTS);
@@ -88,48 +88,30 @@
       ? '<button onclick="showToast(\'ลงทะเบียนเข้าร่วมกิจกรรมเรียบร้อยแล้ว (จำลอง)\')" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">' + icon('check', 'w-4 h-4') + 'ลงทะเบียนร่วมกิจกรรม</button>'
       : '<button onclick="window.location.href=\'login.html\'" class="w-full py-3 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2">' + icon('log-in', 'w-4 h-4') + 'เข้าสู่ระบบเพื่อลงทะเบียน</button>';
 
-    var currentStaff = 'ยังไม่ได้แต่งตั้งสตาฟหน้างาน';
-    if (ev.staffId) {
-      if (ev.staffId === 4) currentStaff = 'น้องเก่ง สตาฟดี (keng.staff)';
-      else if (ev.staffId === 6) currentStaff = 'บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน';
-      else if (ev.staffId === 99) currentStaff = 'น้องเบล สตาฟใหม่ (bell.staff)';
-      else {
-        const stds = Store.get('students', []);
-        const std = stds.find(function(s) { return Number(s.code) === ev.staffId; });
-        if (std) currentStaff = std.first + ' ' + std.last + ' (' + std.code + ') — นักศึกษาสตาฟเฉพาะกิจ';
-      }
-    }
-
-    var staffSelectOptions = '<option value="">-- ไม่แต่งตั้ง / ถอนสตาฟ --</option>' +
-      '<option value="4" ' + (ev.staffId === 4 ? 'selected' : '') + '>น้องเก่ง สตาฟดี (keng.staff)</option>' +
-      '<option value="6" ' + (ev.staffId === 6 ? 'selected' : '') + '>บุคลากรเก่า ลาออกแล้ว (old.staff)</option>' +
-      '<option value="99" ' + (ev.staffId === 99 ? 'selected' : '') + '>น้องเบล สตาฟใหม่ (bell.staff)</option>';
-
-    const stdsForSelect = Store.get('students', []);
-    stdsForSelect.forEach(function(s) {
-      const val = Number(s.code);
-      if (val) {
-        staffSelectOptions += '<option value="' + val + '" ' + (ev.staffId === val ? 'selected' : '') + '>' + s.first + ' ' + s.last + ' (' + s.code + ')</option>';
-      }
-    });
+    var staffIdsForDisplay = eventStaffIds(ev);
+    var staffLimitForDisplay = eventStaffLimit(ev);
+    var currentStaff = staffIdsForDisplay.length ? staffIdsForDisplay.map(staffDisplayName).join(', ') : 'ยังไม่ได้แต่งตั้งสตาฟหน้างาน';
 
     var staffManagerCard = '';
     if (role === 'registrar' || role === 'lead-org') {
-      staffManagerCard = 
-        '<!-- Staff Assignment -->' +
+      staffManagerCard =
+        '<!-- Staff Assignment (Feature 1: multi-staff + จำกัดจำนวน) -->' +
         '<div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">' +
           '<h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">' + icon('shield', 'w-4 h-4 text-blue-600') + 'การจัดการสตาฟหน้างาน (Field Staff)</h3>' +
           '<div class="space-y-3">' +
             '<div>' +
-              '<p class="text-[10px] text-slate-400">สตาฟผู้รับผิดชอบปัจจุบัน</p>' +
+              '<p class="text-[10px] text-slate-400">สตาฟผู้รับผิดชอบปัจจุบัน (<span id="staff-capacity-display">' + staffIdsForDisplay.length + '/' + staffLimitForDisplay + '</span> คน)</p>' +
               '<p class="text-xs font-semibold text-slate-700 mt-0.5" id="current-staff-display">' + currentStaff + '</p>' +
             '</div>' +
             '<div class="space-y-1.5">' +
-              '<label class="text-[10px] font-medium text-slate-500" for="detail-staff-select">แต่งตั้ง/เปลี่ยนตัวสตาฟ</label>' +
-              '<select id="detail-staff-select" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-600">' +
-                staffSelectOptions +
-              '</select>' +
+              '<label class="text-[10px] font-medium text-slate-500" for="detail-staff-limit">จำนวนจำกัด</label>' +
+              '<input id="detail-staff-limit" type="number" min="1" max="10" value="' + staffLimitForDisplay + '" class="w-24 px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-600">' +
             '</div>' +
+            '<div class="space-y-1.5">' +
+              '<label class="text-[10px] font-medium text-slate-500" for="detail-staff-add">เพิ่มสตาฟ</label>' +
+              '<select id="detail-staff-add" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"></select>' +
+            '</div>' +
+            '<div id="detail-staff-chips" class="flex flex-wrap gap-1.5"></div>' +
             '<button onclick="assignStaffFromDetail(' + ev.id + ')" class="w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-semibold transition block text-center">บันทึกแต่งตั้งสตาฟ</button>' +
           '</div>' +
         '</div>';
@@ -235,6 +217,26 @@
     document.title = ev.name + ' — SciU-Regis';
 
     if (ev.gps) renderEventMap(ev);
+    if (role === 'registrar' || role === 'lead-org') initStaffManagerCard(ev);
+  }
+
+  /* Feature 1: chip picker สำหรับแก้ไขทีมสตาฟหน้างานของกิจกรรมที่มีอยู่แล้ว (มีอยู่แค่หน้านี้ที่แก้ไข event เดิมได้จริง) */
+  var detailStaffIds = [];
+  function initStaffManagerCard(ev) {
+    detailStaffIds = eventStaffIds(ev).slice();
+    var limitInput = document.getElementById('detail-staff-limit');
+    var addSelect = document.getElementById('detail-staff-add');
+    if (!limitInput || !addSelect) return;
+    var refresh = function () {
+      renderStaffChips('detail-staff-chips', addSelect, detailStaffIds, Number(limitInput.value) || 3);
+      var capEl = document.getElementById('staff-capacity-display');
+      if (capEl) capEl.textContent = detailStaffIds.length + '/' + (Number(limitInput.value) || 3);
+    };
+    refresh();
+    addSelect.addEventListener('change', function () {
+      if (addSelect.value) { detailStaffIds.push(Number(addSelect.value)); refresh(); }
+    });
+    limitInput.addEventListener('input', refresh);
   }
 
   /* แผนที่กิจกรรม (ฝัง Leaflet ในหน้ารายละเอียดโดยตรง — ไม่มีหน้า event-gps.html แยกแล้ว)
@@ -282,36 +284,39 @@
   }
 
   function assignStaffFromDetail(eventId) {
-    const selectEl = document.getElementById('detail-staff-select');
-    const staffId = selectEl.value ? Number(selectEl.value) : null;
-    
+    var limitInput = document.getElementById('detail-staff-limit');
+    var limit = Number(limitInput.value) || 3;
+    if (detailStaffIds.length > limit) {
+      showConfirmDialog({
+        title: 'บันทึกไม่ได้ — เกินจำนวนจำกัด',
+        tone: 'danger',
+        cancelText: 'ปิด',
+        confirmText: 'รับทราบ',
+        bullets: ['มีสตาฟที่เพิ่มไว้ ' + detailStaffIds.length + ' คน แต่จำกัดไว้ ' + limit + ' คน — กรุณาลบออกหรือเพิ่มจำนวนจำกัดก่อนบันทึก'],
+      });
+      return;
+    }
+
     const evs = Store.get('events', DEFAULT_EVENTS);
     const evIndex = evs.findIndex(function(e) { return e.id === eventId; });
     if (evIndex !== -1) {
-      evs[evIndex].staffId = staffId;
+      evs[evIndex].staffIds = detailStaffIds.slice();
+      evs[evIndex].staffLimit = limit;
       Store.set('events', evs);
-      
-      var staffName = 'ถอนตัวสตาฟ';
-      if (staffId === 4) staffName = 'น้องเก่ง สตาฟดี';
-      else if (staffId === 6) staffName = 'บุคลากรเก่า ลาออกแล้ว';
-      else if (staffId === 99) staffName = 'น้องเบล สตาฟใหม่';
-      else if (staffId) {
-        const stds = Store.get('students', []);
-        const std = stds.find(function(s) { return Number(s.code) === staffId; });
-        if (std) staffName = std.first + ' ' + std.last;
-      }
-      
+
+      var names = detailStaffIds.length ? detailStaffIds.map(staffDisplayName).join(', ') : 'ถอนสตาฟทั้งหมด';
+
       const logs = Store.get('audit-extra', []);
       logs.unshift({
         time: new Date().toISOString().slice(0, 16).replace('T', ' '),
         user: 'registrar.sombat',
         action: 'staff_assigned',
-        detail: 'แต่งตั้งสตาฟ "' + staffName + '" ดูแลกิจกรรม "' + evs[evIndex].name + '"',
+        detail: 'แต่งตั้งสตาฟ [' + names + '] ดูแลกิจกรรม "' + evs[evIndex].name + '" (' + detailStaffIds.length + '/' + limit + ' คน)',
         role: 'registrar'
       });
       Store.set('audit-extra', logs);
-      
-      showToast('แต่งตั้งสตาฟหน้างานเป็น "' + staffName + '" สำเร็จ');
+
+      showToast('บันทึกทีมสตาฟหน้างานสำเร็จ (' + detailStaffIds.length + '/' + limit + ' คน)');
       setTimeout(function() {
         location.reload();
       }, 800);

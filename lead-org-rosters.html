@@ -57,8 +57,9 @@
         <label class="text-sm font-medium text-slate-700" for="roster-event">เลือกกิจกรรมที่จบแล้ว</label>
         <select id="roster-event" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
           <option value="">-- กรุณาเลือกกิจกรรม --</option>
-          <option value="1">ปลูกป่าชายเลนเฉลิมพระเกียรติ (8 ก.ค. 2569) — ⚠️ เกินกำหนด 2 วัน</option>
-          <option value="2">อบรมปฐมพยาบาล CPR (28 มิ.ย. 2569)</option>
+          <option value="6">ปลูกป่าชายเลนเฉลิมพระเกียรติ (8 ก.ค. 2569) — ⚠️ เกินกำหนด 2 วัน</option>
+          <option value="5">จิตอาสาพัฒนาคณะวิทยาศาสตร์ (2 ก.ค. 2569)</option>
+          <option value="4">อบรมปฐมพยาบาล CPR (28 มิ.ย. 2569)</option>
           <option value="3">บริจาคโลหิต สภากาชาดไทย (5 มิ.ย. 2569)</option>
         </select>
       </div>
@@ -66,6 +67,7 @@
 
     <!-- Roster table + confirm -->
     <div id="roster-detail" class="hidden space-y-4">
+      <div id="fs-confirm-banner"></div>
       <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 class="text-base font-semibold text-slate-800" id="roster-title">กิจกรรม: <span id="roster-name"></span></h2>
@@ -103,48 +105,15 @@
 </main>
 
 <script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
 <script>
   renderShell({ role: 'lead-org', active: 'lead-org-rosters.html', title: 'ยืนยันรายชื่อ' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-confirm').innerHTML = icon('check-circle', 'w-5 h-5');
   document.getElementById('ic-empty-start').innerHTML = icon('file-text', 'w-7 h-7');
 
-  const ROSTER_DATA = {
-    1: {
-      name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ',
-      students: [
-        { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '08:23 น.' },
-        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '08:30 น.' },
-        { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Master Code', time: '09:15 น.' },
-        { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '08:45 น.' },
-        { code: '66114400127', name: 'ปิติ ยินดี', method: 'Selfie', time: '09:00 น.' },
-        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'GPS', time: '08:50 น.' },
-        { code: '66114400129', name: 'ดวงเดือน ศรีสุข', method: 'GPS', time: '08:55 น.' },
-        { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'Master Code', time: '09:30 น.' },
-        { code: '66114400131', name: 'กมล ขยันยิ่ง', method: 'GPS', time: '09:10 น.' },
-        { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '08:40 น.' },
-      ]
-    },
-    2: {
-      name: 'อบรมปฐมพยาบาล CPR',
-      students: [
-        { code: '66114400123', name: 'สมชาย ใจดี', method: 'Selfie', time: '09:00 น.' },
-        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'Selfie', time: '09:05 น.' },
-        { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Selfie', time: '09:10 น.' },
-        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Selfie', time: '09:20 น.' },
-      ]
-    },
-    3: {
-      name: 'บริจาคโลหิต สภากาชาดไทย',
-      students: [
-        { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '10:00 น.' },
-        { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '10:15 น.' },
-        { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '10:30 น.' },
-        { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '10:45 น.' },
-        { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '11:00 น.' },
-      ]
-    }
-  };
+  // Feature 2: รายชื่อผู้เช็คอินตอนนี้เป็นข้อมูลกลาง (RegDB.rosters) — ใช้ร่วมกับ field-staff-home.html
+  const ROSTER_DATA = RegDB.rosters;
 
   const methodBadge = {
     'GPS': statusBadge('ready', 'GPS'),
@@ -166,7 +135,14 @@
     document.getElementById('roster-empty').classList.add('hidden');
     document.getElementById('roster-name').textContent = data.name;
     document.getElementById('roster-count').textContent = data.students.length;
-    
+
+    // Feature 2: แสดง banner ถ้าสตาฟหน้างานยืนยันขั้นต้นไว้แล้ว (ข้อมูลประกอบ ไม่บล็อกการยืนยันของ Lead Org)
+    const fsConfirmed = Store.get('field-staff-roster-confirmed', {})[val];
+    document.getElementById('fs-confirm-banner').innerHTML = fsConfirmed ? `
+      <div class="border-l-4 border-emerald-400 bg-emerald-50 p-3 rounded-r-xl text-xs text-emerald-800">
+        ✅ สตาฟยืนยันหน้างานแล้ว โดย ${fsConfirmed.by} เมื่อ ${fsConfirmed.at}
+      </div>` : '';
+
     document.getElementById('roster-table-body').innerHTML = data.students.map((s, i) => `
       <tr class="hover:bg-slate-50/50 transition">
         <td class="px-4 py-3 text-sm text-slate-500 font-mono">${i + 1}</td>
@@ -191,6 +167,10 @@
       ],
       confirmText: 'ยืนยันรายชื่อ',
       onConfirm: () => {
+        // ปุ่มนี้เป็นการยืนยันขั้นสุดท้ายของ Lead Org — persist จริง (เดิมเป็นแค่ toast placeholder)
+        RegDB.rosters[val].confirmedByLeadOrg = { by: 'อาจารย์วิชัย จัดกิจกรรม', at: new Date().toISOString().slice(0, 16).replace('T', ' ') };
+        RegDB.save();
+        appendAudit('roster_confirmed_lead_org', `ยืนยันรายชื่อกิจกรรม "${data.name}" (${data.students.length} คน)`, 'wichai.lead');
         showToast(`ยืนยันรายชื่อกิจกรรม "${data.name}" เรียบร้อยแล้ว`);
         document.getElementById('roster-event').value = '';
         document.getElementById('roster-detail').classList.add('hidden');

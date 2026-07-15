@@ -53,9 +53,9 @@
   document.getElementById('btn-create').insertAdjacentHTML('afterbegin', icon('plus', 'w-4 h-4'));
 
   const MY_EVENTS = [
-    { name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', status: 'ongoing', date: '2–3 ก.ค. 2569', joined: 51, total: 55, gps: true, rosterDue: null },
-    { name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ', status: 'ended', date: '8 ก.ค. 2569', joined: 36, total: 40, gps: false, rosterDue: 'เกินกำหนดยืนยัน 2 วัน' },
-    { name: 'Science Open House 2569', status: 'upcoming', date: '15 ก.ค. 2569', joined: 0, total: 250, gps: true, rosterDue: null },
+    { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', status: 'ongoing', date: '2–3 ก.ค. 2569', joined: 51, total: 55, gps: true, rosterDue: null },
+    { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ', status: 'ended', date: '8 ก.ค. 2569', joined: 36, total: 40, gps: false, rosterDue: 'เกินกำหนดยืนยัน 2 วัน' },
+    { id: 2, name: 'Science Open House 2569', status: 'upcoming', date: '15 ก.ค. 2569', joined: 0, total: 250, gps: true, rosterDue: null },
   ];
 
   document.getElementById('lo-stats').innerHTML =
@@ -79,7 +79,7 @@
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
         ${e.status === 'ended' ? `<button onclick="showToast('ยืนยันรายชื่อกิจกรรมนี้เรียบร้อยแล้ว (จำลอง)')" class="text-xs font-medium text-white bg-green-700 hover:bg-green-800 rounded-lg px-3 py-1.5 transition">${icon('check-circle', 'w-3.5 h-3.5')} ยืนยันรายชื่อ</button>` : ''}
-        ${e.status === 'ongoing' ? `<a href="field-staff-home.html" class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-800 rounded-lg px-3 py-1.5 transition">ดูหน้างาน</a>` : ''}
+        ${e.status === 'ongoing' ? `<a href="#" onclick="Store.set('eventId','${e.id}');window.location.href='field-staff-home.html';return false;" class="text-xs font-medium text-white bg-blue-600 hover:bg-blue-800 rounded-lg px-3 py-1.5 transition">ดูหน้างาน</a>` : ''}
         ${e.gps ? `<a href="registrar-event-form.html" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ตั้งค่า GPS</a>` : ''}
         <button onclick="showToast('เปิดรายชื่อผู้เข้าร่วม (จำลอง)', 'info')" class="text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg px-3 py-1.5 transition">ดูผู้เข้าร่วม</button>
       </div>

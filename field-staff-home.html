@@ -34,6 +34,7 @@
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">กิจกรรมที่กำลังจัด</p>
         <p class="text-lg font-semibold text-slate-800 mt-1">จิตอาสาพัฒนาคณะวิทยาศาสตร์</p>
         <p class="text-xs text-slate-400 mt-0.5 inline-flex items-center gap-1" id="fs-place">ลานกิจกรรม ตึก SC18 • 09:00–16:00 น.</p>
+        <p class="text-xs text-slate-400 mt-1 hidden" id="fs-coteam"></p>
       </div>
 
       <div id="codes" class="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 text-center space-y-2 shadow-lg shadow-blue-600/25">
@@ -58,8 +59,32 @@
     <!-- ปุ่มดำเนินการ -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <button onclick="regenCode()" class="inline-flex items-center justify-center gap-2 py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" type="button" id="btn-regen">ออกรหัสใหม่</button>
-      <button onclick="showToast('เปิดรายชื่อผู้เช็คอิน (จำลอง)', 'info')" class="inline-flex items-center justify-center gap-2 py-3 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition" type="button" id="btn-list">ดูรายชื่อเช็คอิน</button>
-      <button onclick="showToast('ส่งเรื่องถึง Lead Org และ Registrar แล้ว (จำลอง)', 'warning')" class="inline-flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition" type="button" id="btn-issue">แจ้งปัญหาหน้างาน</button>
+      <button onclick="toggleRosterPanel()" class="inline-flex items-center justify-center gap-2 py-3 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition" type="button" id="btn-list">ดูรายชื่อเช็คอิน</button>
+      <button onclick="reportFieldIssue()" class="inline-flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition" type="button" id="btn-issue">แจ้งปัญหาหน้างาน</button>
+    </div>
+
+    <!-- Feature 2: รายชื่อผู้เช็คอินจริง + ยืนยันรายชื่อขั้นต้น (first-pass) -->
+    <div id="roster-panel" class="hidden rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <h2 class="text-base font-semibold text-slate-800">รายชื่อผู้เช็คอิน</h2>
+        <span id="roster-panel-confirmed-badge"></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead><tr class="border-b border-slate-100 bg-slate-50/50">
+            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ลำดับ</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">รหัสนักศึกษา</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
+            <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">วิธีเช็คอิน</th>
+            <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">เวลา</th>
+          </tr></thead>
+          <tbody id="roster-panel-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-100">
+        <button onclick="confirmFieldRoster()" class="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-green-700 text-white text-sm font-medium rounded-xl hover:bg-green-800 transition shadow-lg shadow-green-700/20" type="button" id="btn-confirm-roster">ยืนยันรายชื่อ (หน้างาน)</button>
+        <p class="text-[11px] text-slate-400 mt-2 text-center">การยืนยันนี้เป็นการยืนยันขั้นต้นจากหน้างานเท่านั้น — Lead Org ยังต้องยืนยันรายชื่อขั้นสุดท้ายอีกครั้งก่อน Export</p>
+      </div>
     </div>
 
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -72,6 +97,7 @@
 </main>
 
 <script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
 <script>
   renderShell({ role: 'field-staff', active: 'field-staff-home.html', title: 'หน้าแรก Field Staff' });
   document.getElementById('fs-badge').insertAdjacentHTML('afterbegin', icon('shield', 'w-4 h-4'));
@@ -127,39 +153,137 @@
   }
   updateCountdown();
 
+  // Feature 1/2: กิจกรรมที่ตนถูกแต่งตั้ง (mock session จำลองว่าเป็นบัญชีสตาฟ id 4 เสมอ)
+  let currentEvent = null;
+  const FS_MY_STAFF_ID = 4;
+
   // Load and apply assigned event details dynamically
   function loadAssignedEvent() {
     const defaultEvents = [
-      { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', location: 'ตึก SC18 และลานหน้าตึกวิจัย', participants: 55, checkedIn: 51, staffId: 4 }
+      { id: 5, name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์', location: 'ตึก SC18 และลานหน้าตึกวิจัย', participants: 55, checkedIn: 51, staffIds: [4], staffLimit: 2 }
     ];
     const evs = Store.get('events', defaultEvents);
-    
-    let activeEv = evs.find(function(e) { return e.staffId === 4; });
+
+    // เชื่อมจาก lead-org-home.html "ดูหน้างาน" (Feature 2 §2.5) — ใช้ eventId ที่ระบุมาก่อน ถ้ากิจกรรมนั้นมีอยู่จริง
+    const overrideId = Number(Store.get('eventId', 0));
+    let activeEv = overrideId ? evs.find(function(e) { return e.id === overrideId; }) : null;
+
+    if (!activeEv) activeEv = evs.find(function(e) { return eventStaffIds(e).includes(FS_MY_STAFF_ID); });
     if (!activeEv) {
-      activeEv = evs.find(function(e) { return e.staffId && e.staffId > 100; });
+      activeEv = evs.find(function(e) { return eventStaffIds(e).some(function(id) { return id > 100; }); });
     }
     if (!activeEv) {
       activeEv = evs.find(function(e) { return e.id === 5; }) || defaultEvents[0];
     }
-    
+    currentEvent = activeEv;
+
+    const staffIds = eventStaffIds(activeEv);
     let staffName = 'น้องเก่ง สตาฟดี';
-    if (activeEv && activeEv.staffId && activeEv.staffId !== 4) {
-      const stds = Store.get('students', []);
-      const std = stds.find(function(s) { return Number(s.code) === activeEv.staffId; });
-      if (std) staffName = std.first + ' ' + std.last + ' (สตาฟเฉพาะกิจ)';
+    if (staffIds.length && !staffIds.includes(FS_MY_STAFF_ID)) {
+      staffName = staffDisplayName(staffIds[0]);
     }
-    
+
     const subtitleEl = document.querySelector('p.text-sm.text-slate-500.mt-1');
     if (subtitleEl) {
       subtitleEl.textContent = 'สวัสดี ' + staffName + ' — 10 ก.ค. 2569';
     }
-    
+
     document.querySelector('#today p.text-lg').textContent = activeEv.name;
     document.querySelector('#fs-place').innerHTML = icon('map-pin', 'w-4 h-4 text-blue-600') + ' ' + (activeEv.location || 'คณะวิทยาศาสตร์ ม.อุบลราชธานี');
     document.querySelector('#fs-count').innerHTML = activeEv.checkedIn + ' <span class="text-sm text-slate-400 font-normal">/ ' + (activeEv.participants || '-') + ' คน</span>';
-    
+
     const pct = activeEv.participants ? Math.round((activeEv.checkedIn / activeEv.participants) * 100) : 0;
     document.getElementById('fs-progress').style.width = pct + '%';
+
+    // Feature 1: co-staff caption ถ้ากิจกรรมนี้มีสตาฟมากกว่า 1 คน
+    const coTeamEl = document.getElementById('fs-coteam');
+    const others = staffIds.filter(function(id) { return id !== FS_MY_STAFF_ID; }).map(staffDisplayName);
+    if (coTeamEl) {
+      if (others.length) {
+        coTeamEl.textContent = 'ทีมงานร่วม: ' + others.join(', ');
+        coTeamEl.classList.remove('hidden');
+      } else {
+        coTeamEl.classList.add('hidden');
+      }
+    }
+  }
+
+  /* Feature 2: ดูรายชื่อเช็คอินจริงจาก RegDB.rosters + ยืนยันรายชื่อขั้นต้น (first-pass) */
+  function toggleRosterPanel() {
+    const panel = document.getElementById('roster-panel');
+    const isHidden = panel.classList.contains('hidden');
+    if (isHidden) {
+      renderRosterPanel();
+      panel.classList.remove('hidden');
+    } else {
+      panel.classList.add('hidden');
+    }
+  }
+
+  const ROSTER_METHOD_BADGE = {
+    'GPS': statusBadge('ready', 'GPS'),
+    'Selfie': statusBadge('open', 'Selfie'),
+    'Master Code': statusBadge('pending', 'Master Code'),
+  };
+
+  function renderRosterPanel() {
+    if (!currentEvent) return;
+    const roster = RegDB.rosters[currentEvent.id];
+    document.getElementById('roster-panel-body').innerHTML = roster && roster.students.length
+      ? roster.students.map(function(s, i) {
+          return '<tr class="hover:bg-slate-50/50 transition">' +
+            '<td class="px-4 py-3 text-sm text-slate-500 font-mono">' + (i + 1) + '</td>' +
+            '<td class="px-4 py-3 text-sm font-mono text-slate-800">' + s.code + '</td>' +
+            '<td class="px-4 py-3 text-sm text-slate-800">' + s.name + '</td>' +
+            '<td class="px-4 py-3 text-center">' + (ROSTER_METHOD_BADGE[s.method] || statusBadge('info', s.method)) + '</td>' +
+            '<td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">' + s.time + '</td>' +
+          '</tr>';
+        }).join('')
+      : '<tr><td colspan="5">' + emptyState('ยังไม่มีข้อมูลรายชื่อเช็คอินสำหรับกิจกรรมนี้') + '</td></tr>';
+
+    const confirmed = Store.get('field-staff-roster-confirmed', {})[currentEvent.id];
+    document.getElementById('roster-panel-confirmed-badge').innerHTML = confirmed
+      ? statusBadge('ready', 'ยืนยันหน้างานแล้ว')
+      : '';
+  }
+
+  function confirmFieldRoster() {
+    if (!currentEvent) return;
+    const roster = RegDB.rosters[currentEvent.id];
+    showConfirmDialog({
+      title: 'ยืนยันรายชื่อหน้างาน (First-pass)',
+      message: 'กิจกรรม "' + currentEvent.name + '"',
+      tone: 'warning',
+      confirmText: 'ยืนยันรายชื่อ',
+      bullets: [
+        'เป็นการยืนยันเบื้องต้นจากหน้างานเท่านั้นว่ารายชื่อที่เช็คอินถูกต้อง',
+        'Lead Org จะเห็นการยืนยันนี้เป็นข้อมูลประกอบ',
+        'ไม่ใช่การยืนยันขั้นสุดท้าย — Lead Org ยังต้องยืนยันรายชื่อเองอีกครั้งก่อน Export',
+      ],
+      onConfirm: () => {
+        const rec = Store.get('field-staff-roster-confirmed', {});
+        rec[currentEvent.id] = { by: 'น้องเก่ง สตาฟดี', at: new Date().toISOString().slice(0, 16).replace('T', ' ') };
+        Store.set('field-staff-roster-confirmed', rec);
+        appendAudit('field_roster_confirmed', `ยืนยันรายชื่อหน้างาน (first-pass) กิจกรรม "${roster ? roster.name : currentEvent.name}"`, 'น้องเก่ง สตาฟดี');
+        showToast('ยืนยันรายชื่อหน้างานแล้ว — ส่งข้อมูลให้ Lead Org ตรวจอีกชั้น');
+        renderRosterPanel();
+      },
+    });
+  }
+
+  function reportFieldIssue() {
+    showConfirmDialog({
+      title: 'แจ้งปัญหาหน้างาน',
+      tone: 'danger',
+      requireReason: true,
+      reasonLabel: 'รายละเอียดปัญหา',
+      confirmText: 'แจ้งปัญหา',
+      bullets: ['ส่งเรื่องถึง Lead Org และ Registrar ทันที', 'บันทึกลง Audit Log'],
+      onConfirm: (reason) => {
+        appendAudit('field_issue_reported', `แจ้งปัญหาหน้างาน${currentEvent ? ' กิจกรรม "' + currentEvent.name + '"' : ''}: ${reason}`, 'น้องเก่ง สตาฟดี');
+        showToast('ส่งเรื่องถึง Lead Org และ Registrar แล้ว', 'warning');
+      },
+    });
   }
 
   loadAssignedEvent();
