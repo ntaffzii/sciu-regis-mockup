@@ -228,7 +228,7 @@
         { n: '1', t: 'Export Excel', d: 'Export รายชื่อตามฟอร์แมต UBU SAC + ยืนยันนำเข้า', href: 'registrar-export.html', ic: 'download' },
         { n: '2', t: 'แก้ไขหน่วยกิตรายบุคคล', d: 'กิจกรรมหลายวัน + บังคับกรอกเหตุผล', href: 'registrar-adjust.html', ic: 'edit' },
         { n: '3', t: 'สร้าง/แก้ไขกิจกรรม', d: 'กิจกรรมเปิดกว้าง + ปักหมุด GPS + รัศมี', href: 'registrar-event-form.html', ic: 'calendar' },
-        { n: '4', t: 'ตรวจหลักฐาน OCR', d: 'Side-by-side + Mismatch Flag', href: 'registrar-ocr-review.html', ic: 'file-text' },
+        { n: '4', t: 'ตรวจหลักฐานกิจกรรมเปิดกว้าง', d: 'กรอกเอง (ไม่ใช้ OCR) + รายชื่อกลุ่ม (OCR) แก้ไขได้ก่อนอนุมัติ', href: 'registrar-verify-review.html', ic: 'file-text' },
         { n: '5', t: 'ตรวจสอบ/ล็อกโควต้า', d: 'ยอดสะสม 12 หน่วย/ปี + สถานะล็อก', href: 'registrar-quotas.html', ic: 'lock' },
         { n: '6', t: 'จัดการรอบปีการศึกษา', d: 'เปิดรอบใหม่ + confirm เตือนรีเซ็ต', href: 'registrar-cycles.html', ic: 'calendar' },
         { n: '7', t: 'ตั้งค่าแจ้งเตือน Slack', d: 'Toggle รายประเภท + เชื่อมบัญชี (DM)', href: 'registrar-slack.html', ic: 'bell' },
@@ -248,10 +248,10 @@
       pages: [
         { n: 'Home', t: 'แผงควบคุมระบบ', d: 'สถานะระบบ + Audit ล่าสุด', href: 'admin-home.html', ic: 'home' },
         { n: '11', t: 'จัดการผู้ใช้และบทบาท', d: 'Multi-role ต่อบัญชี + active/inactive', href: 'admin-users.html', ic: 'users' },
-        { n: '12', t: 'ตั้งค่าเทคนิค', d: 'Slack Token (masked) + MCP + อีเมล', href: 'admin-settings.html', ic: 'settings' },
+        { n: '12', t: 'ตั้งค่าเทคนิค', d: 'Slack Token (masked) + เทมเพลต Excel + อีเมล', href: 'admin-settings.html', ic: 'settings' },
         { n: '13', t: 'Audit Log Viewer', d: 'Log ทุกฝั่ง + filter หลายมิติ', href: 'admin-audit.html', ic: 'bar-chart' },
-        { n: '14', t: 'ตั้งค่า AI Provider', d: 'Gemini/GPT/llama.cpp + Test Connection', href: 'admin-ai.html', ic: 'robot' },
-        { n: '15', t: 'จัดการฐานความรู้ RAG', d: 'อัปโหลด PDF + สถานะ + badge OCR', href: 'admin-knowledge.html', ic: 'book-open' },
+        { n: '14', t: 'จัดการ FAQ แชทบอท', d: 'คำถามที่พบบ่อย + semantic search (bge-m3) — LLM คงที่ ไม่มี Provider ให้สลับ', href: 'admin-faq.html', ic: 'robot' },
+        { n: '15', t: 'จัดการช่องทางติดต่อ', d: 'รายชื่ออาจารย์/เจ้าหน้าที่ที่บอทค้นด้วย SQL Direct Search', href: 'admin-contacts.html', ic: 'phone' },
       ],
     },
     {

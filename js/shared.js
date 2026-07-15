@@ -110,7 +110,7 @@ const NAV_MENUS = {
   registrar: [
     { label: 'หน้าแรก', icon: 'home', href: 'registrar-home.html' },
     { label: 'กิจกรรม', icon: 'calendar', href: 'registrar-event-form.html' },
-    { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-ocr-review.html' },
+    { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-verify-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'รอบปี', icon: 'calendar', href: 'registrar-cycles.html' },
@@ -128,8 +128,8 @@ const NAV_MENUS = {
     { label: 'แผงควบคุม', icon: 'home', href: 'admin-home.html' },
     { label: 'ผู้ใช้', icon: 'users', href: 'admin-users.html' },
     { label: 'ตั้งค่า', icon: 'settings', href: 'admin-settings.html' },
-    { label: 'AI Provider', icon: 'robot', href: 'admin-ai.html' },
-    { label: 'ฐานความรู้', icon: 'book-open', href: 'admin-knowledge.html' },
+    { label: 'FAQ แชทบอท', icon: 'robot', href: 'admin-faq.html' },
+    { label: 'ช่องทางติดต่อ', icon: 'phone', href: 'admin-contacts.html' },
     { label: 'Audit Log', icon: 'bar-chart', href: 'admin-audit.html' },
   ],
   'lead-org': [
@@ -157,7 +157,7 @@ const BOTTOM_NAVS = {
   registrar: [
     { label: 'หน้าแรก', icon: 'home', href: 'registrar-home.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
-    { label: 'ตรวจ', icon: 'file-text', href: 'registrar-ocr-review.html' },
+    { label: 'ตรวจ', icon: 'file-text', href: 'registrar-verify-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
     { label: 'บัญชี', icon: 'user', href: 'profile-settings.html' },
   ],
@@ -207,7 +207,7 @@ const MOCK_NOTIFICATIONS = {
   ],
   admin: [
     { icon: 'alert-triangle', text: 'Slack Bot Token ยังไม่ได้ตั้งค่า', time: 'ระบบ' },
-    { icon: 'book-open', text: 'เอกสาร RAG 1 ไฟล์ ประมวลผลล้มเหลว', time: '2 ชม.ที่แล้ว' },
+    { icon: 'message-circle', text: 'บอทตอบคำถามไม่ได้ ควรเพิ่มเป็น FAQ ใหม่ (1 คำถาม)', time: '2 ชม.ที่แล้ว' },
   ],
 };
 
@@ -223,8 +223,8 @@ function renderShell(opts) {
       'admin-home.html',
       'admin-users.html',
       'admin-settings.html',
-      'admin-ai.html',
-      'admin-knowledge.html',
+      'admin-faq.html',
+      'admin-contacts.html',
       'admin-audit.html',
       'profile-settings.html',
       'login.html',
@@ -551,6 +551,75 @@ function emptyState(text, iconName = 'search') {
     <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-300">${icon(iconName, 'w-7 h-7')}</div>
     <p class="text-sm text-slate-400">${text}</p>
   </div>`;
+}
+
+/* ---------------- Field-staff assignment helpers (multi-staff, shared by
+ * registrar-event-form.html + event-detail.html — event-detail.html ไม่โหลด registrar.js
+ * จึงต้องอยู่ที่ shared.js ไม่ใช่ registrar.js) ------------------------------ */
+const STAFF_ACCOUNTS = [
+  { id: 4, label: 'น้องเก่ง สตาฟดี (keng.staff)', active: true },
+  { id: 6, label: 'บุคลากรเก่า ลาออกแล้ว (old.staff) - บัญชีไม่ใช้งาน', active: false },
+  { id: 99, label: 'น้องเบล สตาฟใหม่ (bell.staff)', active: true },
+];
+
+/* คืน array รหัสสตาฟของกิจกรรม — รองรับข้อมูลเก่าที่ยังเป็น staffId เดี่ยว (localStorage ค้าง) */
+function eventStaffIds(ev) {
+  if (!ev) return [];
+  return Array.isArray(ev.staffIds) ? ev.staffIds : (ev.staffId ? [ev.staffId] : []);
+}
+/* คืนจำนวนจำกัดสตาฟของกิจกรรม — ค่าเริ่มต้น 3 คนถ้าไม่เคยตั้งไว้ (ข้อมูลเก่า) */
+function eventStaffLimit(ev) {
+  return (ev && Number.isFinite(ev.staffLimit)) ? ev.staffLimit : 3;
+}
+
+/* คืนชื่อที่แสดงผลของสตาฟ 1 คนจาก id (บัญชีสตาฟหลัก 3 คน หรือรหัสนักศึกษาที่เป็นสตาฟเฉพาะกิจ) */
+function staffDisplayName(id) {
+  const known = STAFF_ACCOUNTS.find((s) => s.id === id);
+  if (known) return known.label;
+  const students = Store.get('students', []);
+  const std = students.find((s) => Number(s.code) === id);
+  return std ? `${std.first} ${std.last} (${std.code}) — นักศึกษาสตาฟเฉพาะกิจ` : `สตาฟ #${id}`;
+}
+
+/* สร้าง <option> สำหรับ select "เพิ่มสตาฟ" — ตัดคนที่เพิ่มไปแล้ว (excludeIds) ออก + ปิดใช้งานบัญชี inactive */
+function staffOptionsHtml(excludeIds = []) {
+  let html = '<option value="">-- เลือกเพื่อเพิ่มสตาฟ --</option>';
+  STAFF_ACCOUNTS.forEach((s) => {
+    if (excludeIds.includes(s.id)) return;
+    html += `<option value="${s.id}" ${s.active ? '' : 'disabled'}>${s.label}</option>`;
+  });
+  Store.get('students', []).forEach((s) => {
+    const val = Number(s.code);
+    if (val && !excludeIds.includes(val)) html += `<option value="${val}">${s.first} ${s.last} (${s.code})</option>`;
+  });
+  return html;
+}
+
+/* เรนเดอร์ chip รายชื่อสตาฟที่เพิ่มแล้ว + toggle ปิด/เปิด select เพิ่มสตาฟตามจำนวนจำกัด
+ * staffIdsArr: array อ้างอิงที่ mutate ตรง ๆ ได้ (splice ตอนกดลบ) — onChange: callback หลัง add/remove ทุกครั้ง */
+function renderStaffChips(chipsElId, addSelectEl, staffIdsArr, limit, onChange) {
+  const chipsEl = document.getElementById(chipsElId);
+  if (!chipsEl) return;
+  chipsEl.innerHTML = staffIdsArr.length ? staffIdsArr.map((id) => `
+    <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200">
+      ${staffDisplayName(id)}
+      <button type="button" data-id="${id}" class="chip-remove text-blue-400 hover:text-red-600 font-bold leading-none">&times;</button>
+    </span>`).join('') : '<span class="text-xs text-slate-400">ยังไม่ได้เพิ่มสตาฟหน้างาน</span>';
+
+  chipsEl.querySelectorAll('.chip-remove').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      const idx = staffIdsArr.indexOf(id);
+      if (idx !== -1) staffIdsArr.splice(idx, 1);
+      renderStaffChips(chipsElId, addSelectEl, staffIdsArr, limit, onChange);
+      if (onChange) onChange();
+    });
+  });
+
+  if (addSelectEl) {
+    addSelectEl.innerHTML = staffOptionsHtml(staffIdsArr);
+    addSelectEl.disabled = staffIdsArr.length >= limit;
+  }
 }
 
 /* ค.ศ.->format วันที่ไทยสั้น */
