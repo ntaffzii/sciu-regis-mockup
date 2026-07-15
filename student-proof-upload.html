@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>อัปโหลดหลักฐานกิจกรรมนอกสถานที่ — SciU-Regis</title>
+  <title>ส่งหลักฐานกิจกรรมนอกสถานที่ — SciU-Regis</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { theme: { extend: {
@@ -21,78 +21,29 @@
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <div>
-      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">อัปโหลดหลักฐานกิจกรรมนอกสถานที่</h1>
-      <p class="text-sm text-slate-500 mt-1">แนบใบรับรอง + รูปถ่ายกิจกรรมจริง — ระบบอ่านด้วย OCR แล้วส่งให้เจ้าหน้าที่ตรวจ (3 ชั่วโมง = 1 หน่วย)</p>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ส่งหลักฐานกิจกรรมนอกสถานที่</h1>
+      <p class="text-sm text-slate-500 mt-1">กรอกข้อมูลกิจกรรมด้วยตนเองตามเอกสารกระดาษ (ไม่ใช้ OCR) แล้วแนบรูปให้เจ้าหน้าที่ตรวจสอบ — 3 ชั่วโมง = 1 หน่วย</p>
     </div>
 
     <!-- โควต้าคงเหลือ -->
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" id="pu-progress"></div>
 
-    <div id="pu-form-wrap">
-      <form id="proof-form" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="pu-event-id">ประเภทกิจกรรมที่สอดคล้อง (อ้างอิงในระบบ) <span class="text-red-500">*</span></label>
-          <select id="pu-event-id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 bg-white">
-            <option value="" disabled selected>-- กรุณาเลือกประเภทกิจกรรมเปิดกว้าง --</option>
-          </select>
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="pu-title">ชื่อกิจกรรมเฉพาะ / รายละเอียดที่ทำจริง (ตามใบรับรอง) <span class="text-red-500">*</span></label>
-          <input id="pu-title" type="text" required placeholder="เช่น อาสาสมัครทาสีอาคารเรียน โรงเรียนบ้านหนองขอน" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="space-y-1.5">
-            <label class="text-sm font-medium text-slate-700" for="pu-date">วันที่ทำกิจกรรม</label>
-            <input id="pu-date" type="date" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-sm font-medium text-slate-700" for="pu-hours">จำนวนชั่วโมง</label>
-            <input id="pu-hours" type="number" min="1" max="36" value="6" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-          </div>
-        </div>
-
-        <!-- Dropzone -->
-        <div class="space-y-2">
-          <p class="text-sm font-medium text-slate-700">ไฟล์ใบรับรอง / รูปถ่ายกิจกรรม <span class="text-red-500">*</span></p>
-          <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-blue-500 hover:bg-blue-50/30 transition cursor-pointer">
-            <div class="space-y-3">
-              <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400" id="dz-icon"></div>
-              <div>
-                <p class="text-sm font-medium text-slate-700">ลากวางไฟล์ที่นี่ หรือคลิกเพื่อเลือก</p>
-                <p class="text-xs text-slate-400 mt-1">รองรับ PDF, JPG, PNG สูงสุด 15 MB</p>
-              </div>
-            </div>
-          </div>
-          <input id="pu-file" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" aria-label="เลือกไฟล์หลักฐาน">
-          <div id="uploaded-file"></div>
-        </div>
-
-        <!-- PDPA consent OCR (docs/14 §4) -->
-        <label class="flex items-start gap-3 p-4 rounded-xl border border-blue-100 bg-blue-50/50 cursor-pointer">
-          <input id="pu-consent" type="checkbox" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-          <span class="text-xs text-blue-900/80 leading-relaxed">
-            <strong>ยินยอมให้ระบบประมวลผล OCR และเก็บไฟล์นี้</strong> เพื่อยืนยันชั่วโมงกิจกรรมของฉัน
-            ข้อมูลจะประมวลผลภายในระบบของคณะเท่านั้น ไม่ส่งให้บริการภายนอก (PDPA)
-          </span>
-        </label>
-
-        <button id="pu-submit" type="submit" disabled>
-          <span id="ic-submit"></span> ส่งหลักฐานเข้าคิวตรวจ
-        </button>
-      </form>
+    <!-- เลือกช่องทางส่ง -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+      <p class="text-sm font-semibold text-slate-700">เลือกช่องทางส่งหลักฐาน</p>
+      <div id="pu-method-tabs" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+      <p id="pu-method-hint" class="text-xs text-slate-400 leading-relaxed"></p>
     </div>
+
+    <div id="pu-form-wrap"></div>
   </div>
 </main>
 
 <script src="js/shared.js"></script>
 <script src="js/student.js"></script>
 <script>
-  renderShell({ role: 'student', active: 'student-proof-upload.html', title: 'อัปโหลดหลักฐาน' });
+  renderShell({ role: 'student', active: 'student-proof-upload.html', title: 'ส่งหลักฐาน' });
   initProofUploadPage();
-  const dzIcon = document.getElementById('dz-icon');
-  if (dzIcon) dzIcon.innerHTML = icon('upload-cloud', 'w-8 h-8');
-  const icSubmit = document.getElementById('ic-submit');
-  if (icSubmit) icSubmit.innerHTML = icon('send', 'w-5 h-5');
 </script>
 </body>
 </html>

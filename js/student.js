@@ -5,7 +5,7 @@
 
 const STUDENT_QUOTA_MAX = 12;
 
-const ME = { name: 'สมชาย ใจดี', code: '66114400123', email: 'somchai.ja@ubu.ac.th' };
+const ME = { name: 'สมชาย ใจดี', code: '66114400123', email: 'somchai.ja@ubu.ac.th', faculty: 'คณะวิทยาศาสตร์', year: 3 };
 
 /* กิจกรรมที่กำลังเปิดรับ (subset ของ events ฝั่ง registrar) */
 const OPEN_EVENTS = [
@@ -382,111 +382,421 @@ function submitMasterCode(e) {
   }
 }
 
-/* ---------------- Screen 9: อัปโหลดหลักฐาน ------------------------------- */
+/* ---------------- Screen 9: ส่งหลักฐานกิจกรรมนอกสถานที่ ------------------
+ * FR-C4/C19: 2 ช่องทางส่ง — logbook (สูงสุด 4 แถว, กรอกเอง) / group_roster (OCR อ่านตารางรายชื่อ)
+ * (กิจกรรมกลุ่มที่ไม่มีใครลงทะเบียน/เป็นสตาฟมาก่อน — แนบตารางรายชื่อให้ OCR ช่วยอ่าน)
+ * ไม่มี OCR สำหรับ logbook — นักศึกษากรอกเองทั้งหมด ไม่ผูกกับ event_id ใดๆ */
+const MAX_PROOF_FILE_MB = 15;
+const MAX_LOGBOOK_ROWS = 4;
+
+const PU_METHODS = [
+  { id: 'logbook', label: 'สมุดบันทึกจิตอาสา', hint: 'กรอกได้สูงสุด 4 กิจกรรมต่อชุดที่ส่ง พร้อมรูปหน้าปก + หน้าตาราง' },
+  { id: 'group_roster', label: 'แบบบันทึกกิจกรรมกลุ่ม', hint: 'สำหรับคนที่ทำจิตอาสาเป็นกลุ่มโดยไม่มีใครลงทะเบียน/เป็นสตาฟในระบบมาก่อน — แนบรูป 2 ใบ: หน้าแบบบันทึกกิจกรรม (เจ้าหน้าที่ตรวจเอง) และตารางรายชื่อผู้เข้าร่วม (ระบบอ่านให้ด้วย OCR แล้วเจ้าหน้าที่ตรวจสอบจับคู่นักศึกษาแต่ละคน)' },
+];
+
+/* จำลองผล OCR ของตารางรายชื่อ (group_roster เท่านั้น — จุดเดียวในระบบที่ใช้ OCR กับหลักฐานกิจกรรมเปิดกว้าง)
+ * ตั้งใจใส่ error 2 แบบเพื่อโชว์ flow แก้ไข: รหัสอ่านผิด (0/O) และรหัสไม่ตรงกับใครในระบบ — จับคู่จริงทำฝั่ง registrar.js ตอนตรวจ */
+const ROSTER_OCR_MOCK_POOL = [
+  { first: 'สมชาย', last: 'ใจดี', code: '66114400123', faculty: 'วิทยาศาสตร์', signature: true },
+  { first: 'วิชัย', last: 'เก่งกล้า', code: '66114400125', faculty: 'วิทยาศาสตร์', signature: true },
+  { first: 'ปิติ', last: 'ยินดี', code: '6611440O127', faculty: 'วิทยาศาสตร์', signature: true }, // OCR อ่านเลข 0 เป็นตัว O ผิด
+  { first: 'ธนพล', last: 'แก้วมณี', code: '66114499999', faculty: 'วิศวกรรมศาสตร์', signature: false }, // รหัสไม่ตรงกับใครในระบบ + ไม่มีลายเซ็น
+];
+
+function simulateRosterOcr() {
+  return ROSTER_OCR_MOCK_POOL.map((p, i) => ({
+    rowIndex: i + 1, ocrFirstName: p.first, ocrLastName: p.last, ocrStudentCode: p.code, ocrFaculty: p.faculty,
+    signaturePresent: p.signature, matchedCode: null,
+    status: 'pending', approvedHours: null, rejectionReason: null,
+  }));
+}
+
+let puMethod = 'logbook';
+let puItems = [];
+let puGroup = { name: '', location: '', date: '', hours: 6, detail: '', approverName: '', approverPosition: '', approverPhone: '' };
+let puCoverImage = null;
+let puTableImage = null;
+let puGroupFormImage = null;
+let puRosterImage = null;
+
 function initProofUploadPage() {
   const units = myUnits();
   const locked = myLocked();
   document.getElementById('pu-progress').innerHTML = progressBar(units, STUDENT_QUOTA_MAX, {
     label: locked ? 'โควต้าปีการศึกษา 2569' : `คุณสะสมได้อีก ${(STUDENT_QUOTA_MAX - units).toFixed(1).replace(/\.0$/, '')}/${STUDENT_QUOTA_MAX} หน่วยในปีการศึกษานี้`,
   });
-
+  renderMethodTabs();
   if (locked) {
     document.getElementById('pu-form-wrap').innerHTML = `
       <div class="rounded-2xl border border-purple-200 bg-purple-50 p-8 text-center space-y-3">
         <div class="w-14 h-14 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto">${icon('lock', 'w-7 h-7')}</div>
         <p class="text-base font-semibold text-purple-800">โควต้ากิจกรรมเปิดกว้างของปีนี้ครบแล้ว (${STUDENT_QUOTA_MAX}/${STUDENT_QUOTA_MAX} หน่วย)</p>
-        <p class="text-sm text-purple-700 leading-relaxed">หลักฐานที่ส่งเพิ่มจะไม่ถูกนับหน่วยกิตในปีการศึกษานี้<br/>ระบบจึงปิดการอัปโหลดเพื่อไม่ให้เสียเวลา — โควต้าจะรีเซ็ตเมื่อเปิดรอบปีการศึกษาใหม่</p>
+        <p class="text-sm text-purple-700 leading-relaxed">หลักฐานที่ส่งเพิ่มจะไม่ถูกนับหน่วยกิตในปีการศึกษานี้<br/>ระบบจึงปิดการส่งเพื่อไม่ให้เสียเวลา — โควต้าจะรีเซ็ตเมื่อเปิดรอบปีการศึกษาใหม่</p>
       </div>`;
     return;
   }
-
-  const select = document.getElementById('pu-event-id');
-  if (select) {
-    const allEvents = Store.get('events', []);
-    const openEvents = allEvents.filter(e => e.open === true || e.is_open_category === true);
-    const listToUse = openEvents.length ? openEvents : [
-      { id: 3, name: 'บริจาคโลหิต สภากาชาดไทย (เปิดกว้าง)' },
-      { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)' },
-      { id: 7, name: 'กิจกรรมจิตอาสาสาธารณประโยชน์ภายนอกคณะ (เปิดกว้าง)' }
-    ];
-    const preselect = new URLSearchParams(location.search).get('event');
-    select.innerHTML = `<option value="" disabled ${preselect ? '' : 'selected'}>-- กรุณาเลือกประเภทกิจกรรมเปิดกว้าง --</option>` +
-      listToUse.map(e => `<option value="${e.id}" ${preselect && String(e.id) === preselect ? 'selected' : ''}>${e.name}</option>`).join('');
-  }
-
-  const dz = document.getElementById('dropzone');
-  const fileInput = document.getElementById('pu-file');
-  dz.addEventListener('click', () => fileInput.click());
-  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('border-blue-500', 'bg-blue-50/40'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('border-blue-500', 'bg-blue-50/40'));
-  dz.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dz.classList.remove('border-blue-500', 'bg-blue-50/40');
-    if (e.dataTransfer.files.length) acceptProofFile(e.dataTransfer.files[0]);
-  });
-  fileInput.addEventListener('change', () => { if (fileInput.files.length) acceptProofFile(fileInput.files[0]); });
-
-  document.getElementById('pu-consent').addEventListener('change', updateSubmitState);
-  document.getElementById('proof-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const hours = parseFloat(document.getElementById('pu-hours').value) || 0;
-    const unitsClaim = hours / 3; // 3 ชม. = 1 หน่วย
-    const proofs = Store.get('proofs', []);
-    const selEvent = document.getElementById('pu-event-id');
-    const eventId = Number(selEvent.value);
-    const categoryTitle = selEvent.options[selEvent.selectedIndex].text;
-    const titleVal = document.getElementById('pu-title').value;
-
-    proofs.unshift({
-      id: Date.now(), student: ME.name, code: ME.code,
-      eventId: eventId,
-      categoryTitle: categoryTitle,
-      title: titleVal || 'กิจกรรมจิตอาสา',
-      submitted: new Date().toISOString().slice(0, 10), hours, units: unitsClaim,
-      file: Store.get('pu-filename', 'หลักฐาน.pdf'), status: 'pending', mismatch: false,
-      ocr: { name: 'นาย' + ME.name, date: thDate(document.getElementById('pu-date').value || new Date()), hours, confidence: 90 },
-    });
-    Store.set('proofs', proofs);
-    showToast('ส่งหลักฐานแล้ว — ระบบกำลังอ่านด้วย OCR และจะแจ้งผลหลัง Registrar ตรวจ');
-    // FR-E2 (1/4): หลักฐานกิจกรรมเปิดกว้างใหม่รอตรวจ -> แจ้งเตือน Registrar ผ่าน Slack DM ทันที
-    console.info('[MOCK Slack DM -> Registrar]', { type: 'new_proof_pending', student: ME.name, code: ME.code, title: titleVal || 'กิจกรรมจิตอาสา', time: new Date().toISOString() });
-    e.target.reset();
-    document.getElementById('uploaded-file').innerHTML = '';
-    Store.remove('pu-filename');
-    updateSubmitState();
-  });
-  updateSubmitState();
+  setMethod(puMethod);
 }
 
-/* FR-C4: ไฟล์หลักฐานต้องไม่เกิน 15 MB — ต้องเช็คจริงจาก file.size ไม่ใช่แค่ข้อความในหน้าเว็บ */
-const MAX_PROOF_FILE_MB = 15;
-function acceptProofFile(file) {
-  const maxBytes = MAX_PROOF_FILE_MB * 1024 * 1024;
-  if (file.size > maxBytes) {
-    showToast(`ไฟล์ "${file.name}" ขนาด ${(file.size / 1024 / 1024).toFixed(1)} MB เกินเพดาน ${MAX_PROOF_FILE_MB} MB — กรุณาเลือกไฟล์ใหม่`, 'error');
-    return;
-  }
-  setUploadedFile(file.name);
+function renderMethodTabs() {
+  document.getElementById('pu-method-tabs').innerHTML = PU_METHODS.map((m) => `
+    <button type="button" onclick="setMethod('${m.id}')" class="px-3 py-2.5 rounded-xl text-sm font-medium border transition text-left
+      ${puMethod === m.id ? 'bg-blue-600 border-blue-600 text-white shadow' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'}">
+      ${m.label}
+    </button>`).join('');
+  const hint = PU_METHODS.find((m) => m.id === puMethod);
+  document.getElementById('pu-method-hint').textContent = hint ? hint.hint : '';
 }
 
-function setUploadedFile(name) {
-  Store.set('pu-filename', name);
-  document.getElementById('uploaded-file').innerHTML = `
-    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+function setMethod(id) {
+  puMethod = id;
+  renderMethodTabs();
+  if (myLocked()) return;
+  if (id === 'group_roster') {
+    puGroupFormImage = null;
+    puRosterImage = null;
+    puGroup = { name: '', location: '', date: '', hours: 6, detail: '', approverName: '', approverPosition: '', approverPhone: '' };
+    renderGroupRosterForm();
+  } else {
+    puItems = [makeEmptyItem()];
+    puCoverImage = null;
+    puTableImage = null;
+    renderItemsForm();
+  }
+}
+
+function makeEmptyItem() {
+  return { activityName: '', location: '', activityDate: '', timeRange: '', hours: 6, detail: '', approverName: '', approverPosition: '', approverPhone: '', photos: [] };
+}
+
+function docImageBlock(key, label, img) {
+  return img ? `
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
       <span class="text-emerald-600 shrink-0">${icon('check-circle', 'w-5 h-5')}</span>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-emerald-800 truncate">${name}</p>
-        <p class="text-xs text-emerald-600">อัปโหลดสำเร็จ (จำลอง)</p>
+        <p class="text-xs font-medium text-slate-500">${label}</p>
+        <p class="text-sm font-medium text-emerald-800 truncate">${img.name}</p>
       </div>
-      <button type="button" onclick="this.closest('div.bg-emerald-50').remove(); Store.remove('pu-filename'); updateSubmitState();" class="inline-flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-4 h-4')} ลบ</button>
+      <button type="button" data-remove-doc="${key}" class="inline-flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-4 h-4')}</button>
+    </div>` : `
+    <div>
+      <p class="text-xs font-medium text-slate-600 mb-1">${label} <span class="text-red-500">*</span></p>
+      <div data-doc-dropzone="${key}" class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-blue-500 hover:bg-blue-50/30 transition cursor-pointer">
+        <p class="text-xs font-medium text-slate-600">คลิกเพื่อเลือกไฟล์ (JPG/PNG/PDF สูงสุด 15 MB)</p>
+      </div>
+      <input type="file" data-doc-input="${key}" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
     </div>`;
+}
+
+/* -------- แบบ logbook: กรอกเองทีละแถว ไม่ใช้ OCR -------- */
+function renderItemsForm() {
+  document.getElementById('pu-form-wrap').innerHTML = `
+    <form id="proof-form" class="space-y-5">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-xs text-slate-400 mb-2">ข้อมูลบัญชี (ดึงจากบัญชีที่ login อัตโนมัติ ไม่ต้องพิมพ์ซ้ำ — ใช้เทียบกับรูปหน้าปก/เอกสารที่แนบ)</p>
+        <p class="text-sm font-semibold text-slate-800">${ME.name} <span class="font-mono text-xs text-slate-400">(${ME.code})</span></p>
+        <p class="text-xs text-slate-500 mt-0.5">${ME.faculty} • ชั้นปีที่ ${ME.year}</p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+        <p class="text-sm font-semibold text-slate-700">รูปเอกสารต้นฉบับ</p>
+        ${docImageBlock('cover', 'รูปหน้าปกสมุดบันทึก', puCoverImage)}
+        ${docImageBlock('table', 'รูปหน้าตารางกิจกรรม', puTableImage)}
+      </div>
+
+      <div id="pu-items" class="space-y-4"></div>
+      <button id="pu-add-row" type="button" class="w-full py-2.5 border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium rounded-xl hover:border-blue-400 hover:text-blue-600 transition">+ เพิ่มกิจกรรม (สูงสุด ${MAX_LOGBOOK_ROWS} แถว)</button>
+
+      <label class="flex items-start gap-3 p-4 rounded-xl border border-blue-100 bg-blue-50/50 cursor-pointer">
+        <input id="pu-consent" type="checkbox" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+        <span class="text-xs text-blue-900/80 leading-relaxed">
+          <strong>ยินยอมให้ระบบเก็บรูปเอกสาร/รูปกิจกรรม และข้อมูลผู้รับรองที่กรอกไว้</strong> เพื่อให้เจ้าหน้าที่ตรวจสอบและยืนยันชั่วโมงกิจกรรมของฉัน — ไม่มีการประมวลผล OCR กับข้อมูลนี้ (PDPA)
+        </span>
+      </label>
+
+      <button id="pu-submit" type="submit" disabled class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-200 text-slate-400 font-medium rounded-xl cursor-not-allowed">
+        <span id="ic-submit"></span> ส่งหลักฐานเข้าคิวตรวจ
+      </button>
+    </form>`;
+  document.getElementById('ic-submit').innerHTML = icon('send', 'w-5 h-5');
+
+  renderPuItems();
+
+  const form = document.getElementById('proof-form');
+  document.getElementById('pu-add-row').addEventListener('click', () => {
+    if (puItems.length >= MAX_LOGBOOK_ROWS) return;
+    puItems.push(makeEmptyItem());
+    renderPuItems();
+  });
+
+  document.getElementById('pu-items').addEventListener('input', (e) => {
+    const field = e.target.dataset.field;
+    const idx = Number(e.target.dataset.index);
+    if (field && puItems[idx]) { puItems[idx][field] = e.target.value; updateSubmitState(); }
+  });
+
+  form.addEventListener('click', (e) => {
+    const docDz = e.target.closest('[data-doc-dropzone]');
+    if (docDz) { document.querySelector(`[data-doc-input="${docDz.dataset.docDropzone}"]`)?.click(); return; }
+    const removeDoc = e.target.closest('[data-remove-doc]');
+    if (removeDoc) {
+      if (removeDoc.dataset.removeDoc === 'cover') puCoverImage = null; else puTableImage = null;
+      renderItemsForm(); return;
+    }
+    const removeRow = e.target.closest('[data-remove-row]');
+    if (removeRow) { puItems.splice(Number(removeRow.dataset.removeRow), 1); renderPuItems(); return; }
+    const removePhoto = e.target.closest('[data-remove-photo]');
+    if (removePhoto) {
+      const [idx, pIdx] = removePhoto.dataset.removePhoto.split(':').map(Number);
+      puItems[idx].photos.splice(pIdx, 1); renderPuItems(); return;
+    }
+    const photoDz = e.target.closest('[data-photo-dropzone]');
+    if (photoDz) document.querySelector(`[data-photo-input="${photoDz.dataset.photoDropzone}"]`)?.click();
+  });
+
+  form.addEventListener('change', (e) => {
+    if (e.target.dataset.docInput !== undefined) {
+      const key = e.target.dataset.docInput;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > MAX_PROOF_FILE_MB * 1024 * 1024) { showToast(`ไฟล์ "${file.name}" เกิน ${MAX_PROOF_FILE_MB} MB`, 'error'); return; }
+      if (key === 'cover') puCoverImage = { name: file.name, size: file.size }; else puTableImage = { name: file.name, size: file.size };
+      renderItemsForm(); return;
+    }
+    if (e.target.dataset.photoInput !== undefined) {
+      const idx = Number(e.target.dataset.photoInput);
+      if (e.target.files[0]) attachPhotoToItem(idx, e.target.files[0]);
+    }
+  });
+
+  document.getElementById('pu-consent').addEventListener('change', updateSubmitState);
+  form.addEventListener('submit', onSubmitItemsForm);
   updateSubmitState();
+}
+
+function attachPhotoToItem(idx, file) {
+  if (file.size > MAX_PROOF_FILE_MB * 1024 * 1024) {
+    showToast(`ไฟล์ "${file.name}" ขนาด ${(file.size / 1024 / 1024).toFixed(1)} MB เกินเพดาน ${MAX_PROOF_FILE_MB} MB`, 'error');
+    return;
+  }
+  puItems[idx].photos.push({ name: file.name, size: file.size });
+  renderPuItems();
+}
+
+function renderPuItems() {
+  document.getElementById('pu-items').innerHTML = puItems.map((it, i) => renderItemRow(it, i)).join('');
+  const addBtn = document.getElementById('pu-add-row');
+  const atMax = puItems.length >= MAX_LOGBOOK_ROWS;
+  if (addBtn) { addBtn.disabled = atMax; addBtn.classList.toggle('opacity-50', atMax); addBtn.classList.toggle('cursor-not-allowed', atMax); }
+  updateSubmitState();
+}
+
+function renderItemRow(it, i) {
+  const photosHtml = it.photos.map((p, pi) => `
+    <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] rounded-lg px-2 py-1">
+      ${icon('check-circle', 'w-3 h-3')} ${p.name}
+      <button type="button" data-remove-photo="${i}:${pi}" class="text-red-500 hover:text-red-700">${icon('x', 'w-3 h-3')}</button>
+    </span>`).join('');
+
+  return `
+    <div class="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-700">กิจกรรมที่ ${i + 1}</h3>
+        ${puItems.length > 1 ? `<button type="button" data-remove-row="${i}" class="text-xs text-red-500 hover:text-red-700 font-medium">ลบแถวนี้</button>` : ''}
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-600">ชื่อโครงการ/กิจกรรม <span class="text-red-500">*</span></label>
+        <input data-field="activityName" data-index="${i}" value="${it.activityName}" placeholder="เช่น อาสาสมัครทาสีอาคารเรียน โรงเรียนบ้านหนองขอน" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-600">สถานที่ดำเนินกิจกรรม</label>
+        <input data-field="location" data-index="${i}" value="${it.location}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">วันที่ทำกิจกรรม <span class="text-red-500">*</span></label>
+          <input type="date" data-field="activityDate" data-index="${i}" value="${it.activityDate}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">ช่วงเวลา</label>
+          <input data-field="timeRange" data-index="${i}" value="${it.timeRange}" placeholder="08:00-16:00" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">จำนวนชั่วโมง <span class="text-red-500">*</span></label>
+          <input type="number" min="1" max="36" data-field="hours" data-index="${i}" value="${it.hours}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-medium text-slate-600">ลักษณะกิจกรรมโดยละเอียด</label>
+        <textarea data-field="detail" data-index="${i}" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">${it.detail}</textarea>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">ชื่อผู้รับรอง <span class="text-red-500">*</span></label>
+          <input data-field="approverName" data-index="${i}" value="${it.approverName}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">ตำแหน่ง</label>
+          <input data-field="approverPosition" data-index="${i}" value="${it.approverPosition}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">เบอร์โทร</label>
+          <input data-field="approverPhone" data-index="${i}" value="${it.approverPhone}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+      </div>
+      <div class="space-y-1.5">
+        <p class="text-xs font-medium text-slate-600">รูปทำกิจกรรมจริง (อย่างน้อย 1 รูป) <span class="text-red-500">*</span></p>
+        <div class="flex flex-wrap gap-1.5 mb-1.5">${photosHtml}</div>
+        <div data-photo-dropzone="${i}" class="border-2 border-dashed border-slate-300 rounded-xl p-3 text-center hover:border-blue-500 hover:bg-blue-50/30 transition cursor-pointer">
+          <p class="text-xs font-medium text-slate-600">คลิกเพื่อแนบรูปกิจกรรมจริง</p>
+        </div>
+        <input type="file" data-photo-input="${i}" accept=".jpg,.jpeg,.png" class="hidden">
+      </div>
+    </div>`;
+}
+
+function onSubmitItemsForm(e) {
+  e.preventDefault();
+  const proofs = Store.get('proofs', []);
+  const submittedDate = new Date().toISOString().slice(0, 10);
+  const validItems = puItems.filter((it) => it.activityName.trim() && it.activityDate && it.hours && it.approverName.trim() && it.photos.length);
+  proofs.unshift({
+    id: Date.now(),
+    submissionMethod: puMethod,
+    submittedBy: { name: ME.name, code: ME.code },
+    submittedAt: submittedDate,
+    coverImage: puCoverImage ? puCoverImage.name : null,
+    tableImage: puTableImage ? puTableImage.name : null,
+    items: validItems.map((it, i) => ({
+      rowIndex: i + 1,
+      activityName: it.activityName.trim(), location: it.location.trim(), activityDate: it.activityDate,
+      timeRange: it.timeRange.trim(), hours: parseFloat(it.hours) || 0, detail: it.detail.trim(),
+      approverName: it.approverName.trim(), approverPosition: it.approverPosition.trim(), approverPhone: it.approverPhone.trim(),
+      photos: it.photos.map((p) => p.name),
+      status: 'pending', approvedHours: null, rejectionReason: null,
+    })),
+  });
+  Store.set('proofs', proofs);
+  showToast(`ส่งหลักฐาน ${validItems.length} กิจกรรมแล้ว — รอเจ้าหน้าที่ตรวจสอบ`);
+  // FR-E2 (1/4): หลักฐานกิจกรรมเปิดกว้างใหม่รอตรวจ -> แจ้งเตือน Registrar ผ่าน Slack DM ทันที
+  console.info('[MOCK Slack DM -> Registrar]', { type: 'new_proof_pending', student: ME.name, code: ME.code, count: validItems.length, time: new Date().toISOString() });
+  setMethod(puMethod);
+}
+
+/* -------- แบบ group_roster: กรอกกิจกรรมกลางเอง + แนบตารางรายชื่อให้ OCR อ่าน -------- */
+function renderGroupRosterForm() {
+  document.getElementById('pu-form-wrap').innerHTML = `
+    <form id="proof-form" class="space-y-5">
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 leading-relaxed">
+        ใช้สำหรับกรณีทำจิตอาสา/ช่วยงานเป็นกลุ่ม โดยไม่มีใครในกลุ่มลงทะเบียนหรือเป็นสตาฟในระบบมาก่อน — กรอกข้อมูลกิจกรรมกลางเพียงครั้งเดียว แล้วแนบรูป 2 ใบ: (1) หน้าแบบบันทึกการเข้าร่วมกิจกรรม ให้เจ้าหน้าที่ตรวจเองด้วยตา และ (2) ตารางรายชื่อผู้เข้าร่วม ที่ระบบจะส่งเข้าคิว OCR ให้เจ้าหน้าที่ตรวจสอบและจับคู่นักศึกษาแต่ละคนก่อนอนุมัติ
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+        <p class="text-sm font-semibold text-slate-700">ข้อมูลกิจกรรมกลาง (ใช้ร่วมกันทุกคนในตารางรายชื่อ)</p>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-600">ชื่อกิจกรรม <span class="text-red-500">*</span></label>
+          <input data-gfield="name" value="${puGroup.name}" placeholder="เช่น ปลูกป่าชายเลนชุมชนบ้านโนนงาม" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-600">สถานที่จัดกิจกรรม</label>
+          <input data-gfield="location" value="${puGroup.location}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">วันที่จัดกิจกรรม <span class="text-red-500">*</span></label>
+            <input type="date" data-gfield="date" value="${puGroup.date}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+          <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">จำนวนชั่วโมงที่เข้าร่วมกิจกรรม <span class="text-red-500">*</span></label>
+            <input type="number" min="1" max="36" data-gfield="hours" value="${puGroup.hours}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-slate-600">ลักษณะกิจกรรมโดยละเอียด</label>
+          <textarea data-gfield="detail" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">${puGroup.detail}</textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">ชื่อผู้รับรอง <span class="text-red-500">*</span></label>
+            <input data-gfield="approverName" value="${puGroup.approverName}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+          <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">ตำแหน่ง</label>
+            <input data-gfield="approverPosition" value="${puGroup.approverPosition}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+          <div class="space-y-1.5"><label class="text-xs font-medium text-slate-600">เบอร์โทร</label>
+            <input data-gfield="approverPhone" value="${puGroup.approverPhone}" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+        <p class="text-sm font-semibold text-slate-700">รูปเอกสารต้นฉบับ</p>
+        <p class="text-xs text-slate-400">รูปแบบบันทึกฯ ทั้งหน้า — เจ้าหน้าที่ตรวจเองด้วยตา ไม่มี OCR ส่วนนี้</p>
+        ${docImageBlock('form', 'รูปแบบบันทึกการเข้าร่วมกิจกรรม (หน้าเอกสาร)', puGroupFormImage)}
+        <p class="text-xs text-slate-400 pt-1">ตารางรายชื่อผู้เข้าร่วม: ลำดับที่, ชื่อ-สกุล, รหัสนักศึกษา, คณะ, ลายมือชื่อ — ระบบจะอ่านให้อัตโนมัติด้วย OCR</p>
+        ${docImageBlock('roster', 'รูปตารางรายชื่อ', puRosterImage)}
+      </div>
+
+      <label class="flex items-start gap-3 p-4 rounded-xl border border-blue-100 bg-blue-50/50 cursor-pointer">
+        <input id="pu-consent" type="checkbox" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+        <span class="text-xs text-blue-900/80 leading-relaxed">
+          <strong>ยินยอมให้ระบบเก็บรูปเอกสารและข้อมูลกิจกรรมนี้</strong> เพื่อให้เจ้าหน้าที่ตรวจสอบและยืนยันชั่วโมงกิจกรรมของผู้เข้าร่วมแต่ละคน (PDPA)
+        </span>
+      </label>
+
+      <button id="pu-submit" type="submit" disabled class="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-200 text-slate-400 font-medium rounded-xl cursor-not-allowed">
+        <span id="ic-submit"></span> ส่งเข้าคิว OCR + รอตรวจ
+      </button>
+    </form>`;
+  document.getElementById('ic-submit').innerHTML = icon('send', 'w-5 h-5');
+
+  const form = document.getElementById('proof-form');
+  form.addEventListener('input', (e) => {
+    const f = e.target.dataset.gfield;
+    if (f) { puGroup[f] = e.target.value; updateSubmitState(); }
+  });
+  form.addEventListener('click', (e) => {
+    const docDz = e.target.closest('[data-doc-dropzone]');
+    if (docDz) { document.querySelector(`[data-doc-input="${docDz.dataset.docDropzone}"]`)?.click(); return; }
+    const removeDoc = e.target.closest('[data-remove-doc]');
+    if (removeDoc) {
+      if (removeDoc.dataset.removeDoc === 'form') puGroupFormImage = null; else puRosterImage = null;
+      renderGroupRosterForm();
+    }
+  });
+  form.addEventListener('change', (e) => {
+    if (e.target.dataset.docInput !== undefined) {
+      const key = e.target.dataset.docInput;
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > MAX_PROOF_FILE_MB * 1024 * 1024) { showToast(`ไฟล์ "${file.name}" เกิน ${MAX_PROOF_FILE_MB} MB`, 'error'); return; }
+      if (key === 'form') puGroupFormImage = { name: file.name, size: file.size }; else puRosterImage = { name: file.name, size: file.size };
+      renderGroupRosterForm();
+    }
+  });
+  document.getElementById('pu-consent').addEventListener('change', updateSubmitState);
+  form.addEventListener('submit', onSubmitGroupForm);
+  updateSubmitState();
+}
+
+function onSubmitGroupForm(e) {
+  e.preventDefault();
+  const proofs = Store.get('proofs', []);
+  const submittedDate = new Date().toISOString().slice(0, 10);
+  const rosterEntries = simulateRosterOcr();
+  proofs.unshift({
+    id: Date.now(),
+    submissionMethod: 'group_roster',
+    submittedBy: { name: ME.name, code: ME.code },
+    submittedAt: submittedDate,
+    groupFormImage: puGroupFormImage ? puGroupFormImage.name : null,
+    rosterImage: puRosterImage ? puRosterImage.name : null,
+    groupActivity: {
+      name: puGroup.name.trim(), location: puGroup.location.trim(), date: puGroup.date,
+      hours: parseFloat(puGroup.hours) || 0, detail: puGroup.detail.trim(),
+      approverName: puGroup.approverName.trim(), approverPosition: puGroup.approverPosition.trim(), approverPhone: puGroup.approverPhone.trim(),
+    },
+    rosterEntries,
+  });
+  Store.set('proofs', proofs);
+  showToast(`ส่งหลักฐานกลุ่ม (${rosterEntries.length} คน) เข้าคิว OCR แล้ว — รอเจ้าหน้าที่ตรวจสอบ`);
+  console.info('[MOCK Slack DM -> Registrar]', { type: 'new_proof_pending_group', submittedBy: ME.code, count: rosterEntries.length, time: new Date().toISOString() });
+  setMethod('group_roster');
 }
 
 function updateSubmitState() {
   const btn = document.getElementById('pu-submit');
   if (!btn) return;
-  const ok = document.getElementById('pu-consent').checked;
+  const consentEl = document.getElementById('pu-consent');
+  const consentOk = consentEl && consentEl.checked;
+  let ok;
+  if (puMethod === 'group_roster') {
+    ok = consentOk && puGroup.name.trim() && puGroup.date && puGroup.hours && puGroup.approverName.trim() && puGroupFormImage && puRosterImage;
+  } else {
+    const hasDocs = puMethod === 'logbook' ? (puCoverImage && puTableImage) : !!puTableImage;
+    const itemsOk = puItems.length >= 1 && puItems.every((it) => it.activityName.trim() && it.activityDate && it.hours && it.approverName.trim() && it.photos.length);
+    ok = consentOk && hasDocs && itemsOk;
+  }
   btn.disabled = !ok;
   btn.className = ok
     ? 'w-full inline-flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20'
@@ -494,24 +804,32 @@ function updateSubmitState() {
 }
 
 /* ---------------- Screen 10: แชทบอท SciU-Buddy --------------------------- */
-/* FR-D1 / UC-R11 exception 2: ห้ามให้ AI/MCP ตอบข้อมูลชั่วโมงสะสม/ประวัติกิจกรรมส่วนบุคคลเด็ดขาด
- * ต้องดักคำถามกลุ่มนี้ก่อนเข้า CHAT_KB เสมอ แล้วปฏิเสธด้วยข้อความที่กำหนดไว้ตายตัว (ไม่เรียก MCP tool ใดๆ) */
+/* FR-D1 / UC-R11 exception 2: ห้ามให้ Hybrid Agent ตอบข้อมูลชั่วโมงสะสม/ประวัติกิจกรรมส่วนบุคคลเด็ดขาด
+ * ต้องดักคำถามกลุ่มนี้ก่อนเข้า CHAT_KB เสมอ แล้วปฏิเสธด้วยข้อความที่กำหนดไว้ตายตัว (ไม่ค้นหาผ่าน Hybrid Agent เลย) */
 const PERSONAL_DATA_KEYWORDS = ['ชั่วโมง', 'สะสม', 'เท่าไหร่', 'เท่าไร', 'หน่วยกิต'];
 const PERSONAL_DATA_REFUSAL = 'ผมไม่สามารถตรวจสอบข้อมูลส่วนบุคคลหรือชั่วโมงกิจกรรมของนักศึกษาผ่านทางห้องแชทนี้ได้ เพื่อความปลอดภัยด้านข้อมูลส่วนบุคคล คุณนิสิตสามารถเปิดดูประวัติชั่วโมงสะสมด้วยตนเองได้ที่หน้าหลักเมนูประวัติกิจกรรมบนเว็บไซต์ครับ';
 
-/* Mock knowledge base — keyword matching */
+/* Mock knowledge base — keyword matching แทนที่ MCP tool เดิม ด้วย Hybrid Agent 2 เส้นทาง:
+ * source: 'faq' -> FAQ Semantic Search (knowledge_faqs), source: 'sql:<table>' -> SQL Direct Search */
 const CHAT_KB = [
-  { keys: ['กิจกรรม', 'เปิดรับ', 'ลงทะเบียน', 'สมัคร'], mcp: 'get_active_events',
+  { keys: ['กิจกรรม', 'เปิดรับ', 'ลงทะเบียน', 'สมัคร'], source: 'sql:events',
     reply: () => `ขณะนี้มีกิจกรรมเปิดให้ลงทะเบียนอยู่ ${OPEN_EVENTS.length} รายการครับ<br/><br/>${OPEN_EVENTS.map((e) => `• <strong>${e.name}</strong> (${thDate(e.date)}, ${e.credits} หน่วย)`).join('<br/>')}<br/><br/>ลงทะเบียนและเช็คอินได้ผ่านหน้ากิจกรรมเลยครับ` },
-  { keys: ['เปิดกว้าง', 'จิตอาสา', 'นอกสถานที่', 'open'], mcp: 'search_knowledge_base',
-    reply: () => `"กิจกรรมเปิดกว้าง" คือกิจกรรมจิตอาสานอกสถานที่ที่คุณหาเองได้ครับ ส่งใบรับรอง + รูปถ่ายเข้าระบบ แล้วเจ้าหน้าที่จะตรวจด้วย OCR ก่อนอนุมัติ<br/><br/>เพดานสะสมคือ <strong>12 หน่วย (36 ชั่วโมง) ต่อปีการศึกษา</strong> ครับ` },
-  { keys: ['ขั้นต่ำ', 'sac', 'จบ', 'เกณฑ์'], mcp: 'search_knowledge_base',
+  { keys: ['เปิดกว้าง', 'จิตอาสา', 'นอกสถานที่', 'open'], source: 'faq',
+    reply: () => `"กิจกรรมเปิดกว้าง" คือกิจกรรมจิตอาสานอกสถานที่ที่คุณหาเองได้ครับ กรอกข้อมูลกิจกรรมด้วยตนเอง (ไม่ใช้ OCR) แล้วแนบรูปเอกสาร/รูปกิจกรรมจริงเข้าระบบให้เจ้าหน้าที่ตรวจสอบก่อนอนุมัติ<br/><br/>เพดานสะสมคือ <strong>12 หน่วย (36 ชั่วโมง) ต่อปีการศึกษา</strong> และไม่เกิน <strong>3 หน่วย (9 ชั่วโมง) ต่อวัน</strong> ครับ` },
+  { keys: ['ขั้นต่ำ', 'sac', 'จบ', 'เกณฑ์'], source: 'faq',
     reply: () => `ตามระเบียบ UBU SAC นักศึกษาต้องมีชั่วโมงกิจกรรมขั้นต่ำ <strong>100 หน่วยชั่วโมง</strong> ตลอดหลักสูตรครับ แบ่งเป็นกิจกรรมบังคับและกิจกรรมเลือก<br/><br/>รายละเอียดฉบับเต็มดูจากคู่มือกิจกรรมนักศึกษาได้ครับ` },
-  { keys: ['ติดต่อ', 'ทะเบียน', 'เจ้าหน้าที่', 'โทร', 'อีเมล', 'email'], mcp: 'search_faculty_contacts',
+  { keys: ['ติดต่อ', 'ทะเบียน', 'เจ้าหน้าที่', 'โทร', 'อีเมล', 'email'], source: 'sql:faculty_contacts',
     reply: () => `ติดต่องานทะเบียนกิจกรรม คณะวิทยาศาสตร์ ได้ที่ครับ:<br/><br/>โทร: <strong>045-353-xxx</strong><br/>อีเมล: <a href="mailto:${getContactEmail()}" class="text-blue-600 underline">${getContactEmail()}</a><br/>ที่ตั้ง: สำนักงานคณบดี ชั้น 1 อาคาร SC` },
-  { keys: ['เช็คอิน', 'gps', 'selfie', 'master code', 'โค้ด'], mcp: 'search_knowledge_base',
+  { keys: ['เช็คอิน', 'gps', 'selfie', 'master code', 'โค้ด'], source: 'faq',
     reply: () => `การเช็คอินกิจกรรมทำได้ 3 วิธีครับ:<br/><br/>1. <strong>GPS</strong> — เช็คอินในรัศมีพื้นที่จัดงาน<br/>2. <strong>Selfie</strong> — ถ่ายรูปยืนยันตัว (ขอความยินยอมก่อน และลบไฟล์ใน 90 วัน)<br/>3. <strong>Master Code</strong> — กรอกรหัส 6 ตัวจากสตาฟหน้างาน` },
 ];
+
+/* แปลง source ภายในให้เป็นข้อความอ่านง่ายใต้บับเบิลบอท (แทนที่ป้าย "ข้อมูลจาก MCP: ..." เดิม) */
+function describeChatSource(source) {
+  if (source === 'faq') return 'ข้อมูลจาก FAQ Semantic Search';
+  if (source && source.startsWith('sql:')) return `ข้อมูลจาก SQL Direct Search: ${source.slice(4)}`;
+  return 'ข้อมูลจาก Hybrid Agent';
+}
 
 let chatUserName = ME.name.split(' ')[0];
 
@@ -591,7 +909,7 @@ function sendChat() {
   input.value = '';
   addUserBubble(text);
 
-  // FR-D10: LINE ที่ยังไม่เชื่อมบัญชี/ยังไม่เปิดใช้งาน → ตอบอัตโนมัติทันที ห้ามส่งเข้า AI/MCP เด็ดขาด
+  // FR-D10: LINE ที่ยังไม่เชื่อมบัญชี/ยังไม่เปิดใช้งาน → ตอบอัตโนมัติทันที ห้ามส่งเข้า Hybrid Agent เด็ดขาด
   if (simChannel === 'line' && simLineState !== 'linked_enabled') {
     showTyping();
     setTimeout(() => {
@@ -604,7 +922,7 @@ function sendChat() {
     return;
   }
 
-  // FR-D1 / UC-R11 exception 2: คำถามข้อมูลส่วนบุคคล/ชั่วโมงสะสม ต้องปฏิเสธก่อนเสมอ ห้ามเรียก MCP/AI ตอบ
+  // FR-D1 / UC-R11 exception 2: คำถามข้อมูลส่วนบุคคล/ชั่วโมงสะสม ต้องปฏิเสธก่อนเสมอ ห้ามส่งให้ Hybrid Agent ตอบ
   if (PERSONAL_DATA_KEYWORDS.some((kw) => text.toLowerCase().includes(kw))) {
     showTyping();
     setTimeout(() => {
@@ -619,7 +937,7 @@ function sendChat() {
     hideTyping();
     const hit = CHAT_KB.find((k) => k.keys.some((kw) => text.toLowerCase().includes(kw)));
     if (hit) {
-      addBotBubble(hit.reply(chatUserName), `ข้อมูลจาก MCP: ${hit.mcp}`);
+      addBotBubble(hit.reply(chatUserName), describeChatSource(hit.source));
     } else {
       // Human Fallback (FR-D) — email ในบับเบิลเดียวกัน + จำลอง Slack DM เบื้องหลัง
       addBotBubble(
