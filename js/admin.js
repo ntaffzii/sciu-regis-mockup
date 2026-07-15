@@ -54,6 +54,8 @@ const DEFAULT_AUDIT = [
 ];
 
 /* FAQ ที่แชทบอทค้นด้วย semantic search (bge-m3 embedding) เมื่อคำถามไม่ตรงกับ SQL Direct Search (กิจกรรม/ผู้ใช้) */
+// bump เลขนี้เมื่อ DEFAULT_FAQS เปลี่ยน (เพิ่มรายการ/หมวดใหม่) เพื่อ reseed ทับข้อมูลเก่าที่ค้างใน localStorage
+const FAQS_SEED_VERSION = 2;
 const DEFAULT_FAQS = [
   { id: 1, category: 'หน่วยกิตกิจกรรม', question: 'สามารถนำชั่วโมงจิตอาสานอกคณะมานับรวมได้หรือไม่?', answer: 'ได้ โดยอยู่ในประเภทกิจกรรมเปิดกว้าง และหน่วยกิตสะสมรวมทุกแหล่งต้องไม่เกิน 12 หน่วยกิตต่อปีการศึกษา', active: true },
   { id: 2, category: 'หน่วยกิตกิจกรรม', question: 'หนึ่งวันได้หน่วยกิตสูงสุดกี่หน่วย?', answer: 'สูงสุด 3 หน่วยกิต (9 ชั่วโมง) ต่อวัน โดยนับรวมทุกแหล่งหน่วยกิตในระบบ (เช็คอินในมหาวิทยาลัย + หลักฐานกิจกรรมเปิดกว้าง)', active: true },
@@ -100,7 +102,7 @@ const AdminDB = {
     }
     return list;
   })(),
-  faqs: Store.get('adm-faqs', DEFAULT_FAQS),
+  faqs: Store.getSeeded('adm-faqs', DEFAULT_FAQS, { version: FAQS_SEED_VERSION }),
   contacts: Store.get('adm-contacts', DEFAULT_CONTACTS),
   whitelist: Store.get('adm-whitelist', DEFAULT_WHITELIST),
   save() {

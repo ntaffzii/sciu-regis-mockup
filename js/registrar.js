@@ -171,10 +171,13 @@ const DEFAULT_ROSTERS = {
 };
 
 /* state ต่อ key — reset ได้ด้วยการลบ localStorage */
+// proofs ใช้ shape-check: reseed ข้อมูลโครงสร้างเก่า (ก่อนรื้อ OCR) แต่คงหลักฐานรูปแบบใหม่ที่นักศึกษาเพิ่งส่งไว้ (flow เดโม ส่ง→ตรวจ)
+const isValidProof = (p) => p && typeof p.submissionMethod === 'string' && (Array.isArray(p.items) || Array.isArray(p.rosterEntries));
+
 const RegDB = {
   events: Store.get('events', DEFAULT_EVENTS),
   students: Store.get('students', DEFAULT_STUDENTS),
-  proofs: Store.get('proofs', DEFAULT_PROOFS),
+  proofs: Store.getSeeded('proofs', DEFAULT_PROOFS, { isValidShape: isValidProof }),
   ledger: Store.get('ledger', DEFAULT_LEDGER),
   cycles: Store.get('cycles', DEFAULT_CYCLES),
   rosters: Store.get('rosters', DEFAULT_ROSTERS),

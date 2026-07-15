@@ -67,6 +67,28 @@ const Store = {
   },
   set(key, val) { localStorage.setItem('sciu:' + key, JSON.stringify(val)); },
   remove(key) { localStorage.removeItem('sciu:' + key); },
+
+  /**
+   * getSeeded(key, fallback, opts) — โหลดข้อมูล seed พร้อมกลไก self-heal ข้อมูลเก่าค้างใน localStorage
+   * opts รองรับ 2 นโยบาย (เลือกอย่างใดอย่างหนึ่งหรือทั้งคู่):
+   *   - isValidShape(item): reseed ถ้าข้อมูลเก่ามีโครงสร้างไม่ตรงดีไซน์ปัจจุบัน แต่ "เก็บ" ข้อมูลรูปแบบใหม่ที่ผู้ใช้เพิ่งสร้างไว้
+   *       ใช้กับ proofs — กัน reseed ทับหลักฐานที่นักศึกษาเพิ่งส่ง (โครงสร้างใหม่) ขณะเดียวกันก็ล้างข้อมูลก่อนรื้อ OCR ทิ้ง
+   *   - version: reseed เมื่อ bump เลข version ถึงแม้ข้อมูลเก่าจะ shape ถูก — ใช้ push เนื้อหา curated ชุดใหม่
+   *       ใช้กับ FAQ — เพิ่มรายการ/หมวดใหม่แล้วอยากให้ขึ้นทันทีแม้ browser มีข้อมูลเก่าค้าง
+   * ถ้าผ่านทุกเงื่อนไข จะคืน state ที่ผู้ใช้แก้ไว้ตามปกติ (ไม่ล้างทิ้ง)
+   */
+  getSeeded(key, fallback, opts = {}) {
+    const data = this.get(key, null);
+    const shapeOk = !opts.isValidShape ? true : (Array.isArray(data) && data.every(opts.isValidShape));
+    const versionOk = opts.version == null ? true : (this.get(key + '__seedv', null) === opts.version);
+    if (data === null || !Array.isArray(data) || !shapeOk || !versionOk) {
+      this.set(key, fallback);
+      if (opts.version != null) this.set(key + '__seedv', opts.version);
+      return fallback;
+    }
+    if (opts.version != null) this.set(key + '__seedv', opts.version); // stamp marker ให้ข้อมูล shape ถูกที่ยังไม่มี marker
+    return data;
+  },
 };
 
 /* FR-D6: อีเมลติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
