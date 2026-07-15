@@ -47,18 +47,33 @@ const DEFAULT_AUDIT = [
   { time: '2026-07-10 09:12', user: 'registrar.sombat', role: 'registrar', action: 'sac_export', detail: 'Export Excel กิจกรรม "อบรมปฐมพยาบาลเบื้องต้น CPR"' },
   { time: '2026-07-09 16:30', user: 'wichai.lead', role: 'lead_org', action: 'event_created', detail: 'สร้างกิจกรรม "ปลูกป่าชายเลนเฉลิมพระเกียรติ" (เปิดกว้าง)' },
   { time: '2026-07-09 14:02', user: 'registrar.sombat', role: 'registrar', action: 'proof_approved', detail: 'อนุมัติหลักฐาน "บริจาคโลหิต" ของ สมหญิง รักเรียน (+1.0 หน่วย)' },
-  { time: '2026-07-09 11:47', user: 'admin.thanakorn', role: 'admin', action: 'ai_config_changed', detail: 'เปลี่ยน AI Provider: Gemini -> Local llama.cpp (Typhoon-2)' },
+  { time: '2026-07-09 11:47', user: 'admin.thanakorn', role: 'admin', action: 'faq_updated', detail: 'แก้ไขคำตอบ FAQ หมวด "หน่วยกิตกิจกรรม" เรื่องเพดาน 9 ชม./วัน' },
   { time: '2026-07-08 15:20', user: 'keng.staff', role: 'field_staff', action: 'master_code_issued', detail: 'ออก Master Code A7K2M9 กิจกรรม "จิตอาสาพัฒนาคณะวิทยาศาสตร์"' },
   { time: '2026-07-08 10:05', user: 'registrar.sombat', role: 'registrar', action: 'quota_locked', detail: 'ล็อกโควต้า สมหญิง รักเรียน (12/12 หน่วย)' },
-  { time: '2026-07-07 09:00', user: 'admin.thanakorn', role: 'admin', action: 'rag_uploaded', detail: 'อัปโหลด "ระเบียบ UBU SAC 2569.pdf" เข้าฐานความรู้' },
+  { time: '2026-07-07 09:00', user: 'admin.thanakorn', role: 'admin', action: 'contact_added', detail: 'เพิ่มช่องทางติดต่อ ดร.วิชัย งานวิชาการ (อาจารย์ที่ปรึกษาสโมสรนักศึกษา)' },
 ];
 
-const DEFAULT_DOCS = [
-  { id: 1, name: 'ระเบียบ UBU SAC 2569.pdf', size: '2.4 MB', uploaded: '2026-07-07', status: 'ready', ocr: false, chunks: 148, text: 'เกณฑ์ข้อกำหนดกิจกรรมนักศึกษา คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี ปีการศึกษา 2569:\n1. นักศึกษาต้องสะสมชั่วโมงกิจกรรมสะสมรวมไม่น้อยกว่า 36 ชั่วโมง (12 หน่วยกิต)\n2. สามารถยื่นใบคำร้องเข้าร่วมกิจกรรมบำเพ็ญประโยชน์ภายนอก (เปิดกว้าง) สูงสุดได้ไม่เกิน 12 หน่วยกิตต่อปี\n3. Registrar จะทำการ Reset ข้อมูลเมื่อเริ่มรอบปีการศึกษาใหม่ด้วยมือ' },
-  { id: 2, name: 'คู่มือกิจกรรมนักศึกษา (สแกน).pdf', size: '18.7 MB', uploaded: '2026-07-07', status: 'ready', ocr: true, chunks: 412, text: '[ข้อความที่แกะจากภาพสแกนโดย Typhoon OCR]\nขั้นตอนปฏิบัติการบันทึกเวลาจัดตั้งโครงการบำเพ็ญประโยชน์:\n- นิสิตต้องแจ้งเรื่องเสนอโครงการล่วงหน้า 7 วัน\n- การตรวจสอบใช้ระบบเช็คอินด้วยพิกัด GPS รัศมีตามที่ระบุในแผนที่ หรือ รหัส Master Code จาก Field Staff' },
-  { id: 3, name: 'FAQ กยศ. และทุนการศึกษา.pdf', size: '1.1 MB', uploaded: '2026-07-08', status: 'embedding', ocr: false, chunks: 0, text: 'คำถามที่พบบ่อย (FAQ) เรื่องกองทุน กยศ. และชั่วโมงกิจกรรม:\nQ: สามารถนำชั่วโมงจิตอาสานอกคณะมานับรวมได้หรือไม่?\nA: ได้ โดยอยู่ในประเภทเปิดกว้างและจำกัดไม่เกิน 12 หน่วยกิตต่อปีการศึกษา\nQ: ต้องส่งเอกสารภายในวันไหน?\nA: ภายใน 14 วันหลังเสร็จสิ้นกิจกรรม' },
-  { id: 4, name: 'ประกาศรายชื่ออาจารย์ที่ปรึกษา.pdf', size: '3.3 MB', uploaded: '2026-07-09', status: 'ocr', ocr: true, chunks: 0, text: '[กำลังประมวลผล OCR... ข้อความชั่วคราว]\nรายชื่อคณะทำงานสโมสรนักศึกษาและอาจารย์ที่ปรึกษากิจกรรม คณะวิทยาศาสตร์ ม.อุบลฯ\n1. ดร.วิชัย งานวิชาการ (ที่ปรึกษาสโมสร)\n2. พี่สมบัติ วงศ์ทะเบียน (ทะเบียนกิจกรรมคณะ)' },
-  { id: 5, name: 'แผ่นพับประชาสัมพันธ์ (ภาพ).pdf', size: '22.0 MB', uploaded: '2026-07-09', status: 'failed', ocr: true, chunks: 0, text: '[ประมวลผลล้มเหลว - เนื่องจากไฟล์ภาพมีความละเอียดต่ำหรือไม่มีตัวอักษรภาษาไทย]\nสามารถเข้ามาพิมพ์ป้อนข้อมูลด้วยมือที่นี่เพื่อทดแทนและนำขึ้น Vector Store ได้' },
+/* FAQ ที่แชทบอทค้นด้วย semantic search (bge-m3 embedding) เมื่อคำถามไม่ตรงกับ SQL Direct Search (กิจกรรม/ผู้ใช้) */
+const DEFAULT_FAQS = [
+  { id: 1, category: 'หน่วยกิตกิจกรรม', question: 'สามารถนำชั่วโมงจิตอาสานอกคณะมานับรวมได้หรือไม่?', answer: 'ได้ โดยอยู่ในประเภทกิจกรรมเปิดกว้าง และหน่วยกิตสะสมรวมทุกแหล่งต้องไม่เกิน 12 หน่วยกิตต่อปีการศึกษา', active: true },
+  { id: 2, category: 'หน่วยกิตกิจกรรม', question: 'หนึ่งวันได้หน่วยกิตสูงสุดกี่หน่วย?', answer: 'สูงสุด 3 หน่วยกิต (9 ชั่วโมง) ต่อวัน โดยนับรวมทุกแหล่งหน่วยกิตในระบบ (เช็คอินในมหาวิทยาลัย + หลักฐานกิจกรรมเปิดกว้าง)', active: true },
+  { id: 3, category: 'การส่งหลักฐาน', question: 'ต้องส่งเอกสารหลักฐานภายในกี่วัน?', answer: 'ภายใน 14 วันหลังเสร็จสิ้นกิจกรรม มิฉะนั้นเจ้าหน้าที่ทะเบียนอาจไม่รับพิจารณา', active: true },
+  { id: 4, category: 'การส่งหลักฐาน', question: 'ถ้าทำจิตอาสาเป็นกลุ่มแต่ไม่ได้ลงทะเบียนในระบบ ต้องทำอย่างไร?', answer: 'ใช้ช่องทาง "กลุ่มจิตอาสา" แนบตารางรายชื่อผู้ร่วมกิจกรรม ระบบจะอ่านชื่อ-รหัสนักศึกษาให้อัตโนมัติด้วย OCR แล้วเจ้าหน้าที่จะตรวจสอบและจับคู่กับนักศึกษาในระบบก่อนอนุมัติ', active: true },
+  { id: 5, category: 'กยศ.', question: 'เกณฑ์ 36 ชั่วโมงเกี่ยวข้องกับ กยศ. อย่างไร?', answer: 'นักศึกษาที่กู้ยืม กยศ. ต้องทำกิจกรรมสะสมไม่น้อยกว่า 36 ชั่วโมง (12 หน่วยกิต) ต่อปีการศึกษา จึงจะมีสิทธิ์กู้ยืมต่อในปีถัดไป', active: true },
+  { id: 6, category: 'อื่นๆ', question: 'ลืมรหัสผ่านเข้าระบบต้องทำอย่างไร?', answer: 'กดปุ่ม "ลืมรหัสผ่าน" ที่หน้าเข้าสู่ระบบ หรือติดต่อเจ้าหน้าที่ทะเบียนโดยตรงหากไม่ได้ผูกอีเมลมหาวิทยาลัย', active: false },
+  { id: 7, category: 'การจัดกิจกรรม', question: 'ต้องการจัดกิจกรรม/โครงการของชมรมหรือสโมสร ต้องยื่นเรื่องล่วงหน้ากี่วัน?', answer: 'ต้องยื่นเอกสารขออนุมัติล่วงหน้าอย่างน้อย 45 วันทำการก่อนวันจัดกิจกรรมจริง เพื่อนำเรื่องเข้าที่ประชุมบอร์ดกิจกรรมของมหาวิทยาลัย', active: true },
+  { id: 8, category: 'การส่งหลักฐาน', question: 'หลังจบกิจกรรมต้องส่งรายชื่อและลายเซ็นผู้เข้าร่วมภายในกี่วัน?', answer: 'ภายใน 3 วันทำการหลังกิจกรรมจบ หากรหัสนักศึกษาที่เขียนด้วยลายมืออ่านยาก ระบบ OCR จะอ่านให้อัตโนมัติ แต่เจ้าหน้าที่ทะเบียนจะตรวจสอบและแก้ไขให้ถูกต้องก่อนอนุมัติเสมอ', active: true },
+  { id: 9, category: 'กยศ.', question: 'ใกล้เดดไลน์ยื่นกู้ยืม กยศ. แล้วชั่วโมงยังไม่ครบ ยื่นย้อนหลังได้ไหม?', answer: 'แนะนำให้ส่งหลักฐานทันทีหลังทำกิจกรรมเสร็จ ไม่ควรรอสะสมไว้ยื่นช่วงใกล้เดดไลน์ เพราะเจ้าหน้าที่ต้องใช้เวลาตรวจสอบและอนุมัติ หากส่งกระชั้นชิดเกินไปอาจดำเนินการไม่ทันกำหนดยื่นกู้ยืมในปีนั้น', active: true },
+  { id: 10, category: 'ทุนการศึกษา', question: 'นักศึกษาทุนเรียนดี/ทุนอื่นๆ (นอกจาก กยศ.) ต้องมีชั่วโมงจิตอาสาเท่าไหร่?', answer: 'เกณฑ์ชั่วโมงกิจกรรมของแต่ละทุนการศึกษาอาจกำหนดไม่เหมือนกัน กรุณาตรวจสอบเงื่อนไขเฉพาะของทุนที่ได้รับจากประกาศทุนนั้นๆ หรือติดต่อเจ้าหน้าที่ทะเบียนเพื่อตรวจสอบยอดชั่วโมงสะสมของตนเอง', active: true },
+  { id: 11, category: 'หน่วยกิตกิจกรรม', question: 'เข้าร่วมกิจกรรมไปแล้วแต่ทำไมหน่วยกิตยังไม่ขึ้นในระบบ?', answer: 'หลังจบกิจกรรม เจ้าหน้าที่ทะเบียนต้องใช้เวลาตรวจสอบหลักฐาน/รายชื่อก่อนบันทึกหน่วยกิตเข้าระบบ ปกติจะเห็นข้อมูลอัปเดตภายในไม่กี่วันทำการ หากเกิน 14 วันแล้วยังไม่ขึ้น สามารถติดต่อเจ้าหน้าที่ทะเบียนกิจกรรมได้โดยตรง', active: true },
+  { id: 12, category: 'อื่นๆ', question: 'ผู้ปกครองต้องการสอบถามข้อมูลระบบการศึกษา/แนวปฏิบัติของคณะ ติดต่อใครได้บ้าง?', answer: 'สามารถติดต่อเจ้าหน้าที่ทะเบียนกิจกรรมของคณะได้โดยตรง หรือดูช่องทางติดต่อทั้งหมดได้ที่หน้า "ติดต่อเรา" ของระบบ', active: true },
+];
+
+/* ช่องทางติดต่ออาจารย์/เจ้าหน้าที่ — แชทบอทตอบด้วย SQL Direct Search ตรงจากตารางนี้ (ข้อมูลเปลี่ยนบ่อย ไม่เหมาะกับ embedding) */
+const DEFAULT_CONTACTS = [
+  { id: 1, name: 'สมบัติ วงศ์ทะเบียน', position: 'เจ้าหน้าที่ทะเบียนกิจกรรม', department: 'งานกิจการนักศึกษา คณะวิทยาศาสตร์', phone: '045-353-000 ต่อ 1234', email: 'sombat.w@ubu.ac.th', office: 'อาคาร 1 ชั้น 2 ห้อง 1201' },
+  { id: 2, name: 'ดร.วิชัย งานวิชาการ', position: 'อาจารย์ที่ปรึกษาสโมสรนักศึกษา', department: 'สโมสรนักศึกษา คณะวิทยาศาสตร์', phone: '045-353-000 ต่อ 1245', email: 'wichai.a@ubu.ac.th', office: 'อาคาร 2 ชั้น 3 ห้อง 2301' },
+  { id: 3, name: 'ธนกร ระบบดี', position: 'ผู้ดูแลระบบ SciU-Regis', department: 'งานเทคโนโลยีสารสนเทศ คณะวิทยาศาสตร์', phone: '045-353-000 ต่อ 1299', email: 'thanakorn.r@ubu.ac.th', office: 'อาคาร 1 ชั้น 1 ห้อง IT' },
 ];
 
 const AdminDB = {
@@ -85,17 +100,26 @@ const AdminDB = {
     }
     return list;
   })(),
-  docs: Store.get('adm-docs', DEFAULT_DOCS),
+  faqs: Store.get('adm-faqs', DEFAULT_FAQS),
+  contacts: Store.get('adm-contacts', DEFAULT_CONTACTS),
   whitelist: Store.get('adm-whitelist', DEFAULT_WHITELIST),
   save() {
     Store.set('adm-users', this.users);
-    Store.set('adm-docs', this.docs);
+    Store.set('adm-faqs', this.faqs);
+    Store.set('adm-contacts', this.contacts);
     Store.set('adm-whitelist', this.whitelist);
   },
 };
 
 function allAuditLogs() {
   return [...Store.get('audit-extra', []), ...DEFAULT_AUDIT];
+}
+
+/* Audit log กลาง — registrar.js มีฟังก์ชันหน้าตาเดียวกันสำหรับฝั่งของตัวเอง คนละ actor default */
+function appendAudit(action, detail, actor = 'admin.thanakorn') {
+  const logs = Store.get('audit-extra', []);
+  logs.unshift({ time: new Date().toISOString().slice(0, 16).replace('T', ' '), user: actor, action, detail, role: 'admin' });
+  Store.set('audit-extra', logs);
 }
 
 function roleBadge(role) {
@@ -105,13 +129,11 @@ function roleBadge(role) {
 
 /* ---------------- Admin Home --------------------------------------------- */
 function initAdminHome() {
-  const aiProvider = Store.get('ai-config', { provider: 'local' }).provider;
-  const providerLabel = { local: 'Local llama.cpp', gemini: 'Gemini', openai: 'OpenAI GPT' }[aiProvider] || aiProvider;
   document.getElementById('ah-stats').innerHTML =
     statsCard('ผู้ใช้ทั้งหมด', AdminDB.users.length, `${AdminDB.users.filter((u) => u.active).length} active`)
     + statsCard('กิจกรรมทั้งหมด', Store.get('events', []).length || 6, 'ในปีการศึกษา 2569')
-    + statsCard('AI Provider', providerLabel, 'พร้อมใช้งาน', { valueCls: 'text-emerald-700' })
-    + statsCard('เอกสาร RAG', AdminDB.docs.length, `${AdminDB.docs.filter((d) => d.status === 'ready').length} พร้อมใช้`);
+    + statsCard('คำถามที่พบบ่อย', AdminDB.faqs.length, `${AdminDB.faqs.filter((f) => f.active).length} เปิดใช้งาน`, { valueCls: 'text-emerald-700' })
+    + statsCard('ช่องทางติดต่อ', AdminDB.contacts.length, 'รายชื่อผู้ประสานงาน');
 
   document.getElementById('ah-audit').innerHTML = allAuditLogs().slice(0, 5).map((l) => `
     <div class="flex items-start gap-3 px-4 py-3">
@@ -125,7 +147,7 @@ function initAdminHome() {
   const slackSet = Store.get('adm-settings', null);
   const pendings = [
     { label: 'Slack Bot Token', ok: !!(slackSet && slackSet.slackToken), note: slackSet && slackSet.slackToken ? 'ตั้งค่าแล้ว' : 'ยังไม่ได้ตั้งค่า' },
-    { label: 'AI Provider', ok: true, note: providerLabel },
+    { label: 'LLM แชทบอท (คงที่)', ok: true, note: 'typhoon2.5-qwen3-4b (local)' },
     { label: 'อีเมลติดต่อ fallback', ok: true, note: 'registrar@sci.ubu.ac.th' },
   ];
   document.getElementById('ah-config').innerHTML = pendings.map((p) => `
@@ -274,9 +296,8 @@ function openUserModal(id) {
 
 /* ---------------- Screen 12: ตั้งค่าเทคนิค -------------------------------- */
 function initSettingsPage() {
-  const s = Store.get('adm-settings', { slackToken: '', mcpEndpoints: 'http://sci_events_mcp:5000/sse', email: 'registrar@sci.ubu.ac.th' });
+  const s = Store.get('adm-settings', { slackToken: '', email: 'registrar@sci.ubu.ac.th' });
   document.getElementById('set-token').value = s.slackToken ? '••••••••••••' + s.slackToken.slice(-4) : '';
-  document.getElementById('set-mcp').value = s.mcpEndpoints;
   document.getElementById('set-email').value = s.email;
 
   const templateKey = 'excel-template';
@@ -309,7 +330,6 @@ function initSettingsPage() {
     const token = document.getElementById('set-token').value.trim();
     Store.set('adm-settings', {
       slackToken: token.startsWith('•') ? s.slackToken : token,
-      mcpEndpoints: document.getElementById('set-mcp').value.trim(),
       email: document.getElementById('set-email').value.trim(),
     });
 
@@ -403,262 +423,263 @@ function renderAuditTable() {
     </table>` : emptyState('ไม่พบ log ตามเงื่อนไขที่กรอง');
 }
 
-/* ---------------- Screen 14: ตั้งค่า AI Provider -------------------------- */
-const AI_PRESETS = {
-  local: { base: 'http://ai_llm_lowvram:8001/v1', model: 'typhoon-2-qwen2.5-7b-instruct', note: 'LLM ภายในระบบ (ค่าเริ่มต้น) — ปลอดภัยต่อ PDPA เพราะข้อมูลไม่ออกนอกเครื่อง' },
-  gemini: { base: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.0-flash', note: 'ระวัง: ห้ามส่งข้อมูลส่วนบุคคลนักศึกษาออกไป provider ภายนอก (นโยบาย PDPA)' },
-  openai: { base: 'https://api.openai.com/v1', model: 'gpt-4o-mini', note: 'ระวัง: ห้ามส่งข้อมูลส่วนบุคคลนักศึกษาออกไป provider ภายนอก (นโยบาย PDPA)' },
-};
+/* ---------------- Screen 14: จัดการ FAQ (Q&A) แชทบอท ---------------------
+ * Hybrid FAQ RAG + SQL Direct Search: คำถามทั่วไป/ไม่ตรงกับข้อมูลกิจกรรม -> ค้นด้วย semantic search (bge-m3) บนตารางนี้
+ * ไม่มี AI Provider ให้สลับแล้ว — LLM คงที่ (typhoon2.5-qwen3-4b, local เท่านั้น) ตั้งค่าที่นี่จึงเหลือแค่เนื้อหา FAQ */
+const FAQ_CATEGORIES = ['หน่วยกิตกิจกรรม', 'การจัดกิจกรรม', 'การส่งหลักฐาน', 'กยศ.', 'ทุนการศึกษา', 'บัญชีผู้ใช้', 'อื่นๆ'];
 
-function initAiPage() {
-  const cfg = Store.get('ai-config', { provider: 'local', base: AI_PRESETS.local.base, model: AI_PRESETS.local.model, temp: 0.7, maxTokens: 1024, topP: 0.95 });
-  const sel = document.getElementById('ai-provider');
-  sel.value = cfg.provider;
-  document.getElementById('ai-base').value = cfg.base;
-  document.getElementById('ai-model').value = cfg.model;
-  document.getElementById('ai-temp').value = cfg.temp;
-  document.getElementById('ai-maxtokens').value = cfg.maxTokens;
-  document.getElementById('ai-topp').value = cfg.topP;
-  syncAiLabels();
-  updateAiNote(cfg.provider);
-
-  sel.addEventListener('change', () => {
-    const p = AI_PRESETS[sel.value];
-    document.getElementById('ai-base').value = p.base;
-    document.getElementById('ai-model').value = p.model;
-    updateAiNote(sel.value);
-  });
-  ['ai-temp', 'ai-topp'].forEach((id) => document.getElementById(id).addEventListener('input', syncAiLabels));
-
-  document.getElementById('btn-test-conn').addEventListener('click', () => {
-    const btn = document.getElementById('btn-test-conn');
-    btn.disabled = true;
-    btn.innerHTML = `${icon('refresh', 'w-4 h-4')} กำลังทดสอบ...`;
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.innerHTML = `${icon('refresh', 'w-4 h-4')} ทดสอบการเชื่อมต่อ`;
-      showToast(`เชื่อมต่อ ${sel.options[sel.selectedIndex].text} สำเร็จ — ตอบกลับใน 240ms (จำลอง)`);
-    }, 1200);
-  });
-
-  document.getElementById('ai-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    Store.set('ai-config', {
-      provider: sel.value,
-      base: document.getElementById('ai-base').value.trim(),
-      model: document.getElementById('ai-model').value.trim(),
-      temp: parseFloat(document.getElementById('ai-temp').value),
-      maxTokens: parseInt(document.getElementById('ai-maxtokens').value, 10),
-      topP: parseFloat(document.getElementById('ai-topp').value),
-    });
-    showToast('บันทึกการตั้งค่า AI Provider แล้ว — API key ถูกเข้ารหัสก่อนเก็บ');
-  });
+function initFaqPage() {
+  renderFaqTable();
 }
 
-function syncAiLabels() {
-  document.getElementById('ai-temp-val').textContent = document.getElementById('ai-temp').value;
-  document.getElementById('ai-topp-val').textContent = document.getElementById('ai-topp').value;
-}
-
-function updateAiNote(provider) {
-  const p = AI_PRESETS[provider];
-  const warn = provider !== 'local';
-  document.getElementById('ai-note').innerHTML = `
-    <div class="border-l-4 ${warn ? 'border-amber-400 bg-amber-50' : 'border-emerald-400 bg-emerald-50'} p-3.5 rounded-r-xl flex items-start gap-2.5">
-      <span class="${warn ? 'text-amber-600' : 'text-emerald-600'} shrink-0 mt-0.5">${icon(warn ? 'alert-triangle' : 'check-circle', 'w-4 h-4')}</span>
-      <p class="text-xs ${warn ? 'text-amber-800' : 'text-emerald-800'} leading-relaxed">${p.note}</p>
-    </div>`;
-}
-
-/* ---------------- Screen 15: จัดการฐานความรู้ RAG ------------------------- */
-const DOC_STATUS = {
-  processing: { badge: () => statusBadge('pending', 'กำลังประมวลผล'), },
-  ocr: { badge: () => statusBadge('pending', 'กำลังอ่าน OCR') },
-  embedding: { badge: () => statusBadge('info', 'กำลังสร้าง Embedding') },
-  ready: { badge: () => statusBadge('ready', 'พร้อมใช้งาน') },
-  failed: { badge: () => statusBadge('rejected', 'ล้มเหลว') },
-};
-
-function initKnowledgePage() {
-  const dz = document.getElementById('kb-dropzone');
-  const fi = document.getElementById('kb-file');
-  dz.addEventListener('click', () => fi.click());
-  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('border-blue-500', 'bg-blue-50/40'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('border-blue-500', 'bg-blue-50/40'));
-  dz.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dz.classList.remove('border-blue-500', 'bg-blue-50/40');
-    if (e.dataTransfer.files.length) acceptKbFile(e.dataTransfer.files[0]);
-  });
-  fi.addEventListener('change', () => { if (fi.files.length) acceptKbFile(fi.files[0]); });
-  renderKbTable();
-}
-
-/* FR-F8: ไฟล์ PDF เข้าฐานความรู้ต้องไม่เกิน 15 MB — เช็คจริงจาก file.size ไม่ใช่แค่ข้อความในหน้าเว็บ */
-const MAX_KB_FILE_MB = 15;
-function acceptKbFile(file) {
-  const maxBytes = MAX_KB_FILE_MB * 1024 * 1024;
-  if (file.size > maxBytes) {
-    showToast(`ไฟล์ "${file.name}" ขนาด ${(file.size / 1024 / 1024).toFixed(1)} MB เกินเพดาน ${MAX_KB_FILE_MB} MB — กรุณาเลือกไฟล์ใหม่`, 'error');
-    return;
-  }
-  uploadKbDoc(file.name, file.size);
-}
-
-function uploadKbDoc(name, sizeBytes) {
-  const sizeLabel = sizeBytes ? (sizeBytes / 1024 / 1024).toFixed(1) + ' MB' : (Math.random() * 15 + 1).toFixed(1) + ' MB';
-  const doc = { id: Date.now(), name, size: sizeLabel, uploaded: new Date().toISOString().slice(0, 10), status: 'processing', ocr: false, chunks: 0, text: `[ข้อความที่แกะออกมาแบบอัตโนมัติจากไฟล์ใหม่ "${name}"]\nข้อมูลแนวทางส่งเสริมการเรียนรู้และการพัฒนาทักษะวิชาการ/บำเพ็ญสาธารณประโยชน์สำหรับสโมสรนักศึกษา ม.อุบลราชธานี ประจำปีการศึกษา 2569` };
-  AdminDB.docs.unshift(doc);
-  AdminDB.save();
-  renderKbTable();
-  showToast(`อัปโหลด "${name}" แล้ว — เริ่ม pipeline: อ่าน text layer -> OCR (ถ้าจำเป็น) -> embedding`, 'info');
-  // จำลอง pipeline: processing -> (ocr) -> embedding -> ready
-  setTimeout(() => { doc.status = Math.random() > 0.5 ? 'ocr' : 'embedding'; doc.ocr = doc.status === 'ocr'; AdminDB.save(); renderKbTable(); }, 1500);
-  setTimeout(() => { doc.status = 'embedding'; AdminDB.save(); renderKbTable(); }, 3200);
-  setTimeout(() => {
-    doc.status = 'ready';
-    doc.chunks = Math.floor(Math.random() * 300 + 50);
-    AdminDB.save();
-    renderKbTable();
-    showToast(`"${name}" พร้อมใช้งานในฐานความรู้แล้ว (${doc.chunks} chunks, bge-m3 1024D)`);
-  }, 5200);
-}
-
-function renderKbTable() {
-  document.getElementById('kb-table').innerHTML = AdminDB.docs.length ? `
+function renderFaqTable() {
+  const q = (document.getElementById('faq-search').value || '').toLowerCase();
+  const list = AdminDB.faqs.filter((f) => (f.category + f.question + f.answer).toLowerCase().includes(q));
+  document.getElementById('faq-table').innerHTML = list.length ? `
     <table class="w-full">
       <thead><tr class="border-b border-slate-100 bg-slate-50/50">
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">เอกสาร</th>
-        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">อัปโหลดเมื่อ</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">หมวดหมู่</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">คำถาม / คำตอบ</th>
         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">สถานะ</th>
-        <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Chunks</th>
         <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ดำเนินการ</th>
       </tr></thead>
       <tbody class="divide-y divide-slate-100">
-        ${AdminDB.docs.map((d) => `
+        ${list.map((f) => `
           <tr class="hover:bg-slate-50/50 transition">
-            <td class="px-4 py-3">
-              <div class="flex items-center gap-2.5">
-                <span class="text-slate-400 shrink-0">${icon('file-text', 'w-4 h-4')}</span>
-                <div class="min-w-0">
-                  <p class="text-sm font-medium text-slate-800 truncate">${d.name}
-                    ${d.ocr ? '<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-600 border border-indigo-200">ใช้ OCR</span>' : ''}
-                  </p>
-                  <p class="text-xs text-slate-400">${d.size}</p>
-                </div>
-              </div>
+            <td class="px-4 py-3 whitespace-nowrap"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">${f.category}</span></td>
+            <td class="px-4 py-3 max-w-lg">
+              <p class="text-sm font-medium text-slate-800">${f.question}</p>
+              <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">${f.answer}</p>
             </td>
-            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">${thDate(d.uploaded)}</td>
-            <td class="px-4 py-3 text-center">${DOC_STATUS[d.status].badge()}
-              ${d.status === 'failed' ? `<button onclick="retryKbDoc(${d.id})" class="block mx-auto mt-1 text-xs text-blue-600 hover:underline">ลองใหม่</button>` : ''}</td>
-            <td class="px-4 py-3 text-center text-sm font-mono text-slate-600">${d.chunks || '—'}</td>
+            <td class="px-4 py-3 text-center">
+              <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" onchange="toggleFaqActive(${f.id})" ${f.active ? 'checked' : ''} class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                <span class="text-xs ${f.active ? 'text-emerald-600' : 'text-slate-400'} font-medium">${f.active ? 'ใช้งาน' : 'ปิดใช้งาน'}</span>
+              </label>
+            </td>
             <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
-              <button onclick="viewKbDocText(${d.id})" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-3.5 h-3.5')} ดู/แก้ไขข้อความ</button>
-              <button onclick="deleteKbDoc(${d.id})" class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-3.5 h-3.5')} ลบ</button>
+              <button onclick="openFaqModal(${f.id})" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-3.5 h-3.5')} แก้ไข</button>
+              <button onclick="deleteFaq(${f.id})" class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-3.5 h-3.5')} ลบ</button>
             </td>
           </tr>`).join('')}
       </tbody>
-    </table>` : emptyState('ยังไม่มีเอกสารในฐานความรู้ — อัปโหลด PDF เพื่อเริ่มต้น', 'book-open');
+    </table>` : emptyState('ไม่พบ FAQ ตามเงื่อนไขที่กรอง', 'book-open');
 }
 
-function retryKbDoc(id) {
-  const d = AdminDB.docs.find((x) => x.id === id);
-  if (!d) return;
-  d.status = 'processing';
+function toggleFaqActive(id) {
+  const f = AdminDB.faqs.find((x) => x.id === id);
+  if (!f) return;
+  f.active = !f.active;
   AdminDB.save();
-  renderKbTable();
-  setTimeout(() => { d.status = 'ready'; d.chunks = Math.floor(Math.random() * 300 + 50); AdminDB.save(); renderKbTable(); showToast(`ประมวลผล "${d.name}" สำเร็จ`); }, 2500);
+  appendAudit(f.active ? 'faq_enabled' : 'faq_disabled', `${f.active ? 'เปิด' : 'ปิด'}ใช้งาน FAQ "${f.question}"`);
+  renderFaqTable();
+  showToast(f.active ? 'เปิดใช้งาน FAQ แล้ว — บอทจะค้นเจอคำถามนี้' : 'ปิดใช้งาน FAQ แล้ว — บอทจะไม่ใช้คำถามนี้ตอบอีก', f.active ? 'success' : 'warning');
 }
 
-function deleteKbDoc(id) {
-  const d = AdminDB.docs.find((x) => x.id === id);
-  if (!d) return;
+function deleteFaq(id) {
+  const f = AdminDB.faqs.find((x) => x.id === id);
+  if (!f) return;
   showConfirmDialog({
-    title: `ลบเอกสาร "${d.name}"?`,
-    bullets: ['ลบไฟล์ต้นฉบับออกจากระบบ', `ลบ embedding ${d.chunks || 0} chunks ที่เกี่ยวข้องออกจาก pgvector`, 'แชทบอทจะไม่ใช้เนื้อหานี้ตอบคำถามอีก'],
-    tone: 'danger', confirmText: 'ลบเอกสาร',
+    title: `ลบ FAQ นี้?`,
+    message: f.question,
+    bullets: ['ลบคำถาม-คำตอบและ embedding ที่เกี่ยวข้องออกจาก pgvector', 'แชทบอทจะไม่ใช้เนื้อหานี้ตอบคำถามอีก'],
+    tone: 'danger', confirmText: 'ลบ FAQ',
     onConfirm: () => {
-      AdminDB.docs = AdminDB.docs.filter((x) => x.id !== id);
+      AdminDB.faqs = AdminDB.faqs.filter((x) => x.id !== id);
       AdminDB.save();
-      showToast(`ลบ "${d.name}" พร้อม embedding ที่เกี่ยวข้องแล้ว`, 'warning');
-      renderKbTable();
+      appendAudit('faq_deleted', `ลบ FAQ "${f.question}"`);
+      showToast('ลบ FAQ แล้ว', 'warning');
+      renderFaqTable();
     },
   });
 }
 
-function viewKbDocText(id) {
-  const d = AdminDB.docs.find((x) => x.id === id);
-  if (!d) return;
-  
-  const textVal = d.text || '';
+function openFaqModal(id) {
+  const f = id ? AdminDB.faqs.find((x) => x.id === id) : null;
   const overlay = document.createElement('div');
   overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
   overlay.innerHTML = `
-    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 flex flex-col space-y-4 max-h-[85vh]">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <span id="kb-modal-title-icon"></span> ดู/แก้ไขข้อความที่แกะจากเอกสาร RAG
-        </h3>
-        <button id="kb-modal-close" class="text-slate-400 hover:text-slate-600 transition" aria-label="ปิด">
+        <h3 class="text-base font-bold text-slate-900">${f ? 'แก้ไข FAQ' : 'เพิ่มคำถามที่พบบ่อย'}</h3>
+        <button id="fm-close" class="text-slate-400 hover:text-slate-600 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <div>
-        <p class="text-xs font-semibold text-slate-700">ชื่อเอกสาร: <span class="text-slate-500 font-normal">${d.name} (${d.size})</span></p>
-        <p class="text-[10px] text-slate-400 mt-1">อัปโหลดเมื่อ: ${thDate(d.uploaded)} | สถานะปัจจุบัน: <span class="font-semibold">${d.status === 'ocr' ? 'แกะลายพิมพ์ด้วย OCR' : d.status === 'ready' ? 'พร้อมใช้งาน' : d.status === 'failed' ? 'ประมวลผลล้มเหลว' : 'กำลังจัดเตรียม'}</span></p>
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="fm-category">หมวดหมู่</label>
+        <select id="fm-category" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          ${FAQ_CATEGORIES.map((c) => `<option value="${c}" ${f && f.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
       </div>
-      
-      <div class="flex-1 overflow-y-auto space-y-1.5 flex flex-col min-h-0">
-        <label class="text-xs font-bold text-slate-700 block" for="kb-doc-textarea">ข้อความที่สกัดได้ (Editable Extracted Text)</label>
-        <textarea id="kb-doc-textarea" class="w-full flex-1 min-h-[220px] p-3 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 leading-relaxed" placeholder="ยังไม่มีข้อความ หรือการดึงข้อมูลล้มเหลว สามารถเพิ่มข้อความตรงนี้ได้...">${textVal}</textarea>
-        <p class="text-[10px] text-slate-400">ตรวจสอบและแก้ไขตัวสะกดที่ผิดพลาดจากการแกะ OCR/Text Layer เพื่อรักษาความถูกต้องในการสืบค้นค้นหา RAG Vector Search (1024D)</p>
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="fm-question">คำถาม</label>
+        <input id="fm-question" value="${f ? f.question : ''}" placeholder="เช่น หนึ่งวันได้หน่วยกิตสูงสุดกี่หน่วย?" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
-      
-      <div class="flex items-center justify-between border-t border-slate-100 pt-4 gap-4 flex-wrap">
-        <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
-          <input type="checkbox" id="kb-confirm-vector" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-          <span>ยืนยันความถูกต้องและต้องการ Vectorize ทันที</span>
-        </label>
-        <div class="flex gap-2.5">
-          <button id="kb-modal-cancel" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition">ยกเลิก</button>
-          <button id="kb-modal-save" class="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">บันทึกและปรับปรุง Index</button>
-        </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="fm-answer">คำตอบ</label>
+        <textarea id="fm-answer" rows="4" placeholder="คำตอบที่บอทจะใช้ตอบนักศึกษา" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 leading-relaxed">${f ? f.answer : ''}</textarea>
+      </div>
+      <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+        <input type="checkbox" id="fm-active" ${!f || f.active ? 'checked' : ''} class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+        <span>เปิดใช้งานทันที (บอทจะค้นเจอคำถามนี้)</span>
+      </label>
+      <div class="flex gap-3 pt-2">
+        <button id="fm-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition text-sm">ยกเลิก</button>
+        <button id="fm-save" class="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg text-sm">บันทึก FAQ</button>
       </div>
     </div>`;
-    
   document.body.appendChild(overlay);
-  document.getElementById('kb-modal-title-icon').innerHTML = icon('file-text', 'w-5 h-5 text-blue-600');
-  
+
   const close = () => overlay.remove();
-  overlay.querySelector('#kb-modal-close').addEventListener('click', close);
-  overlay.querySelector('#kb-modal-cancel').addEventListener('click', close);
-  
-  overlay.querySelector('#kb-modal-save').addEventListener('click', () => {
-    const newText = overlay.querySelector('#kb-doc-textarea').value;
-    const confirmVector = overlay.querySelector('#kb-confirm-vector').checked;
-    
-    d.text = newText;
-    if (confirmVector) {
-      d.status = 'ready';
-      d.chunks = Math.floor(newText.split('\n').filter(t => t.trim()).length * 1.5) || 5;
+  overlay.querySelector('#fm-close').addEventListener('click', close);
+  overlay.querySelector('#fm-cancel').addEventListener('click', close);
+  overlay.querySelector('#fm-save').addEventListener('click', () => {
+    const category = overlay.querySelector('#fm-category').value;
+    const question = overlay.querySelector('#fm-question').value.trim();
+    const answer = overlay.querySelector('#fm-answer').value.trim();
+    const active = overlay.querySelector('#fm-active').checked;
+    if (!question || !answer) { showToast('กรุณากรอกทั้งคำถามและคำตอบ', 'error'); return; }
+
+    if (f) {
+      f.category = category; f.question = question; f.answer = answer; f.active = active;
+      appendAudit('faq_updated', `แก้ไข FAQ "${question}"`);
+    } else {
+      AdminDB.faqs.push({ id: Date.now(), category, question, answer, active });
+      appendAudit('faq_added', `เพิ่ม FAQ ใหม่หมวด "${category}": "${question}"`);
     }
-    
     AdminDB.save();
-    
-    // Log action to Audit Log
-    const logs = Store.get('audit-extra', []);
-    logs.unshift({
-      time: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      user: 'admin.thanakorn',
-      action: 'rag_text_edited',
-      detail: `แก้ไขข้อความสกัดและอัปเดต Vector Indexing เอกสาร "${d.name}" (${d.chunks} chunks)`,
-      role: 'admin'
-    });
-    Store.set('audit-extra', logs);
-    
     close();
-    showToast(`บันทึกการแก้ไขข้อความ RAG และปรับโครงสร้าง pgvector สำหรับ "${d.name}" สำเร็จ`);
-    renderKbTable();
+    showToast(f ? 'บันทึกการแก้ไข FAQ แล้ว' : 'เพิ่ม FAQ ใหม่แล้ว — พร้อมให้บอทค้นหาได้ทันที');
+    renderFaqTable();
+  });
+}
+
+/* ---------------- Screen 15: จัดการช่องทางติดต่อ -------------------------
+ * ข้อมูลอาจารย์/เจ้าหน้าที่ผู้ประสานงาน — แชทบอทตอบด้วย SQL Direct Search ตรงจากตารางนี้เสมอ (เปลี่ยนบ่อย ไม่ทำ embedding) */
+function initContactsPage() {
+  renderContactsTable();
+}
+
+function renderContactsTable() {
+  const q = (document.getElementById('contact-search').value || '').toLowerCase();
+  const list = AdminDB.contacts.filter((c) => (c.name + c.position + c.department).toLowerCase().includes(q));
+  document.getElementById('contact-table').innerHTML = list.length ? `
+    <table class="w-full">
+      <thead><tr class="border-b border-slate-100 bg-slate-50/50">
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล / ตำแหน่ง</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">หน่วยงาน</th>
+        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ติดต่อ</th>
+        <th class="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">ดำเนินการ</th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        ${list.map((c) => `
+          <tr class="hover:bg-slate-50/50 transition">
+            <td class="px-4 py-3">
+              <p class="text-sm font-medium text-slate-800">${c.name}</p>
+              <p class="text-xs text-slate-400">${c.position}</p>
+            </td>
+            <td class="px-4 py-3 text-sm text-slate-600">${c.department}${c.office ? `<p class="text-xs text-slate-400 mt-0.5">${c.office}</p>` : ''}</td>
+            <td class="px-4 py-3 text-sm text-slate-600">
+              <p class="font-mono text-xs">${c.phone || '-'}</p>
+              <p class="text-xs text-blue-600">${c.email || '-'}</p>
+            </td>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
+              <button onclick="openContactModal(${c.id})" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium">${icon('edit', 'w-3.5 h-3.5')} แก้ไข</button>
+              <button onclick="deleteContact(${c.id})" class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-medium">${icon('trash-2', 'w-3.5 h-3.5')} ลบ</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>` : emptyState('ยังไม่มีช่องทางติดต่อ — เพิ่มรายชื่อผู้ประสานงาน', 'phone');
+}
+
+function deleteContact(id) {
+  const c = AdminDB.contacts.find((x) => x.id === id);
+  if (!c) return;
+  showConfirmDialog({
+    title: `ลบช่องทางติดต่อ "${c.name}"?`,
+    bullets: ['ลบข้อมูลติดต่อออกจากระบบ', 'แชทบอทจะไม่แนะนำช่องทางนี้ให้นักศึกษาอีก'],
+    tone: 'danger', confirmText: 'ลบ',
+    onConfirm: () => {
+      AdminDB.contacts = AdminDB.contacts.filter((x) => x.id !== id);
+      AdminDB.save();
+      appendAudit('contact_deleted', `ลบช่องทางติดต่อ "${c.name}"`);
+      showToast('ลบช่องทางติดต่อแล้ว', 'warning');
+      renderContactsTable();
+    },
+  });
+}
+
+function openContactModal(id) {
+  const c = id ? AdminDB.contacts.find((x) => x.id === id) : null;
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[55] p-4';
+  overlay.innerHTML = `
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-900">${c ? 'แก้ไขช่องทางติดต่อ' : 'เพิ่มช่องทางติดต่อ'}</h3>
+        <button id="cm-close" class="text-slate-400 hover:text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="cm-name">ชื่อ-นามสกุล</label>
+          <input id="cm-name" value="${c ? c.name : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="cm-position">ตำแหน่ง</label>
+          <input id="cm-position" value="${c ? c.position : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="cm-department">หน่วยงาน</label>
+        <input id="cm-department" value="${c ? c.department : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="cm-phone">เบอร์โทร</label>
+          <input id="cm-phone" value="${c ? c.phone || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-700" for="cm-email">อีเมล</label>
+          <input id="cm-email" value="${c ? c.email || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-xs font-semibold text-slate-700" for="cm-office">ห้องทำงาน/อาคาร</label>
+        <input id="cm-office" value="${c ? c.office || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button id="cm-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition text-sm">ยกเลิก</button>
+        <button id="cm-save" class="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-800 transition shadow-lg text-sm">บันทึก</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('#cm-close').addEventListener('click', close);
+  overlay.querySelector('#cm-cancel').addEventListener('click', close);
+  overlay.querySelector('#cm-save').addEventListener('click', () => {
+    const name = overlay.querySelector('#cm-name').value.trim();
+    const position = overlay.querySelector('#cm-position').value.trim();
+    const department = overlay.querySelector('#cm-department').value.trim();
+    const phone = overlay.querySelector('#cm-phone').value.trim();
+    const email = overlay.querySelector('#cm-email').value.trim();
+    const office = overlay.querySelector('#cm-office').value.trim();
+    if (!name || !position) { showToast('กรุณากรอกชื่อและตำแหน่งอย่างน้อย', 'error'); return; }
+
+    if (c) {
+      c.name = name; c.position = position; c.department = department; c.phone = phone; c.email = email; c.office = office;
+      appendAudit('contact_updated', `แก้ไขช่องทางติดต่อ "${name}"`);
+    } else {
+      AdminDB.contacts.push({ id: Date.now(), name, position, department, phone, email, office });
+      appendAudit('contact_added', `เพิ่มช่องทางติดต่อ "${name}" (${position})`);
+    }
+    AdminDB.save();
+    close();
+    showToast(c ? 'บันทึกการแก้ไขช่องทางติดต่อแล้ว' : 'เพิ่มช่องทางติดต่อแล้ว');
+    renderContactsTable();
   });
 }
 

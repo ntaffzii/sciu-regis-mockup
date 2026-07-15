@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการคำถามที่พบบ่อย (FAQ) — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="admin-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">แผงควบคุม</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">FAQ แชทบอท</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">คำถามที่พบบ่อย (FAQ)</h1>
+        <p class="text-sm text-slate-500 mt-1">SciU-Buddy ค้นคำตอบจากรายการนี้ด้วย semantic search (bge-m3 embedding) เมื่อคำถามไม่ตรงกับข้อมูลกิจกรรม/ผู้ใช้ในระบบ — โมเดลตอบคำถามเป็น local LLM (typhoon2.5-qwen3-4b) ค่าคงที่ ไม่มี Provider ให้สลับแล้ว</p>
+      </div>
+      <button onclick="openFaqModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20"><span id="ic-add"></span> เพิ่ม FAQ</button>
+    </div>
+
+    <div class="relative">
+      <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" id="ic-search"></span>
+      <input id="faq-search" type="text" placeholder="ค้นหาหมวดหมู่ / คำถาม / คำตอบ..." oninput="renderFaqTable()" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+    </div>
+
+    <div id="faq-table" class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"></div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  renderShell({ role: 'admin', active: 'admin-faq.html', title: 'FAQ แชทบอท' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  document.getElementById('ic-add').innerHTML = icon('plus', 'w-4 h-4');
+  document.getElementById('ic-search').innerHTML = icon('search', 'w-4 h-4');
+  initFaqPage();
+</script>
+</body>
+</html>

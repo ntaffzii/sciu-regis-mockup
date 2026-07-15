@@ -28,7 +28,7 @@
 
     <div>
       <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตั้งค่าเทคนิค</h1>
-      <p class="text-sm text-slate-500 mt-1">Slack Bot Token, MCP Endpoint และอีเมลติดต่อ — จัดการโดย Admin เท่านั้น (Registrar ไม่เห็นหน้านี้)</p>
+      <p class="text-sm text-slate-500 mt-1">Slack Bot Token, เทมเพลต Excel และอีเมลติดต่อ — จัดการโดย Admin เท่านั้น (Registrar ไม่เห็นหน้านี้)</p>
     </div>
 
     <form id="settings-form" class="space-y-6">
@@ -42,16 +42,6 @@
             <button type="button" id="btn-token-eye" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label="แสดง/ซ่อน token"><span id="ic-eye"></span></button>
           </div>
           <p class="text-xs text-slate-400">แสดงแบบ masked หลังบันทึก — เก็บเข้ารหัส AES-256-GCM ในฐานข้อมูล ไม่เก็บใน .env</p>
-        </div>
-      </div>
-
-      <!-- MCP -->
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2"><span id="ic-mcp"></span> MCP Tool Endpoints</h2>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="set-mcp">รายชื่อ endpoint ที่บอทเรียกใช้ได้ (บรรทัดละ 1 รายการ)</label>
-          <textarea id="set-mcp" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></textarea>
-          <p class="text-xs text-slate-400">Tools ที่ให้บริการ: search_knowledge_base, query_science_faq, get_active_events, search_sci_events, search_faculty_contacts</p>
         </div>
       </div>
 
@@ -101,7 +91,6 @@
   renderShell({ role: 'admin', active: 'admin-settings.html', title: 'ตั้งค่าเทคนิค' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
   document.getElementById('ic-slack').innerHTML = icon('slack', 'w-4 h-4');
-  document.getElementById('ic-mcp').innerHTML = icon('settings', 'w-4 h-4');
   document.getElementById('ic-excel').innerHTML = icon('file-text', 'w-4 h-4');
   document.getElementById('ic-upload').innerHTML = icon('upload-cloud', 'w-4 h-4');
   document.getElementById('ic-mail').innerHTML = icon('mail', 'w-4 h-4');
