@@ -144,7 +144,7 @@ const NAV_MENUS = {
     { label: 'เช็คอิน', icon: 'map-pin', href: 'student-checkin.html' },
     { label: 'ส่งหลักฐาน', icon: 'upload-cloud', href: 'student-proof-upload.html' },
     { label: 'SciU-Buddy', icon: 'message-circle', href: 'student-chatbot.html' },
-    { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
+    // { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
   ],
   admin: [
     { label: 'แผงควบคุม', icon: 'home', href: 'admin-home.html' },
@@ -170,7 +170,7 @@ const NAV_MENUS = {
     { label: 'รายการกิจกรรม', icon: 'calendar', href: 'event-list.html' },
     { label: 'การช่วยเหลือนักศึกษา', icon: 'book-open', href: 'student-help.html' },
     { label: 'สอบถาม SciU-Buddy', icon: 'message-circle', href: 'student-chatbot.html' },
-    { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
+    // { label: 'ติดต่อเรา', icon: 'phone', href: 'contact.html' },
   ],
 };
 
