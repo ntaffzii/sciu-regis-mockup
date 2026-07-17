@@ -67,7 +67,6 @@
 
     <!-- Roster table + confirm -->
     <div id="roster-detail" class="hidden space-y-4">
-      <div id="fs-confirm-banner"></div>
       <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 class="text-base font-semibold text-slate-800" id="roster-title">กิจกรรม: <span id="roster-name"></span></h2>
@@ -135,13 +134,6 @@
     document.getElementById('roster-empty').classList.add('hidden');
     document.getElementById('roster-name').textContent = data.name;
     document.getElementById('roster-count').textContent = data.students.length;
-
-    // Feature 2: แสดง banner ถ้าสตาฟหน้างานยืนยันขั้นต้นไว้แล้ว (ข้อมูลประกอบ ไม่บล็อกการยืนยันของ Lead Org)
-    const fsConfirmed = Store.get('field-staff-roster-confirmed', {})[val];
-    document.getElementById('fs-confirm-banner').innerHTML = fsConfirmed ? `
-      <div class="border-l-4 border-emerald-400 bg-emerald-50 p-3 rounded-r-xl text-xs text-emerald-800">
-        ✅ สตาฟยืนยันหน้างานแล้ว โดย ${fsConfirmed.by} เมื่อ ${fsConfirmed.at}
-      </div>` : '';
 
     document.getElementById('roster-table-body').innerHTML = data.students.map((s, i) => `
       <tr class="hover:bg-slate-50/50 transition">

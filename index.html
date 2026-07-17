@@ -122,7 +122,7 @@
         <span id="ic-nav-btn" class="text-blue-600"></span> แผงทดสอบจำลองระบบสำหรับงานประเมินผล (Mockup Navigator)
       </span>
       <span class="text-xs text-slate-500 border border-slate-200 rounded-full px-3 py-1 bg-white flex items-center gap-1 font-mono" id="nav-badge">
-        24 หน้าจอ • คลิกเพื่อเปิด <span id="ic-nav-chevron"></span>
+        29 หน้าจอ • คลิกเพื่อเปิด <span id="ic-nav-chevron"></span>
       </span>
     </button>
     
@@ -258,11 +258,16 @@
       title: 'บทบาทอื่น ๆ / หน้าใหม่เพิ่มเติม', iconName: 'users', accent: 'amber',
       pages: [
         { n: 'Home', t: 'หน้าแรก Lead Org', d: 'กิจกรรมของตัวเอง + กำหนดส่งรายชื่อ', href: 'lead-org-home.html', ic: 'calendar' },
+        { n: 'New', t: 'กิจกรรมของฉัน (Lead Org)', d: 'รายการกิจกรรมทั้งหมดที่จัด + กรองสถานะ', href: 'lead-org-my-events.html', ic: 'calendar' },
+        { n: 'New', t: 'ยืนยันรายชื่อ (Lead Org)', d: 'ยืนยันรายชื่อผู้เข้าร่วมขั้นสุดท้ายก่อน Export (FR-D3)', href: 'lead-org-rosters.html', ic: 'check-circle' },
         { n: 'Home', t: 'หน้าแรก Field Staff', d: 'กิจกรรมวันนี้ + Master Code', href: 'field-staff-home.html', ic: 'shield' },
+        { n: 'New', t: 'จัดการ Master Code', d: 'ออก/ดูประวัติรหัสฉุกเฉินหน้างาน (UC-R4)', href: 'field-staff-master-codes.html', ic: 'shield' },
         { n: '-', t: 'เข้าสู่ระบบ', d: 'Google OAuth (นักศึกษา) + ฟอร์มบุคลากร + PDPA consent', href: 'login.html', ic: 'log-in' },
         { n: 'New', t: 'รายการกิจกรรมทั้งหมด', d: 'รายละเอียดกิจกรรม + ค้นหาคัดกรอง', href: 'event-list.html', ic: 'calendar' },
+        { n: 'New', t: 'รายละเอียดกิจกรรม', d: 'ข้อมูลเต็ม + แผนที่ GPS + จัดการสตาฟหน้างาน', href: 'event-detail.html', ic: 'file-text' },
         { n: 'New', t: 'การช่วยเหลือนักศึกษา', d: 'ดาวน์โหลดแบบฟอร์มเอกสารและเกณฑ์สะสมปี 2569', href: 'student-help.html', ic: 'book-open' },
         { n: 'New', t: 'ติดต่อเรา', d: 'แผนที่ตั้งคณะ + ฟอร์มส่งข้อความไป Slack', href: 'contact.html', ic: 'phone' },
+        { n: 'New', t: 'ตั้งค่าบัญชี', d: 'โปรไฟล์ + เชื่อมบัญชี LINE/Slack (ทุกบทบาท)', href: 'profile-settings.html', ic: 'user' },
       ],
     },
   ];

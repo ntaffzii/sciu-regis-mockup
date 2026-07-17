@@ -91,10 +91,15 @@ const Store = {
   },
 };
 
-/* FR-D6: อีเมลติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
- * ห้าม hardcode ในโค้ดของแต่ละหน้าจอ — ทุกจุดที่ต้องแสดงอีเมลติดต่อให้เรียกฟังก์ชันนี้ */
+/* FR-D6: ช่องทางติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
+ * ห้าม hardcode ในโค้ดของแต่ละหน้าจอ — ทุกจุดที่ต้องแสดงช่องทางติดต่อให้เรียกฟังก์ชันเหล่านี้
+ * FR-D6 กำหนดให้ต้องมีทั้งอีเมลและลิงก์ Slack คู่กันเสมอ ไม่ใช่แค่อย่างใดอย่างหนึ่ง */
 function getContactEmail() {
   return Store.get('adm-settings', { email: 'registrar@sci.ubu.ac.th' }).email || 'registrar@sci.ubu.ac.th';
+}
+
+function getContactSlackLink() {
+  return Store.get('adm-settings', { slackContactLink: 'https://sciubu.slack.com/archives/C0REGISTRAR' }).slackContactLink || 'https://sciubu.slack.com/archives/C0REGISTRAR';
 }
 
 const MOCK_USERS = {

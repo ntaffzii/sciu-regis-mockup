@@ -298,9 +298,10 @@ function openUserModal(id) {
 
 /* ---------------- Screen 12: ตั้งค่าเทคนิค -------------------------------- */
 function initSettingsPage() {
-  const s = Store.get('adm-settings', { slackToken: '', email: 'registrar@sci.ubu.ac.th' });
+  const s = Store.get('adm-settings', { slackToken: '', email: 'registrar@sci.ubu.ac.th', slackContactLink: 'https://sciubu.slack.com/archives/C0REGISTRAR' });
   document.getElementById('set-token').value = s.slackToken ? '••••••••••••' + s.slackToken.slice(-4) : '';
   document.getElementById('set-email').value = s.email;
+  document.getElementById('set-slack-link').value = s.slackContactLink || 'https://sciubu.slack.com/archives/C0REGISTRAR';
 
   const templateKey = 'excel-template';
   const defaultTemplate = {
@@ -333,6 +334,7 @@ function initSettingsPage() {
     Store.set('adm-settings', {
       slackToken: token.startsWith('•') ? s.slackToken : token,
       email: document.getElementById('set-email').value.trim(),
+      slackContactLink: document.getElementById('set-slack-link').value.trim(),
     });
 
     const columnsStr = document.getElementById('set-template-columns').value;

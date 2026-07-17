@@ -939,13 +939,13 @@ function sendChat() {
     if (hit) {
       addBotBubble(hit.reply(chatUserName), describeChatSource(hit.source));
     } else {
-      // Human Fallback (FR-D) — email ในบับเบิลเดียวกัน + จำลอง Slack DM เบื้องหลัง
+      // Human Fallback (FR-D5/D6) — แสดงช่องทางติดต่อ 2 อย่าง (อีเมล + ลิงก์ Slack) ให้ผู้ใช้กดเข้าไปเอง ห้ามแจ้งเตือน Registrar อัตโนมัติ (FR-D7 ยืนยันแล้ว)
       addBotBubble(
-        `ผมไม่ทราบคำตอบสำหรับคำถามนี้ครับ เจ้าหน้าที่กำลังตรวจสอบและจะติดต่อคุณกลับ<br/><br/>หากมีข้อสงสัยเพิ่มเติม สามารถติดต่อเจ้าหน้าที่งานทะเบียนได้ที่:<br/>
-        <a href="mailto:${getContactEmail()}" class="text-blue-600 hover:underline font-medium inline-flex items-center gap-1">${icon('mail', 'w-4 h-4')} ${getContactEmail()}</a>`,
-        'แจ้งเตือนเจ้าหน้าที่ผ่าน Slack แล้ว', true,
+        `ผมไม่ทราบคำตอบสำหรับคำถามนี้ครับ หากต้องการความช่วยเหลือเพิ่มเติม สามารถติดต่อเจ้าหน้าที่งานทะเบียนได้ที่:<br/>
+        <a href="mailto:${getContactEmail()}" class="text-blue-600 hover:underline font-medium inline-flex items-center gap-1">${icon('mail', 'w-4 h-4')} ${getContactEmail()}</a><br/>
+        <a href="${getContactSlackLink()}" target="_blank" rel="noopener" class="text-blue-600 hover:underline font-medium inline-flex items-center gap-1 mt-1">${icon('slack', 'w-4 h-4')} ติดต่อผ่าน Slack</a>`,
+        'ไม่พบคำตอบในระบบ — ไม่มีการแจ้งเตือนอัตโนมัติไปยังเจ้าหน้าที่ (FR-D7)', true,
       );
-      console.info('[MOCK Slack DM -> Registrar]', { student: ME.code, question: text, time: new Date().toISOString() });
     }
   }, 900);
 }

@@ -63,11 +63,10 @@
       <button onclick="reportFieldIssue()" class="inline-flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition" type="button" id="btn-issue">แจ้งปัญหาหน้างาน</button>
     </div>
 
-    <!-- Feature 2: รายชื่อผู้เช็คอินจริง + ยืนยันรายชื่อขั้นต้น (first-pass) -->
+    <!-- Feature 2: รายชื่อผู้เช็คอินจริง (read-only — ดูสถานะเท่านั้น ไม่มีสิทธิ์ยืนยัน/แก้ไข ตาม FR-C18) -->
     <div id="roster-panel" class="hidden rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+      <div class="px-5 py-4 border-b border-slate-100">
         <h2 class="text-base font-semibold text-slate-800">รายชื่อผู้เช็คอิน</h2>
-        <span id="roster-panel-confirmed-badge"></span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full">
@@ -80,10 +79,6 @@
           </tr></thead>
           <tbody id="roster-panel-body" class="divide-y divide-slate-100"></tbody>
         </table>
-      </div>
-      <div class="px-5 py-4 border-t border-slate-100">
-        <button onclick="confirmFieldRoster()" class="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-green-700 text-white text-sm font-medium rounded-xl hover:bg-green-800 transition shadow-lg shadow-green-700/20" type="button" id="btn-confirm-roster">ยืนยันรายชื่อ (หน้างาน)</button>
-        <p class="text-[11px] text-slate-400 mt-2 text-center">การยืนยันนี้เป็นการยืนยันขั้นต้นจากหน้างานเท่านั้น — Lead Org ยังต้องยืนยันรายชื่อขั้นสุดท้ายอีกครั้งก่อน Export</p>
       </div>
     </div>
 
@@ -240,35 +235,6 @@
           '</tr>';
         }).join('')
       : '<tr><td colspan="5">' + emptyState('ยังไม่มีข้อมูลรายชื่อเช็คอินสำหรับกิจกรรมนี้') + '</td></tr>';
-
-    const confirmed = Store.get('field-staff-roster-confirmed', {})[currentEvent.id];
-    document.getElementById('roster-panel-confirmed-badge').innerHTML = confirmed
-      ? statusBadge('ready', 'ยืนยันหน้างานแล้ว')
-      : '';
-  }
-
-  function confirmFieldRoster() {
-    if (!currentEvent) return;
-    const roster = RegDB.rosters[currentEvent.id];
-    showConfirmDialog({
-      title: 'ยืนยันรายชื่อหน้างาน (First-pass)',
-      message: 'กิจกรรม "' + currentEvent.name + '"',
-      tone: 'warning',
-      confirmText: 'ยืนยันรายชื่อ',
-      bullets: [
-        'เป็นการยืนยันเบื้องต้นจากหน้างานเท่านั้นว่ารายชื่อที่เช็คอินถูกต้อง',
-        'Lead Org จะเห็นการยืนยันนี้เป็นข้อมูลประกอบ',
-        'ไม่ใช่การยืนยันขั้นสุดท้าย — Lead Org ยังต้องยืนยันรายชื่อเองอีกครั้งก่อน Export',
-      ],
-      onConfirm: () => {
-        const rec = Store.get('field-staff-roster-confirmed', {});
-        rec[currentEvent.id] = { by: 'น้องเก่ง สตาฟดี', at: new Date().toISOString().slice(0, 16).replace('T', ' ') };
-        Store.set('field-staff-roster-confirmed', rec);
-        appendAudit('field_roster_confirmed', `ยืนยันรายชื่อหน้างาน (first-pass) กิจกรรม "${roster ? roster.name : currentEvent.name}"`, 'น้องเก่ง สตาฟดี');
-        showToast('ยืนยันรายชื่อหน้างานแล้ว — ส่งข้อมูลให้ Lead Org ตรวจอีกชั้น');
-        renderRosterPanel();
-      },
-    });
   }
 
   function reportFieldIssue() {
