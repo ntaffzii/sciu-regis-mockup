@@ -35,13 +35,11 @@
       <p class="text-sm text-slate-500 mt-1">ติดต่อเจ้าหน้าที่งานทะเบียนคณะวิทยาศาสตร์ หรือส่งเรื่องแจ้งประสานงานไปยังระบบช่วยเหลือกลาง</p>
     </div>
 
-    <!-- Contact Layout Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Contact Layout -->
+    <div class="max-w-xl mx-auto space-y-6">
 
-      <!-- ซ้าย 1/3: ข้อมูลช่องทางติดต่อ & แผนที่ -->
-      <div class="lg:col-span-1 space-y-6">
-        <!-- ช่องทางติดต่อ -->
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <!-- ช่องทางติดต่อ -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
           <h2 class="text-base font-semibold text-slate-800">ช่องทางการติดต่อคณะ</h2>
           
           <div class="space-y-4">
@@ -91,64 +89,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- ขวา 2/3: ฟอร์มติดต่อเจ้าหน้าที่ -->
-      <div class="lg:col-span-2">
-        <form id="contact-form" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5" onsubmit="submitContact(event)">
-          <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <span id="ic-form-mail" class="text-blue-600"></span> ส่งข้อความด่วนถึงงานทะเบียนคณะ
-          </h2>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-slate-700" for="con-name">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
-              <input id="con-name" type="text" required placeholder="เช่น นายสมชาย ใจดี" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-slate-700" for="con-code">รหัสนักศึกษา (ถ้ามี)</label>
-              <input id="con-code" type="text" placeholder="ตัวเลข 11 หลัก เช่น 66114400123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-slate-700" for="con-email">อีเมลติดต่อกลับ <span class="text-red-500">*</span></label>
-              <input id="con-email" type="email" required placeholder="name@ubu.ac.th" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-sm font-medium text-slate-700" for="con-subject">หัวข้อที่ต้องการติดต่อ <span class="text-red-500">*</span></label>
-              <select id="con-subject" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-                <option value="">-- เลือกหัวข้อติดต่อ --</option>
-                <option value="ชั่วโมงกิจกรรม UBU SAC ไม่ตรง">ชั่วโมงกิจกรรม UBU SAC ไม่ตรง/ตกหล่น</option>
-                <option value="การส่งหลักฐานจิตอาสาจิตอาสาภายนอก">การส่งเกียรติบัตรหลักฐานจิตอาสาภายนอก (OCR)</option>
-                <option value="แจ้งเรื่องร้องเรียน/ข้อเสนอแนะ">แจ้งเรื่องร้องเรียน / ข้อเสนอแนะระบบ</option>
-                <option value="สอบถามปัญหา กยศ. และทุนการศึกษา">สอบถามปัญหาทุนการศึกษา / กยศ.</option>
-                <option value="อื่นๆ">สอบถามด้านอื่นๆ</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="space-y-1.5">
-            <label class="text-sm font-medium text-slate-700" for="con-message">รายละเอียดข้อความ <span class="text-red-500">*</span></label>
-            <textarea id="con-message" rows="5" required placeholder="กรอกรายละเอียดข้อสงสัย คำถาม หรือข้อบกพร่องที่ต้องการให้เจ้าหน้าที่ตรวจสอบ..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></textarea>
-          </div>
-
-          <!-- Alert Note -->
-          <div class="border-l-4 border-blue-400 bg-blue-50 p-3.5 rounded-r-xl flex items-start gap-2.5">
-            <span class="text-blue-600 mt-0.5" id="ic-alert-box"></span>
-            <p class="text-xs text-blue-800 leading-relaxed">
-              <strong>ข้อตกลงความเป็นส่วนตัว:</strong> ข้อความนี้จะถูกส่งด่วนตรงไปยังบอทกลาง และระบบแจ้งเตือน Slack DM ของงานทะเบียนกิจกรรม คณะวิทยาศาสตร์ UBU ทันทีเพื่อความรวดเร็วในการติดตามงาน
-            </p>
-          </div>
-
-          <div class="flex justify-end pt-2">
-            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20">
-              <span id="ic-btn-send"></span> ส่งข้อความด่วน
-            </button>
-          </div>
-        </form>
-      </div>
 
     </div>
 
@@ -157,7 +97,6 @@
 
 <script src="js/shared.js"></script>
 <script>
-  const activeRole = getSessionRole();
   renderShell({ active: 'contact.html', title: 'ติดต่อเรา' });
   document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
 
@@ -168,35 +107,6 @@
   document.getElementById('ic-con-loc').innerHTML = icon('map-pin', 'w-4 h-4');
   document.getElementById('ic-con-line').innerHTML = icon('message-circle', 'w-4 h-4');
   document.getElementById('map-pin').innerHTML = icon('map-pin', 'w-8 h-8');
-  document.getElementById('ic-form-mail').innerHTML = icon('mail', 'w-5 h-5');
-  document.getElementById('ic-alert-box').innerHTML = icon('shield', 'w-4 h-4');
-  document.getElementById('ic-btn-send').innerHTML = icon('send', 'w-4 h-4');
-
-  /* audit log helper */
-  function appendAudit(action, detail, actor = 'guest.user') {
-    const logs = Store.get('audit-extra', []);
-    logs.unshift({ time: new Date().toISOString().slice(0, 16).replace('T', ' '), user: actor, action, detail, role: activeRole });
-    Store.set('audit-extra', logs);
-  }
-
-  function submitContact(e) {
-    e.preventDefault();
-    const name = document.getElementById('con-name').value.trim();
-    const code = document.getElementById('con-code').value.trim();
-    const email = document.getElementById('con-email').value.trim();
-    const subject = document.getElementById('con-subject').value;
-    const msg = document.getElementById('con-message').value.trim();
-
-    // 1. Audit log integration
-    const actor = code ? `student.${code}` : `guest.${name.replace(/\s+/g, '_')}`;
-    appendAudit('contact_form_submitted', `ติดต่อเรื่อง: [${subject}] ข้อความ: "${msg.slice(0, 40)}..."`, actor);
-
-    // 2. Simulated Slack DM Alert
-    showToast('ส่งข้อความสำเร็จแล้ว ระบบได้ส่งข้อความแจ้งเตือนด่วนไปยัง Slack DM ของงานทะเบียนวิทยาศาสตร์แล้ว (จำลอง)');
-
-    // 3. Reset form
-    e.target.reset();
-  }
 </script>
 </body>
 </html>

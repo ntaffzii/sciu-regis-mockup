@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แผงควบคุมระบบ — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">แผงควบคุมระบบ</h1>
+        <p class="text-sm text-slate-500 mt-1">สถานะระบบ การตั้งค่า และความเคลื่อนไหวล่าสุดจาก Audit Log</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 text-sm font-medium" id="admin-badge">Administrator</span>
+    </div>
+
+    <div id="ah-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-800">Audit Log ล่าสุด</h2>
+          <a href="admin-audit.html" class="text-xs font-medium text-blue-600 hover:underline">ดูทั้งหมด</a>
+        </div>
+        <div id="ah-audit" class="divide-y divide-slate-50"></div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">สถานะการตั้งค่า</h2>
+            <a href="admin-settings.html" class="text-xs font-medium text-blue-600 hover:underline">ไปหน้าตั้งค่า</a>
+          </div>
+          <div id="ah-config" class="divide-y divide-slate-50"></div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">ผู้ใช้แยกตามบทบาท</h2>
+            <a href="admin-users.html" class="text-xs font-medium text-blue-600 hover:underline">จัดการผู้ใช้</a>
+          </div>
+          <div id="ah-roles" class="divide-y divide-slate-50"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  renderShell({ role: 'admin', active: 'admin-home.html', title: 'แผงควบคุมระบบ' });
+  document.getElementById('admin-badge').insertAdjacentHTML('afterbegin', icon('shield', 'w-4 h-4'));
+  initAdminHome();
+</script>
+</body>
+</html>

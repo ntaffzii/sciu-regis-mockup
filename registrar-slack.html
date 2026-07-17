@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าการแจ้งเตือน Slack — SciU-Regis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { sans: ['Sarabun', 'Inter', 'Noto Sans Thai', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { primary: { DEFAULT: '#2563eb', dark: '#1e40af', light: '#eff6ff' } },
+    } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
+
+<main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
+      <a href="registrar-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <span class="text-slate-300">/</span>
+      <span class="text-slate-600 font-medium">ตั้งค่าการแจ้งเตือน Slack</span>
+    </nav>
+
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตั้งค่าการแจ้งเตือน Slack</h1>
+      <p class="text-sm text-slate-500 mt-1">แจ้งเตือนส่งเข้า <strong>DM ส่วนตัว</strong> ของคุณเสมอ ไม่มีการโพสต์ลง channel รวม — Bot token เป็นงานของ Admin (หน้าตั้งค่าเทคนิค)</p>
+    </div>
+
+    <!-- การเชื่อมต่อบัญชี -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <h2 class="text-base font-semibold text-slate-800">บัญชี Slack ของฉัน</h2>
+      <div id="slack-status"></div>
+      <button id="btn-slack-connect" type="button"></button>
+    </div>
+
+    <!-- ประเภทแจ้งเตือน -->
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-800">ประเภทการแจ้งเตือน</h2>
+        <p class="text-xs text-slate-400 mt-0.5">เปิด/ปิดได้รายประเภทตามระดับธุรกิจของงาน</p>
+      </div>
+      <div id="slack-toggles" class="divide-y divide-slate-50"></div>
+    </div>
+  </div>
+</main>
+
+<script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
+<script>
+  renderShell({ role: 'registrar', active: 'registrar-slack.html', title: 'ตั้งค่าการแจ้งเตือน Slack' });
+  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+  initSlackPage();
+</script>
+</body>
+</html>
