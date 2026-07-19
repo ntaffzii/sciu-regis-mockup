@@ -215,12 +215,6 @@
     }
   }
 
-  const ROSTER_METHOD_BADGE = {
-    'GPS': statusBadge('ready', 'GPS'),
-    'Selfie': statusBadge('open', 'Selfie'),
-    'Master Code': statusBadge('pending', 'Master Code'),
-  };
-
   function renderRosterPanel() {
     if (!currentEvent) return;
     const roster = RegDB.rosters[currentEvent.id];
@@ -230,8 +224,8 @@
             '<td class="px-4 py-3 text-sm text-slate-500 font-mono">' + (i + 1) + '</td>' +
             '<td class="px-4 py-3 text-sm font-mono text-slate-800">' + s.code + '</td>' +
             '<td class="px-4 py-3 text-sm text-slate-800">' + s.name + '</td>' +
-            '<td class="px-4 py-3 text-center">' + (ROSTER_METHOD_BADGE[s.method] || statusBadge('info', s.method)) + '</td>' +
-            '<td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">' + s.time + '</td>' +
+            '<td class="px-4 py-3 text-center">' + checkinStatusBadge(s) + '</td>' +
+            '<td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">' + s.checkedInAt + '</td>' +
           '</tr>';
         }).join('')
       : '<tr><td colspan="5">' + emptyState('ยังไม่มีข้อมูลรายชื่อเช็คอินสำหรับกิจกรรมนี้') + '</td></tr>';

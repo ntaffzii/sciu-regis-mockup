@@ -67,6 +67,7 @@
 
     <!-- Roster table + confirm -->
     <div id="roster-detail" class="hidden space-y-4">
+      <div id="fs-confirm-banner-slot"></div>
       <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 class="text-base font-semibold text-slate-800" id="roster-title">กิจกรรม: <span id="roster-name"></span></h2>
@@ -114,12 +115,6 @@
   // Feature 2: รายชื่อผู้เช็คอินตอนนี้เป็นข้อมูลกลาง (RegDB.rosters) — ใช้ร่วมกับ field-staff-home.html
   const ROSTER_DATA = RegDB.rosters;
 
-  const methodBadge = {
-    'GPS': statusBadge('ready', 'GPS'),
-    'Selfie': statusBadge('open', 'Selfie'),
-    'Master Code': statusBadge('pending', 'Master Code'),
-  };
-
   document.getElementById('roster-event').addEventListener('change', function() {
     const val = this.value;
     if (!val) {
@@ -140,9 +135,14 @@
         <td class="px-4 py-3 text-sm text-slate-500 font-mono">${i + 1}</td>
         <td class="px-4 py-3 text-sm font-mono text-slate-800">${s.code}</td>
         <td class="px-4 py-3 text-sm text-slate-800">${s.name}</td>
-        <td class="px-4 py-3 text-center">${methodBadge[s.method] || statusBadge('info', s.method)}</td>
-        <td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">${s.time}</td>
+        <td class="px-4 py-3 text-center">${checkinStatusBadge(s)}</td>
+        <td class="px-4 py-3 text-center text-sm text-slate-500 font-mono">${s.checkedInAt}</td>
       </tr>`).join('');
+
+    const incomplete = data.students.filter((s) => checkinOverallStatus(s) === 'pending' || checkinOverallStatus(s) === 'rejected').length;
+    document.getElementById('fs-confirm-banner-slot').innerHTML = incomplete
+      ? `<div class="border-l-4 border-amber-400 bg-amber-50 p-3 rounded-r-xl text-xs text-amber-800 mb-4">⚠️ มี ${incomplete} คนที่เช็คอินยังไม่สมบูรณ์ (รอตรวจ/ถูกปฏิเสธ Selfie) — ตรวจสอบรายละเอียดได้ที่หน้า "ตรวจสอบการเช็คอิน" ก่อนยืนยันรายชื่อ</div>`
+      : '';
   });
 
   document.getElementById('btn-confirm').addEventListener('click', function() {

@@ -28,7 +28,8 @@
       <a href="registrar-event-form.html" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/20" id="btn-create">สร้างกิจกรรมใหม่</a>
     </div>
 
-    <div id="lo-stats" class="grid grid-cols-3 gap-4"></div>
+    <div id="lo-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+    <div id="lo-pending-banner"></div>
 
     <div id="events" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100">
@@ -48,6 +49,7 @@
 </main>
 
 <script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
 <script>
   renderShell({ role: 'lead-org', active: 'lead-org-home.html', title: 'หน้าแรก Lead Org' });
   document.getElementById('btn-create').insertAdjacentHTML('afterbegin', icon('plus', 'w-4 h-4'));
@@ -58,10 +60,24 @@
     { id: 2, name: 'Science Open House 2569', status: 'upcoming', date: '15 ก.ค. 2569', joined: 0, total: 250, gps: true, rosterDue: null },
   ];
 
+  // FR-B8/UC-R23: นับรูปเซลฟี่ที่ยังไม่ตรวจของกิจกรรมที่ตัวเองจัดทั้งหมด
+  const pendingSelfieCount = MY_EVENTS.reduce((sum, e) => {
+    const roster = RegDB.rosters[e.id];
+    if (!roster) return sum;
+    return sum + roster.students.filter((s) => s.selfie && s.selfie.reviewStatus === 'pending').length;
+  }, 0);
+
   document.getElementById('lo-stats').innerHTML =
     statsCard('กำลังจัดอยู่', MY_EVENTS.filter((e) => e.status === 'ongoing').length, 'กิจกรรม active')
     + statsCard('กำลังจะถึง', MY_EVENTS.filter((e) => e.status === 'upcoming').length, 'กิจกรรมล่วงหน้า')
-    + statsCard('รายชื่อค้างยืนยัน', MY_EVENTS.filter((e) => e.rosterDue).length, 'เกินกำหนดแล้ว', { valueCls: 'text-red-500' });
+    + statsCard('รายชื่อค้างยืนยัน', MY_EVENTS.filter((e) => e.rosterDue).length, 'เกินกำหนดแล้ว', { valueCls: 'text-red-500' })
+    + statsCard('เซลฟี่รอตรวจ', pendingSelfieCount, 'รายการ (FR-B7)', { valueCls: pendingSelfieCount ? 'text-amber-600' : 'text-slate-900' });
+
+  document.getElementById('lo-pending-banner').innerHTML = pendingSelfieCount ? `
+    <a href="checkin-review.html" class="flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 hover:bg-amber-100 transition">
+      <span class="text-sm text-amber-800">${icon('camera', 'w-4 h-4')} มีรูปเซลฟี่รอตรวจสอบ ${pendingSelfieCount} รายการ ก่อนแจกหน่วยกิตให้นักศึกษา</span>
+      <span class="text-xs font-semibold text-amber-700 inline-flex items-center gap-1">ไปตรวจสอบการเช็คอิน ${icon('chevron-right', 'w-3.5 h-3.5')}</span>
+    </a>` : '';
 
   const stMap = {
     ongoing: statusBadge('ready', 'กำลังจัด'),
