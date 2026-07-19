@@ -55,17 +55,19 @@ function myHistory() {
  * - กันเช็คอินซ้ำกิจกรรมเดิมด้วย my-checked-in-events
  * - กิจกรรมเปิดกว้าง (event.open) → บวกเข้า ledger โควตา 12 หน่วย/ปี เหมือนตอน Registrar อนุมัติหลักฐาน (FR-C8-C10)
  * - กิจกรรมทั่วไป → บันทึกลงประวัติกิจกรรมของนักศึกษา ไม่นับรวมโควตาเปิดกว้าง */
-function recordCheckin(event, methodLabel) {
+function recordCheckin(event, methodLabel, status = 'ready') {
   const checkedIn = Store.get('my-checked-in-events', []);
   if (checkedIn.includes(event.id)) return { alreadyDone: true };
   checkedIn.push(event.id);
   Store.set('my-checked-in-events', checkedIn);
 
   const history = Store.get('my-history', []);
-  history.unshift({ name: event.name, date: event.date, credits: event.credits, type: methodLabel, status: 'ready' });
+  history.unshift({ name: event.name, date: event.date, credits: event.credits, type: methodLabel, status });
   Store.set('my-history', history);
 
-  if (event.open) {
+  // FR-B7: หน่วยกิตแจกทันทีเฉพาะ status='ready' (GPS/Master Code auto-grant หรือ Selfie ที่ได้รับอนุมัติแล้ว)
+  // status='pending' (Selfie รอตรวจ) ยังไม่บวกเข้า ledger — UC-R23 จะอัปเดตทีหลังตอนอนุมัติ
+  if (status === 'ready' && event.open) {
     const ledger = Store.get('ledger', []);
     let row = ledger.find((l) => l.code === ME.code);
     if (!row) { row = { code: ME.code, name: ME.name, units: myUnits(), locked: false }; ledger.push(row); }
@@ -118,8 +120,9 @@ function initStudentHome() {
       <div class="min-w-0">
         <p class="text-sm text-slate-700 truncate">${h.name}</p>
         <p class="text-xs text-slate-400 mt-0.5">${thDate(h.date)} • ${h.type}</p>
+        ${h.status === 'pending' ? `<div class="mt-1">${statusBadge('pending', 'รอผู้จัดกิจกรรมตรวจรูปเซลฟี่')}</div>` : ''}
       </div>
-      <span class="text-sm font-mono font-semibold ${h.status === 'pending' ? 'text-amber-600' : 'text-emerald-700'} shrink-0">+${h.credits.toFixed(1)}</span>
+      <span class="text-sm font-mono font-semibold ${h.status === 'pending' ? 'text-amber-600' : 'text-emerald-700'} shrink-0">${h.status === 'pending' ? '(+' + h.credits.toFixed(1) + ')' : '+' + h.credits.toFixed(1)}</span>
     </div>`).join('');
 
   const done = historyList.filter((h) => h.status === 'ready');
@@ -218,6 +221,11 @@ function calcDistanceMeters(lat1, lng1, lat2, lng2) {
   return Math.round(2 * R * Math.asin(Math.sqrt(a)));
 }
 
+let ciProgress = { gps: false, selfie: false };
+let ciRequiredGps = false;
+let ciRequiredSelfie = false;
+let ciAllowBypass = false;
+
 function initCheckinPage() {
   const eventId = Number(Store.get('eventId', 5));
   const allEvents = Store.get('events', []);
@@ -230,71 +238,190 @@ function initCheckinPage() {
     <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">กิจกรรมที่เลือก</p>
     <p class="text-base font-semibold text-slate-800 mt-1">${checkinEvent.name}</p>
     <p class="text-xs text-slate-400 mt-1 inline-flex items-center gap-1">${icon('map-pin', 'w-3.5 h-3.5')} ${checkinEvent.location || checkinEvent.place || 'คณะวิทยาศาสตร์'} • รัศมี ${checkinEvent.radius || 30} ม. • ${checkinEvent.credits} หน่วยกิต</p>`;
-  
-  const hasGps = checkinEvent.gps !== false;
-  const hasSelfie = checkinEvent.selfie !== false;
-  const hasCode = checkinEvent.masterCode !== false;
 
-  document.getElementById('mode-gps').classList.toggle('hidden', !hasGps);
-  document.getElementById('mode-selfie').classList.toggle('hidden', !hasSelfie);
-  document.getElementById('mode-code').classList.toggle('hidden', !hasCode);
+  ciRequiredGps = checkinEvent.gps !== false;
+  ciRequiredSelfie = checkinEvent.selfie !== false;
+  ciAllowBypass = checkinEvent.masterCode !== false;
+  ciProgress = { gps: false, selfie: false };
 
-  if (hasGps) {
-    switchMode('gps');
-  } else if (hasSelfie) {
-    switchMode('selfie');
-  } else if (hasCode) {
-    switchMode('code');
-  } else {
-    document.getElementById('pane-gps').classList.add('hidden');
-    document.getElementById('pane-selfie').classList.add('hidden');
-    document.getElementById('pane-code').classList.add('hidden');
+  if (Store.get('my-checked-in-events', []).includes(checkinEvent.id)) {
+    renderAlreadyCheckedIn();
+    return;
   }
+
+  renderCheckinSteps();
 }
 
-function switchMode(mode) {
-  ['gps', 'selfie', 'code'].forEach((m) => {
-    document.getElementById('pane-' + m).classList.toggle('hidden', m !== mode);
-    const tab = document.getElementById('mode-' + m);
-    tab.className = 'flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 transition text-sm font-medium ' + (m === mode
-      ? 'border-blue-600 bg-blue-50 text-blue-700'
-      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300');
-  });
-  if (mode === 'selfie' && !Store.get('consent:selfie', false)) requestSelfieConsent();
+function renderAlreadyCheckedIn() {
+  document.getElementById('ci-subtitle').textContent = 'คุณเช็คอินกิจกรรมนี้ไปแล้ว';
+  document.getElementById('ci-steps').innerHTML = '';
+  document.getElementById('ci-bypass').innerHTML = '';
+  document.getElementById('ci-progress-summary').innerHTML = '';
+  document.getElementById('ci-final-result').innerHTML = `
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">${icon('check-circle', 'w-6 h-6')}</div>
+      <p class="text-sm font-semibold text-emerald-800">เช็คอินกิจกรรมนี้เรียบร้อยแล้ว</p>
+    </div>`;
+}
+
+/* FR-C2: แสดงทุกขั้นตอนที่กิจกรรมนี้กำหนดพร้อมกัน (ทำครบกี่ขั้นก็ได้ ไม่บังคับลำดับ)
+ * ทำครบทุกขั้นตอนที่กำหนด (AND) ถึงจะถือว่าเช็คอินสำเร็จ — ไม่ใช่เลือกวิธีใดวิธีหนึ่งแบบเดิม */
+function renderCheckinSteps() {
+  const cards = [];
+  if (ciRequiredGps) cards.push(renderGpsStepCard());
+  if (ciRequiredSelfie) cards.push(renderSelfieStepCard());
+  document.getElementById('ci-steps').innerHTML = cards.join('');
+  if (ciRequiredSelfie && !ciProgress.selfie) renderSelfiePane();
+
+  const total = (ciRequiredGps ? 1 : 0) + (ciRequiredSelfie ? 1 : 0);
+  const done = (ciRequiredGps && ciProgress.gps ? 1 : 0) + (ciRequiredSelfie && ciProgress.selfie ? 1 : 0);
+  document.getElementById('ci-progress-summary').innerHTML = total > 1 ? `
+    <div class="rounded-2xl border border-blue-100 bg-blue-50/60 p-3.5 text-sm text-blue-800 flex items-center justify-between">
+      <span>ทำแล้ว <strong>${done}/${total}</strong> ขั้นตอนที่กิจกรรมนี้กำหนด — ต้องทำให้ครบทุกขั้นตอน</span>
+      <span class="font-mono text-xs">${'●'.repeat(done)}${'○'.repeat(total - done)}</span>
+    </div>` : '';
+
+  document.getElementById('ci-bypass').innerHTML = ciAllowBypass ? renderBypassSection() : '';
+
+  if (total > 0 && done === total) finalizeStandardCheckin();
+}
+
+function renderGpsStepCard() {
+  if (ciProgress.gps) {
+    return `
+      <div class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">${icon('map-pin', 'w-4 h-4 text-blue-600')} ยืนยันตำแหน่ง GPS</h3>
+          ${statusBadge('ready', 'ทำแล้ว')}
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">${icon('map-pin', 'w-4 h-4 text-blue-600')} ขั้นตอน: ยืนยันตำแหน่ง GPS</h3>
+      <div class="mock-map rounded-2xl h-48" role="img" aria-label="แผนที่จำลองแสดงตำแหน่ง">
+        <div class="geofence-circle" style="left:45%; top:52%; width:80px; height:80px;"></div>
+        <div class="absolute -translate-x-1/2 -translate-y-full text-blue-700 drop-shadow" id="target-pin" style="left:45%; top:52%;"></div>
+        <div class="absolute -translate-x-1/2 -translate-y-1/2" style="left:52%; top:60%;">
+          <span class="block w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white gps-dot"></span>
+        </div>
+        <span class="absolute bottom-2 right-3 text-[10px] text-slate-500/70 bg-white/70 rounded px-1.5 py-0.5">แผนที่จำลอง — วงกลม = รัศมีกิจกรรม, จุดฟ้า = ตำแหน่งคุณ</span>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-slate-500 mb-2">จำลองตำแหน่งปัจจุบันของคุณ (สำหรับ mock-up):</p>
+        <div class="flex gap-2">
+          <button id="pos-inside" onclick="setMockPos('inside')" type="button" class="flex-1 py-2 text-xs font-medium rounded-xl transition ${mockPos === 'inside' ? 'bg-blue-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-500'}">ในลานกิจกรรม SC18</button>
+          <button id="pos-outside" onclick="setMockPos('outside')" type="button" class="flex-1 py-2 text-xs font-medium rounded-xl transition ${mockPos === 'outside' ? 'bg-blue-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-500'}">หน้าประตูมหาวิทยาลัย</button>
+        </div>
+      </div>
+      <button onclick="doGpsCheckin()" class="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white text-base font-semibold rounded-2xl hover:bg-blue-800 transition shadow-lg shadow-blue-600/25" type="button" id="btn-gps">
+        ยืนยันตำแหน่ง GPS
+      </button>
+      <p class="text-xs text-slate-400 text-center">ระบบคำนวณระยะจากพิกัดของคุณถึงจุดกิจกรรมด้วย PostGIS spatial query (ST_DWithin)</p>
+      <div id="gps-result"></div>
+    </div>`;
+}
+
+function renderSelfieStepCard() {
+  if (ciProgress.selfie) {
+    return `
+      <div class="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">${icon('camera', 'w-4 h-4 text-blue-600')} ถ่ายรูปเซลฟี่</h3>
+          ${statusBadge('pending', 'ถ่ายแล้ว รอตรวจ')}
+        </div>
+        <p class="text-xs text-slate-500">รูปถูกส่งให้ผู้จัดกิจกรรมตรวจสอบแล้ว — หน่วยกิตจะเข้าประวัติของคุณหลังได้รับอนุมัติ (ไม่มีการตรวจจับภาพ AI อัตโนมัติ ใช้การตรวจด้วยคนเท่านั้น)</p>
+      </div>`;
+  }
+  return `
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+      <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">${icon('camera', 'w-4 h-4 text-blue-600')} ขั้นตอน: ถ่ายรูปเซลฟี่</h3>
+      <div id="selfie-area" class="space-y-4"></div>
+    </div>`;
+}
+
+/* ทางบายพาสฉุกเฉิน — เปิดใช้ได้เสมอถ้ากิจกรรมเปิด Master Code ไว้ ไม่ว่าจะทำขั้นตอนอื่นไปกี่ขั้นแล้วก็ตาม (FR-C2) */
+function renderBypassSection() {
+  return `
+    <details class="rounded-2xl border border-amber-200 bg-amber-50/50 overflow-hidden">
+      <summary class="px-5 py-3.5 cursor-pointer text-sm font-medium text-amber-800 flex items-center gap-2">${icon('shield', 'w-4 h-4')} ทำขั้นตอนปกติไม่ได้จริง? ขอรหัสฉุกเฉินจากสตาฟหน้างานแทน</summary>
+      <form onsubmit="submitMasterCode(event)" class="px-5 pb-5 space-y-3">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-slate-700" for="mc-input">รหัส Master Code (6 ตัว จากสตาฟหน้างาน)</label>
+          <input id="mc-input" type="text" maxlength="6" placeholder="เช่น A7K2M9" autocomplete="off"
+                 class="w-full px-4 py-3 rounded-2xl border border-slate-300 text-center text-xl font-mono font-bold master-code uppercase focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-amber-600 text-white text-sm font-semibold rounded-2xl hover:bg-amber-700 transition">
+          ยืนยันรหัสและข้ามขั้นตอนที่เหลือ
+        </button>
+        <p class="text-xs text-slate-400 text-center">กรอกถูกต้องแล้วข้ามขั้นตอนที่ยังไม่เสร็จทั้งหมดทันที — รหัสหมดอายุภายใน 5-15 นาทีหลังออก</p>
+      </form>
+      <div id="mc-result" class="px-5 pb-5"></div>
+    </details>`;
 }
 
 function setMockPos(key) {
   mockPos = key;
-  document.getElementById('pos-inside').className = 'flex-1 py-2 text-xs font-medium rounded-xl transition ' + (key === 'inside' ? 'bg-blue-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-500');
-  document.getElementById('pos-outside').className = 'flex-1 py-2 text-xs font-medium rounded-xl transition ' + (key === 'outside' ? 'bg-blue-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-500');
-  document.getElementById('gps-result').innerHTML = '';
+  renderCheckinSteps();
 }
 
 function doGpsCheckin() {
   const pos = MOCK_POSITIONS[mockPos];
   const dist = calcDistanceMeters(pos.lat, pos.lng, checkinEvent.lat, checkinEvent.lng);
   const ok = dist <= checkinEvent.radius;
-  let creditNote = '';
   if (ok) {
-    const result = recordCheckin(checkinEvent, 'เช็คอิน GPS');
-    creditNote = result.alreadyDone
-      ? '<p class="text-xs text-amber-600 mt-1">คุณเช็คอินกิจกรรมนี้ไปแล้วก่อนหน้านี้ — ไม่นับหน่วยกิตซ้ำ</p>'
-      : `<p class="text-xs text-emerald-800 font-semibold mt-1">+${checkinEvent.credits.toFixed(1)} หน่วยกิต บันทึกเข้าประวัติของคุณแล้ว</p>`;
+    ciProgress.gps = true;
+    showToast('ยืนยันตำแหน่ง GPS สำเร็จ');
+    renderCheckinSteps();
+    return;
   }
-  document.getElementById('gps-result').innerHTML = ok ? `
-    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center space-y-2">
-      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">${icon('check-circle', 'w-6 h-6')}</div>
-      <p class="text-sm font-semibold text-emerald-800">เช็คอินสำเร็จ!</p>
-      <p class="text-xs text-emerald-700">คุณอยู่ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> (ในรัศมี ${checkinEvent.radius} ม.) — บันทึกเวลา ${new Date().toLocaleTimeString('th-TH')}</p>
-      ${creditNote}
-    </div>` : `
+  document.getElementById('gps-result').innerHTML = `
     <div class="rounded-2xl border border-red-200 bg-red-50 p-5 text-center space-y-2">
       <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">${icon('x-circle', 'w-6 h-6')}</div>
       <p class="text-sm font-semibold text-red-800">เช็คอินไม่สำเร็จ — อยู่นอกพื้นที่กิจกรรม</p>
       <p class="text-xs text-red-700">ตำแหน่งของคุณ (<span class="font-mono">${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}</span>) ห่างจุดกิจกรรม <span class="font-mono font-semibold">${dist} ม.</span> เกินรัศมี ${checkinEvent.radius} ม.</p>
-      <p class="text-xs text-red-600">กรุณาเข้าใกล้พื้นที่จัดงาน หรือติดต่อสตาฟเพื่อขอ Master Code</p>
+      <p class="text-xs text-red-600">กรุณาเข้าใกล้พื้นที่จัดงาน หรือขอรหัสฉุกเฉินจากสตาฟด้านล่าง</p>
     </div>`;
-  if (ok) showToast('เช็คอิน GPS สำเร็จ');
+}
+
+/* เมื่อทำครบทุกขั้นตอนที่กิจกรรมกำหนด — ถ้ามี Selfie เกี่ยวข้อง ต้องรอ Lead Org/Registrar อนุมัติก่อน (FR-B7)
+ * ถ้ามีแค่ GPS แจกหน่วยกิตทันที (FR-B3) */
+function finalizeStandardCheckin() {
+  const result = recordCheckin(checkinEvent, ciRequiredSelfie ? 'เช็คอิน GPS+Selfie' : 'เช็คอิน GPS', ciRequiredSelfie ? 'pending' : 'ready');
+  document.getElementById('ci-steps').innerHTML = '';
+  document.getElementById('ci-progress-summary').innerHTML = '';
+  document.getElementById('ci-bypass').innerHTML = '';
+  document.getElementById('ci-final-result').innerHTML = ciRequiredSelfie ? `
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">${icon('clock', 'w-6 h-6')}</div>
+      <p class="text-sm font-semibold text-amber-800">ทำครบทุกขั้นตอนแล้ว — รอผู้จัดกิจกรรมตรวจสอบรูปเซลฟี่</p>
+      <p class="text-xs text-amber-700">หน่วยกิตจะเข้าประวัติของคุณทันทีที่ได้รับอนุมัติ</p>
+    </div>` : `
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">${icon('check-circle', 'w-6 h-6')}</div>
+      <p class="text-sm font-semibold text-emerald-800">เช็คอินสำเร็จ!</p>
+      ${result.alreadyDone
+        ? '<p class="text-xs text-amber-600">คุณเช็คอินกิจกรรมนี้ไปแล้วก่อนหน้านี้ — ไม่นับหน่วยกิตซ้ำ</p>'
+        : `<p class="text-xs text-emerald-800 font-semibold">+${checkinEvent.credits.toFixed(1)} หน่วยกิต บันทึกเข้าประวัติของคุณแล้ว</p>`}
+    </div>`;
+  if (!ciRequiredSelfie) showToast('เช็คอินสำเร็จ');
+}
+
+/* Master Code = ทางบายพาสฉุกเฉิน ไม่ใช่วิธีที่สามที่เท่าเทียมกับ GPS/Selfie (UC-R21) — ข้ามขั้นตอนที่เหลือทั้งหมดทันที */
+function finalizeBypassCheckin() {
+  const result = recordCheckin(checkinEvent, 'เช็คอินด้วย Master Code (บายพาส)', 'ready');
+  document.getElementById('ci-steps').innerHTML = '';
+  document.getElementById('ci-progress-summary').innerHTML = '';
+  document.getElementById('ci-bypass').innerHTML = '';
+  document.getElementById('ci-final-result').innerHTML = `
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center space-y-2">
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">${icon('check-circle', 'w-6 h-6')}</div>
+      <p class="text-sm font-semibold text-emerald-800">เช็คอินด้วย Master Code สำเร็จ (ข้ามขั้นตอนที่เหลือ)</p>
+      ${result.alreadyDone
+        ? '<p class="text-xs text-amber-600">คุณเช็คอินกิจกรรมนี้ไปแล้วก่อนหน้านี้ — ไม่นับหน่วยกิตซ้ำ</p>'
+        : `<p class="text-xs text-emerald-800 font-semibold">+${checkinEvent.credits.toFixed(1)} หน่วยกิต บันทึกเข้าประวัติของคุณแล้ว</p>`}
+    </div>`;
+  showToast('เช็คอินด้วย Master Code สำเร็จ');
 }
 
 /* Selfie + PDPA consent (มาตรา 26 — ขอชัดแจ้งก่อนเปิดกล้อง) */
@@ -341,19 +468,18 @@ function renderSelfiePane() {
 }
 
 function captureSelfie() {
-  const result = recordCheckin(checkinEvent, 'เช็คอิน Selfie');
-  showToast(result.alreadyDone
-    ? 'เช็คอินด้วย Selfie สำเร็จ (เคยเช็คอินกิจกรรมนี้ไปแล้ว ไม่นับหน่วยกิตซ้ำ)'
-    : `ถ่ายรูปสำเร็จ — เช็คอินด้วย Selfie แล้ว +${checkinEvent.credits.toFixed(1)} หน่วยกิต (ไฟล์จะถูกลบอัตโนมัติใน 90 วัน)`);
+  ciProgress.selfie = true;
+  showToast('ถ่ายรูปสำเร็จ — ส่งให้ผู้จัดกิจกรรมตรวจสอบแล้ว', 'info');
+  renderCheckinSteps();
 }
 
 function revokeSelfieConsent() {
   Store.set('consent:selfie', false);
-  showToast('ถอนความยินยอมแล้ว — ใช้ GPS หรือ Master Code เช็คอินแทนได้', 'info');
+  showToast('ถอนความยินยอมแล้ว — ใช้ GPS หรือขอ Master Code แทนได้', 'info');
   renderSelfiePane();
 }
 
-/* Master Code */
+/* Master Code = ทางบายพาสฉุกเฉิน (UC-R21) */
 function submitMasterCode(e) {
   e.preventDefault();
   const val = document.getElementById('mc-input').value.trim().toUpperCase();
@@ -363,16 +489,7 @@ function submitMasterCode(e) {
     return;
   }
   if (val === MASTER_CODE_VALID) {
-    const result = recordCheckin(checkinEvent, 'เช็คอิน Master Code');
-    box.innerHTML = `
-      <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-        <p class="text-sm font-semibold text-emerald-800 flex items-center justify-center gap-1.5">${icon('check-circle', 'w-4 h-4')} เช็คอินด้วย Master Code สำเร็จ</p>
-        <p class="text-xs text-emerald-700 mt-1">รหัสถูกออกโดย Field Staff หน้างาน — บันทึกเวลา ${new Date().toLocaleTimeString('th-TH')}</p>
-        ${result.alreadyDone
-          ? '<p class="text-xs text-amber-600 mt-1">คุณเช็คอินกิจกรรมนี้ไปแล้วก่อนหน้านี้ — ไม่นับหน่วยกิตซ้ำ</p>'
-          : `<p class="text-xs text-emerald-800 font-semibold mt-1">+${checkinEvent.credits.toFixed(1)} หน่วยกิต บันทึกเข้าประวัติของคุณแล้ว</p>`}
-      </div>`;
-    showToast('เช็คอินด้วย Master Code สำเร็จ');
+    finalizeBypassCheckin();
   } else {
     box.innerHTML = `
       <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-center">

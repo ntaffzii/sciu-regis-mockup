@@ -119,56 +119,87 @@ const DEFAULT_CYCLES = [
   { year: 2567, start: '2024-06-10', by: 'เจ้าหน้าที่คนก่อน', at: '2024-06-01 08:55' },
 ];
 
-/* Feature 2: รายชื่อผู้เช็คอินต่อกิจกรรม — เดิมเป็น ROSTER_DATA hardcode แยกอยู่แค่ใน
+/* Feature 2/3: รายชื่อผู้เช็คอินต่อกิจกรรม — เดิมเป็น ROSTER_DATA hardcode แยกอยู่แค่ใน
  * lead-org-rosters.html (คีย์ 1/2/3 ไม่ตรงกับ event id จริงเลย) ย้ายมารวมที่นี่และคีย์ด้วย
- * event id จริงจาก DEFAULT_EVENTS เพื่อให้ field-staff-home.html เชื่อมกับ lead-org-rosters.html ได้ */
+ * event id จริงจาก DEFAULT_EVENTS เพื่อให้ field-staff-home.html เชื่อมกับ lead-org-rosters.html ได้
+ *
+ * โครงสร้างใหม่ (FR-C2/FR-B8 ยืนยันแล้ว — combined check-in): แต่ละคนเก็บหลักฐานได้มากกว่า 1 วิธี
+ * พร้อมกันในแถวเดียว (gps + selfie), field `completionPath` บอกว่า "ครบ" ด้วยวิธีไหน:
+ *   - 'standard' = ทำครบทุกขั้นตอนที่กิจกรรมกำหนด (gps และ/หรือ selfie ต้อง approved ก่อนถึงจะครบ)
+ *   - 'master_code_bypass' = ข้ามด้วยรหัสฉุกเฉิน (ไม่ต้องรอ selfie ที่เหลือ)
+ *   - null = ยังไม่ครบ (มี selfie ค้าง pending/rejected)
+ * selfie.reviewStatus: 'pending' | 'approved' | 'rejected' — ใช้กับ UC-R23 (หน้าตรวจสอบการเช็คอิน) */
 const DEFAULT_ROSTERS = {
   3: {
     name: 'บริจาคโลหิต สภากาชาดไทย',
     students: [
-      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '10:00 น.' },
-      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '10:15 น.' },
-      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '10:30 น.' },
-      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '10:45 น.' },
-      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '11:00 น.' },
+      { code: '66114400123', name: 'สมชาย ใจดี', checkedInAt: '10:00 น.', gps: { lat: 15.1198, lng: 104.9077, distance: 8 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', checkedInAt: '10:15 น.', gps: { lat: 15.1197, lng: 104.9078, distance: 14 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400126', name: 'มานี มีนา', checkedInAt: '10:30 น.', gps: { lat: 15.1199, lng: 104.9076, distance: 9 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', checkedInAt: '10:45 น.', gps: null, selfie: null, masterCode: { code: 'X3B8P1', issuedBy: 'เก่ง สตาฟดี', issuedAt: '10:40 น.' }, completionPath: 'master_code_bypass' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', checkedInAt: '11:00 น.', gps: { lat: 15.1200, lng: 104.9075, distance: 11 }, selfie: null, masterCode: null, completionPath: 'standard' },
     ],
   },
   4: {
     name: 'อบรมปฐมพยาบาล CPR',
     students: [
-      { code: '66114400123', name: 'สมชาย ใจดี', method: 'Selfie', time: '09:00 น.' },
-      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'Selfie', time: '09:05 น.' },
-      { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Selfie', time: '09:10 น.' },
-      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Selfie', time: '09:20 น.' },
+      { code: '66114400123', name: 'สมชาย ใจดี', checkedInAt: '09:00 น.', gps: null, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'approved', reviewedBy: 'สมบัติ วงศ์ทะเบียน', reviewedAt: '2026-06-28 12:10' }, masterCode: null, completionPath: 'standard' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', checkedInAt: '09:05 น.', gps: null, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'pending', reviewedBy: null, reviewedAt: null }, masterCode: null, completionPath: null },
+      { code: '66114400125', name: 'วิชัย เก่งกล้า', checkedInAt: '09:10 น.', gps: null, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'pending', reviewedBy: null, reviewedAt: null }, masterCode: null, completionPath: null },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', checkedInAt: '09:20 น.', gps: null, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'rejected', reviewedBy: 'สมบัติ วงศ์ทะเบียน', reviewedAt: '2026-06-28 13:00' }, masterCode: null, completionPath: null },
     ],
   },
   5: {
     name: 'จิตอาสาพัฒนาคณะวิทยาศาสตร์',
     students: [
-      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '09:05 น.' },
-      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '09:07 น.' },
-      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '09:12 น.' },
-      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'Master Code', time: '09:20 น.' },
-      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'GPS', time: '09:22 น.' },
-      { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '09:25 น.' },
+      { code: '66114400123', name: 'สมชาย ใจดี', checkedInAt: '09:05 น.', gps: { lat: 15.1198, lng: 104.9077, distance: 6 }, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'approved', reviewedBy: 'อาจารย์วิชัย จัดกิจกรรม', reviewedAt: '2026-07-02 10:00' }, masterCode: null, completionPath: 'standard' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', checkedInAt: '09:07 น.', gps: { lat: 15.1199, lng: 104.9078, distance: 10 }, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'pending', reviewedBy: null, reviewedAt: null }, masterCode: null, completionPath: null },
+      { code: '66114400126', name: 'มานี มีนา', checkedInAt: '09:12 น.', gps: { lat: 15.1197, lng: 104.9079, distance: 15 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', checkedInAt: '09:20 น.', gps: null, selfie: null, masterCode: { code: 'A7K2M9', issuedBy: 'เก่ง สตาฟดี', issuedAt: '09:18 น.' }, completionPath: 'master_code_bypass' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', checkedInAt: '09:22 น.', gps: { lat: 15.1198, lng: 104.9076, distance: 8 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400132', name: 'รุ่งนภา แสงทอง', checkedInAt: '09:25 น.', gps: { lat: 15.1200, lng: 104.9077, distance: 12 }, selfie: null, masterCode: null, completionPath: 'standard' },
     ],
   },
   6: {
     name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ',
     students: [
-      { code: '66114400123', name: 'สมชาย ใจดี', method: 'GPS', time: '08:23 น.' },
-      { code: '66114400124', name: 'สมหญิง รักเรียน', method: 'GPS', time: '08:30 น.' },
-      { code: '66114400125', name: 'วิชัย เก่งกล้า', method: 'Master Code', time: '09:15 น.' },
-      { code: '66114400126', name: 'มานี มีนา', method: 'GPS', time: '08:45 น.' },
-      { code: '66114400127', name: 'ปิติ ยินดี', method: 'Selfie', time: '09:00 น.' },
-      { code: '66114400128', name: 'ชูใจ ใจงาม', method: 'GPS', time: '08:50 น.' },
-      { code: '66114400129', name: 'ดวงเดือน ศรีสุข', method: 'GPS', time: '08:55 น.' },
-      { code: '66114400130', name: 'อนันต์ พากเพียร', method: 'Master Code', time: '09:30 น.' },
-      { code: '66114400131', name: 'กมล ขยันยิ่ง', method: 'GPS', time: '09:10 น.' },
-      { code: '66114400132', name: 'รุ่งนภา แสงทอง', method: 'GPS', time: '08:40 น.' },
+      { code: '66114400123', name: 'สมชาย ใจดี', checkedInAt: '08:23 น.', gps: { lat: 13.4012, lng: 100.0021, distance: 5 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400124', name: 'สมหญิง รักเรียน', checkedInAt: '08:30 น.', gps: { lat: 13.4013, lng: 100.0022, distance: 9 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400125', name: 'วิชัย เก่งกล้า', checkedInAt: '09:15 น.', gps: null, selfie: null, masterCode: { code: 'M5N2K7', issuedBy: 'เก่ง สตาฟดี', issuedAt: '09:12 น.' }, completionPath: 'master_code_bypass' },
+      { code: '66114400126', name: 'มานี มีนา', checkedInAt: '08:45 น.', gps: { lat: 13.4011, lng: 104.0023, distance: 18 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400127', name: 'ปิติ ยินดี', checkedInAt: '09:00 น.', gps: null, selfie: { url: 'img/mock-selfie.jpg', reviewStatus: 'pending', reviewedBy: null, reviewedAt: null }, masterCode: null, completionPath: null },
+      { code: '66114400128', name: 'ชูใจ ใจงาม', checkedInAt: '08:50 น.', gps: { lat: 13.4014, lng: 100.0020, distance: 7 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400129', name: 'ดวงเดือน ศรีสุข', checkedInAt: '08:55 น.', gps: { lat: 13.4010, lng: 100.0024, distance: 11 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400130', name: 'อนันต์ พากเพียร', checkedInAt: '09:30 น.', gps: null, selfie: null, masterCode: { code: 'B4T9Q2', issuedBy: 'เก่ง สตาฟดี', issuedAt: '09:27 น.' }, completionPath: 'master_code_bypass' },
+      { code: '66114400131', name: 'กมล ขยันยิ่ง', checkedInAt: '09:10 น.', gps: { lat: 13.4012, lng: 100.0019, distance: 6 }, selfie: null, masterCode: null, completionPath: 'standard' },
+      { code: '66114400132', name: 'รุ่งนภา แสงทอง', checkedInAt: '08:40 น.', gps: { lat: 13.4013, lng: 100.0021, distance: 10 }, selfie: null, masterCode: null, completionPath: 'standard' },
     ],
   },
 };
+
+/* คืนสถานะรวมของการเช็คอิน 1 คน — ใช้กับ badge/รายงานทุกหน้าที่เกี่ยวข้อง (FR-B8, UC-R23) */
+function checkinOverallStatus(s) {
+  if (s.completionPath === 'master_code_bypass') return 'bypass';
+  if (s.selfie && s.selfie.reviewStatus === 'pending') return 'pending';
+  if (s.selfie && s.selfie.reviewStatus === 'rejected') return 'rejected';
+  if (s.completionPath === 'standard') return 'complete';
+  return 'incomplete';
+}
+
+/* Badge รวมวิธีเช็คอิน + สถานะ — แทน ROSTER_METHOD_BADGE/methodBadge เดิมที่ใช้ method string เดียว */
+function checkinStatusBadge(s) {
+  const parts = [];
+  if (s.gps) parts.push('GPS');
+  if (s.selfie) parts.push('Selfie');
+  if (s.masterCode) parts.push('Master Code');
+  const label = parts.join(' + ') || '—';
+  const st = checkinOverallStatus(s);
+  if (st === 'bypass') return statusBadge('info', `${label} (บายพาส)`);
+  if (st === 'pending') return statusBadge('pending', `${label} · รอตรวจ`);
+  if (st === 'rejected') return statusBadge('rejected', `${label} · ถูกปฏิเสธ`);
+  if (st === 'complete') return statusBadge('ready', `${label} · สำเร็จ`);
+  return statusBadge('mismatch', `${label} · ไม่ครบ`);
+}
 
 /* state ต่อ key — reset ได้ด้วยการลบ localStorage */
 // proofs ใช้ shape-check: reseed ข้อมูลโครงสร้างเก่า (ก่อนรื้อ OCR) แต่คงหลักฐานรูปแบบใหม่ที่นักศึกษาเพิ่งส่งไว้ (flow เดโม ส่ง→ตรวจ)
@@ -1380,4 +1411,139 @@ function initRegistrarHome() {
   document.getElementById('home-quick').innerHTML = quicks.map((qk) => `
     <a href="${qk.href}" class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition">
       ${icon(qk.icon, 'w-4 h-4')} ${qk.label}</a>`).join('');
+}
+
+/* ---------------- Screen: ตรวจสอบการเช็คอิน (UC-R23 / FR-B8) -------------- */
+let crActiveEventId = null;
+let crActiveCode = null;
+
+function initCheckinReviewPage() {
+  const sel = document.getElementById('cr-event');
+  const eventIds = Object.keys(RegDB.rosters);
+  sel.innerHTML += eventIds.map((id) => `<option value="${id}">${RegDB.rosters[id].name}</option>`).join('');
+  sel.addEventListener('change', function () {
+    crActiveEventId = this.value || null;
+    crActiveCode = null;
+    if (!crActiveEventId) {
+      document.getElementById('cr-body').classList.add('hidden');
+      document.getElementById('cr-empty-start').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('cr-body').classList.remove('hidden');
+    document.getElementById('cr-empty-start').classList.add('hidden');
+    renderCrQueue();
+    const roster = RegDB.rosters[crActiveEventId];
+    if (roster && roster.students.length) selectCrStudent(roster.students[0].code);
+  });
+}
+
+function renderCrQueue() {
+  const roster = RegDB.rosters[crActiveEventId];
+  if (!roster) return;
+  const pendingCount = roster.students.filter((s) => s.selfie && s.selfie.reviewStatus === 'pending').length;
+  document.getElementById('cr-queue-count').innerHTML = pendingCount
+    ? statusBadge('pending', `รอตรวจ ${pendingCount} คน`)
+    : statusBadge('ready', `ครบแล้วทั้งหมด`);
+  document.getElementById('cr-queue').innerHTML = roster.students.length ? roster.students.map((s) => `
+    <button onclick="selectCrStudent('${s.code}')" class="w-full text-left px-4 py-3 hover:bg-slate-50 transition ${crActiveCode === s.code ? 'bg-blue-50/70 border-l-4 border-blue-600' : 'border-l-4 border-transparent'}">
+      <p class="text-sm font-medium text-slate-800 truncate">${s.name}</p>
+      <p class="text-xs text-slate-400 font-mono truncate mt-0.5">${s.code}</p>
+      <div class="mt-1.5">${checkinStatusBadge(s)}</div>
+    </button>`).join('') : emptyState('ยังไม่มีคนเช็คอินในกิจกรรมนี้', 'users');
+}
+
+function selectCrStudent(code) {
+  crActiveCode = code;
+  renderCrQueue();
+  const roster = RegDB.rosters[crActiveEventId];
+  const s = roster && roster.students.find((x) => x.code === code);
+  if (s) renderCrDetail(s);
+}
+
+function renderCrDetail(s) {
+  const blocks = [];
+
+  blocks.push(`
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div>
+        <h3 class="text-base font-bold text-slate-800">${s.name}</h3>
+        <p class="text-xs text-slate-400 font-mono mt-0.5">${s.code} • เริ่มเช็คอิน ${s.checkedInAt}</p>
+      </div>
+      ${checkinStatusBadge(s)}
+    </div>`);
+
+  if (s.gps) {
+    blocks.push(`
+      <div class="space-y-2">
+        <h4 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">${icon('map-pin', 'w-4 h-4 text-blue-600')} พิกัด GPS</h4>
+        <div class="mock-map rounded-xl h-32 relative">
+          <div class="geofence-circle" style="left:50%; top:50%; width:64px; height:64px;"></div>
+          <div class="absolute -translate-x-1/2 -translate-y-1/2" style="left:53%; top:47%;">
+            <span class="block w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow"></span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 font-mono">Lat/Lng: ${s.gps.lat.toFixed(4)}, ${s.gps.lng.toFixed(4)} — ห่างจากจุดกิจกรรม <strong class="text-slate-700">${s.gps.distance} เมตร</strong></p>
+      </div>`);
+  }
+
+  if (s.selfie) {
+    const st = s.selfie.reviewStatus;
+    blocks.push(`
+      <div class="space-y-2">
+        <h4 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">${icon('camera', 'w-4 h-4 text-blue-600')} รูปเซลฟี่ ${statusBadge(st === 'approved' ? 'ready' : st === 'rejected' ? 'rejected' : 'pending', st === 'approved' ? 'อนุมัติแล้ว' : st === 'rejected' ? 'ถูกปฏิเสธ' : 'รอตรวจ')}</h4>
+        <div class="mock-certificate rounded-xl h-48 flex items-center justify-center text-xs text-amber-700/60">${s.selfie.url}</div>
+        ${st === 'pending' ? `
+          <div class="flex gap-2 pt-1">
+            <button onclick="decideCheckinSelfie('${s.code}', true)" class="flex-1 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 transition">อนุมัติ</button>
+            <button onclick="decideCheckinSelfie('${s.code}', false)" class="flex-1 py-2 border border-red-300 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition">ปฏิเสธ</button>
+          </div>` : `
+          <p class="text-xs text-slate-400">ตรวจโดย ${s.selfie.reviewedBy} เมื่อ ${s.selfie.reviewedAt}</p>`}
+      </div>`);
+  }
+
+  if (s.masterCode) {
+    blocks.push(`
+      <div class="space-y-2">
+        <h4 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">${icon('shield', 'w-4 h-4 text-blue-600')} Master Code (บายพาส)</h4>
+        <p class="text-sm font-mono font-bold text-slate-800">${s.masterCode.code}</p>
+        <p class="text-xs text-slate-500">ออกโดย <strong class="text-slate-700">${s.masterCode.issuedBy}</strong> เมื่อ ${s.masterCode.issuedAt}</p>
+      </div>`);
+  }
+
+  if (!s.gps && !s.selfie && !s.masterCode) {
+    blocks.push(`<div class="text-center py-8 text-sm text-slate-400">ไม่มีหลักฐานเช็คอินสำหรับคนนี้</div>`);
+  }
+
+  document.getElementById('cr-detail').innerHTML = blocks.join('<div class="border-t border-slate-100"></div>');
+}
+
+function decideCheckinSelfie(code, approve) {
+  const roster = RegDB.rosters[crActiveEventId];
+  const s = roster && roster.students.find((x) => x.code === code);
+  if (!s || !s.selfie) return;
+  showConfirmDialog({
+    title: approve ? 'อนุมัติรูปเซลฟี่' : 'ปฏิเสธรูปเซลฟี่',
+    message: `${s.name} (${s.code})`,
+    tone: approve ? undefined : 'danger',
+    confirmText: approve ? 'อนุมัติ' : 'ปฏิเสธ',
+    bullets: approve ? [
+      'ยืนยันว่าเทียบภาพกับสถานที่จัดกิจกรรมแล้วถูกต้อง',
+      'เมื่ออนุมัติแล้ว ระบบจะแจกหน่วยกิตทันทีถ้าขั้นตอนอื่นที่กิจกรรมกำหนดครบแล้ว (FR-B3/B7)',
+    ] : [
+      'เช็คอินนี้จะไม่ได้รับหน่วยกิต',
+      'นักศึกษาต้องติดต่อ Field Staff เพื่อขอ Master Code หรือถ่ายรูปใหม่ถ้ายังอยู่ในช่วงกิจกรรม',
+    ],
+    onConfirm: () => {
+      const actor = currentUser(getSessionRole()).name;
+      s.selfie.reviewStatus = approve ? 'approved' : 'rejected';
+      s.selfie.reviewedBy = actor;
+      s.selfie.reviewedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      s.completionPath = approve ? 'standard' : null;
+      RegDB.save();
+      appendAudit(approve ? 'selfie_approved' : 'selfie_rejected', `${approve ? 'อนุมัติ' : 'ปฏิเสธ'}รูปเซลฟี่เช็คอินของ ${s.name} (${s.code}) กิจกรรม "${roster.name}"`, actor);
+      showToast(approve ? 'อนุมัติหน่วยกิตแล้ว' : 'ปฏิเสธรูปเซลฟี่แล้ว', approve ? 'success' : 'warning');
+      renderCrQueue();
+      renderCrDetail(s);
+    },
+  });
 }
