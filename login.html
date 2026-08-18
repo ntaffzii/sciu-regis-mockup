@@ -129,7 +129,7 @@
     { id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true },
     { id: 2, username: 'registrar.sombat', name: 'สมบัติ วงศ์ทะเบียน', email: 'sombat.w@ubu.ac.th', roles: ['registrar', 'lead_org'], active: true },
     { id: 3, username: 'wichai.lead', name: 'วิชัย จัดกิจกรรม', email: 'wichai.j@ubu.ac.th', roles: ['lead_org'], active: true },
-    { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['field_staff'], active: true },
+    { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['student'], fieldStaff: true, active: true },
     { id: 5, username: 'somchai.ja', name: 'สมชาย ใจดี', email: 'somchai.ja@ubu.ac.th', roles: ['student'], active: true },
   ];
 
@@ -195,7 +195,7 @@
       if (u.roles.includes('admin')) badgeCls = 'bg-purple-100 text-purple-800';
       else if (u.roles.includes('registrar')) badgeCls = 'bg-blue-100 text-blue-800';
       else if (u.roles.includes('lead_org')) badgeCls = 'bg-amber-100 text-amber-800';
-      else if (u.roles.includes('field_staff')) badgeCls = 'bg-emerald-100 text-emerald-800';
+      else if (u.roles.includes('field_staff') || u.fieldStaff) badgeCls = 'bg-emerald-100 text-emerald-800';
 
       const btn = document.createElement('button');
       btn.className = 'w-full text-left p-3 hover:bg-slate-50 border border-slate-200 rounded-xl transition flex items-center justify-between';
@@ -343,8 +343,9 @@
     } else {
       // บทบาทเดียว
       const primaryRole = user.roles[0];
-      Store.set('role', primaryRole === 'lead_org' ? 'lead-org' : primaryRole === 'field_staff' ? 'field-staff' : primaryRole);
-      
+      // มติ B2: field staff ไม่ใช่ role ถาวร — เป็นนักศึกษาที่ได้รับแต่งตั้งรายกิจกรรมโดย Lead Org
+      Store.set('role', user.fieldStaff ? 'field-staff' : primaryRole === 'lead_org' ? 'lead-org' : primaryRole);
+
       if (primaryRole === 'admin') {
         showToast('เข้าสู่ระบบผู้ดูแลระบบ (Admin) สำเร็จ');
         setTimeout(() => { location.href = 'admin-home.html'; }, 600);
@@ -354,8 +355,8 @@
       } else if (primaryRole === 'lead_org') {
         showToast('เข้าสู่ระบบผู้จัดงาน (Lead Org) สำเร็จ');
         setTimeout(() => { location.href = 'lead-org-home.html'; }, 600);
-      } else if (primaryRole === 'field_staff') {
-        showToast('เข้าสู่ระบบสตาฟหน้างาน (Field Staff) สำเร็จ');
+      } else if (user.fieldStaff) {
+        showToast('เข้าสู่ระบบสำเร็จ — นักศึกษาที่ได้รับแต่งตั้งเป็นสตาฟหน้างาน (รายกิจกรรม)');
         setTimeout(() => { location.href = 'field-staff-home.html'; }, 600);
       } else if (primaryRole === 'student') {
         showToast(`เข้าสู่ระบบสำเร็จ ยินดีต้อนรับนิสิต คุณ ${user.name}`);

@@ -92,10 +92,11 @@ const DEFAULT_PROOFS = [
       detail: 'ปลูกต้นโกงกางและทำความสะอาดชายฝั่ง', approverName: 'นายประสาน ดูแลดี', approverPosition: 'ผู้ใหญ่บ้าน', approverPhone: '086-555-4444'
     },
     rosterEntries: [
-      { rowIndex: 1, ocrFirstName: 'รุ่งนภา', ocrLastName: 'แสงทอง', ocrStudentCode: '66114400132', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
-      { rowIndex: 2, ocrFirstName: 'กมล', ocrLastName: 'ขยันยิ่ง', ocrStudentCode: '66114400131', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
-      { rowIndex: 3, ocrFirstName: 'ดวงเดือน', ocrLastName: 'ศรีสุข', ocrStudentCode: '6611440O129', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null }, // OCR อ่านเลข 0 เป็นตัว O ผิด
-      { rowIndex: 4, ocrFirstName: 'ธนพล', ocrLastName: 'แก้วมณี', ocrStudentCode: '66114499999', ocrFaculty: 'วิศวกรรมศาสตร์', signaturePresent: false, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null }, // รหัสไม่ตรงกับใครในระบบ + ไม่มีลายเซ็น
+      { rowIndex: 1, docSequenceNo: 26, isSequenceInferred: false, pageNumber: 2, ocrFirstName: 'สายน้ำ', ocrLastName: 'สาลีรัมย์', ocrStudentCode: '68114140162', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 2, docSequenceNo: 27, isSequenceInferred: false, pageNumber: 2, ocrFirstName: 'ปิ่นภิญรัตน์', ocrLastName: 'ลาภภิญโญ', ocrStudentCode: '68114140106', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 3, docSequenceNo: 28, isSequenceInferred: false, pageNumber: 2, ocrFirstName: 'ปรีญาภัทร์', ocrLastName: 'สิมมา', ocrStudentCode: '68114140096', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 21, docSequenceNo: 46, isSequenceInferred: true, pageNumber: 2, ocrFirstName: 'จิรานุตม์', ocrLastName: 'อุดมกัน', ocrStudentCode: '67114140055', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
+      { rowIndex: 22, docSequenceNo: 47, isSequenceInferred: true, pageNumber: 2, ocrFirstName: 'กนกสิริณัช', ocrLastName: 'กำจัด', ocrStudentCode: '68114140029', ocrFaculty: 'วิทยาศาสตร์', signaturePresent: true, matchedCode: null, status: 'pending', approvedHours: null, rejectionReason: null },
     ]
   },
 ];
@@ -964,8 +965,13 @@ function renderItemDetail(row) {
 /* -------- ตรวจรายชื่อกลุ่ม (group_roster) — OCR สกัด ต้องจับคู่ก่อนอนุมัติ ----------- */
 function renderRosterDetail(row) {
   const { proof: p, entry: en } = row;
+  const docSeqVal = en.docSequenceNo || en.rowIndex;
+  const docSeqBadge = en.isSequenceInferred
+    ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">✨ Auto-Inferred</span>`
+    : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">เลขตามเอกสาร</span>`;
+
   document.getElementById('proof-panel-title').textContent = 'รายชื่อที่ OCR สกัดได้ — แก้ไขได้ก่อนอนุมัติ';
-  document.getElementById('ocr-confidence').textContent = `แถวที่ ${en.rowIndex} • กิจกรรมกลุ่ม`;
+  document.getElementById('ocr-confidence').textContent = `แถวระบบที่ ${en.rowIndex} • ลำดับบนเอกสารที่ ${docSeqVal} • กิจกรรมกลุ่ม`;
 
   document.getElementById('proof-doc').innerHTML = `
     ${docThumb('แบบบันทึกการเข้าร่วมกิจกรรม (หน้าเอกสาร — ไม่มี OCR)', p.groupFormImage)}
@@ -979,6 +985,7 @@ function renderRosterDetail(row) {
     </div>`;
 
   document.getElementById('ocr-fields').innerHTML = `
+    ${ocrRow('ลำดับบนเอกสาร', `<div class="flex items-center justify-end gap-2">${docSeqBadge} <input id="pf-doc-seq" type="number" value="${docSeqVal}" class="ocr-input font-mono w-16 text-right"></div>`)}
     ${ocrRow('ชื่อ (OCR)', `<input id="pf-first" value="${en.ocrFirstName}" class="ocr-input">`)}
     ${ocrRow('นามสกุล (OCR)', `<input id="pf-last" value="${en.ocrLastName}" class="ocr-input">`)}
     ${ocrRow('รหัสนักศึกษา (OCR)', `<input id="pf-code" value="${en.ocrStudentCode}" class="ocr-input font-mono">`)}
@@ -988,6 +995,13 @@ function renderRosterDetail(row) {
   document.querySelectorAll('.ocr-input').forEach((el) => {
     el.className += ' text-sm font-semibold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none text-right';
   });
+
+  const docSeqInput = document.getElementById('pf-doc-seq');
+  if (docSeqInput) {
+    docSeqInput.addEventListener('input', (e) => {
+      en.docSequenceNo = parseInt(e.target.value) || en.rowIndex;
+    });
+  }
 
   ['pf-first', 'pf-last', 'pf-code', 'pf-faculty'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {

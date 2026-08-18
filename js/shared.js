@@ -107,7 +107,7 @@ const MOCK_USERS = {
   student: { name: 'สมชาย ใจดี', studentCode: '66114400123', roleLabel: 'นักศึกษา', roles: ['student'] },
   admin: { name: 'ธนกร ระบบดี', roleLabel: 'ผู้ดูแลระบบ (IT)', roles: ['admin'] },
   'lead-org': { name: 'อาจารย์วิชัย จัดกิจกรรม', roleLabel: 'Lead Org (ผู้จัดกิจกรรม)', roles: ['lead_org'] },
-  'field-staff': { name: 'น้องเก่ง สตาฟดี', roleLabel: 'Field Staff (สตาฟหน้างาน)', roles: ['field_staff'] },
+  'field-staff': { name: 'น้องเก่ง สตาฟดี', studentCode: '67114540141', roleLabel: 'Field Staff (นักศึกษาที่ได้รับแต่งตั้งรายกิจกรรม)', roles: ['student'] },
   guest: { name: 'ผู้เยี่ยมชม', roleLabel: 'Guest', roles: [] },
 };
 
