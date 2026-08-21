@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สไลด์รายงานความคืบหน้าโครงงาน: SciU-Regis | คณะวิทยาศาสตร์ ม.อุบลฯ</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #059669;
+            --accent-light: #10b981;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-main: 'Prompt', 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: #020617;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* Slide Viewport */
+        #presentation-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 1920px;
+            max-height: 1080px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+        }
+
+        /* Top Bar */
+        .slide-header {
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .header-title .tag {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .header-progress {
+            font-size: 14px;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        /* Slide Content Area */
+        .slide-viewport {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            padding: 40px 60px 30px 60px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(40px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            transform: translateX(-40px);
+        }
+
+        /* Slide Header elements */
+        .slide-title-wrap {
+            margin-bottom: 24px;
+        }
+
+        .slide-category {
+            font-size: 14px;
+            font-weight: 600;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slide-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slide-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Slide Layout Grids */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            flex: 1;
+            align-items: stretch;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            flex: 1;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 18px;
+            flex: 1;
+        }
+
+        .grid-6-tables {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 14px;
+            flex: 1;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(6px);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: #475569;
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            flex-shrink: 0;
+        }
+
+        .card-icon.emerald {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .card-icon.amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .card-icon.rose {
+            background: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border-color: rgba(244, 63, 94, 0.3);
+        }
+
+        .card-icon.purple {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .card-body {
+            font-size: 13.5px;
+            color: #cbd5e1;
+            line-height: 1.55;
+            flex: 1;
+        }
+
+        .card-body ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .card-body ul li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 7px;
+        }
+
+        .card-body ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Badge Pills */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 9999px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Code / Schema view */
+        .code-box {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: #a5f3fc;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        /* Bottom Controls */
+        .slide-footer {
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-nav:hover {
+            background: #334155;
+            border-color: #64748b;
+        }
+
+        .btn-nav.primary {
+            background: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        .btn-nav.primary:hover {
+            background: var(--primary-light);
+        }
+
+        /* Speaker Note Drawer */
+        #notes-drawer {
+            position: absolute;
+            bottom: 64px;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.96);
+            border-top: 2px solid #38bdf8;
+            padding: 20px 40px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 20;
+            backdrop-filter: blur(12px);
+            max-height: 35vh;
+            overflow-y: auto;
+        }
+
+        #notes-drawer.open {
+            transform: translateY(0);
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+
+        .notes-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        /* Cover Slide Specific */
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            gap: 24px;
+        }
+
+        .cover-badge {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+            padding: 6px 18px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cover-title {
+            font-size: 40px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.25;
+            max-width: 950px;
+        }
+
+        .cover-subtitle {
+            font-size: 20px;
+            color: #94a3b8;
+            font-weight: 400;
+            max-width: 750px;
+        }
+
+        .cover-meta {
+            display: flex;
+            gap: 32px;
+            margin-top: 18px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .cover-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Print Style */
+        @media print {
+            body {
+                overflow: visible;
+                height: auto;
+                background: white;
+                color: black;
+            }
+            #presentation-container {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+            .slide-header, .slide-footer, #notes-drawer {
+                display: none !important;
+            }
+            .slide {
+                position: relative;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: none !important;
+                page-break-after: always;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        <!-- Top Header -->
+        <header class="slide-header">
+            <div class="header-title">
+                <span class="tag">SCI-UBU</span>
+                <span>SciU-Regis Project Progress Report</span>
+            </div>
+            <div class="header-progress" id="progress-indicator">1 / 12</div>
+        </header>
+
+        <!-- Viewport -->
+        <main class="slide-viewport">
+
+            <!-- SLIDE 1: Cover -->
+            <section class="slide active" data-slide="1" data-notes="กราบเรียนอาจารย์ที่ปรึกษา วันนี้กลุ่มของพวกเราขอรายงานความคืบหน้าโครงงานระบบ SciU-Regis ซึ่งพัฒนาขึ้นเพื่อช่วยงานทะเบียนกิจกรรมของคณะวิทยาศาสตร์ ม.อุบลฯ โดยทำหน้าที่เป็นสะพานเตรียมข้อมูลนำเข้าชั่วโมง กยศ. ป้องกันการโกงเช็คอินด้วยระบบพิกัดและภาพถ่ายใบหน้าสด และช่วยลดภาระงานของเจ้าหน้าที่ด้วยระบบ AI ภายในคณะครับ">
+                <div class="cover-content">
+                    <div class="cover-badge">
+                        <i data-lucide="graduation-cap" style="width: 16px;"></i>
+                        รายงานความคืบหน้าโครงงานทางวิทยาการคอมพิวเตอร์และเทคโนโลยีสารสนเทศ
+                    </div>
+                    <h1 class="cover-title">
+                        ระบบผู้ช่วยกิจกรรมนักศึกษาและงานทะเบียนกิจกรรม<br>
+                        <span style="color: #38bdf8;">คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</span>
+                    </h1>
+                    <p class="cover-subtitle">
+                        Student Activity & Registrar Assistant System (SciU-Regis)
+                    </p>
+                    <div class="cover-meta">
+                        <div><i data-lucide="user" style="width: 16px; color: #38bdf8;"></i> ผู้จัดทำ: นักศึกษาโครงงาน คณะวิทยาศาสตร์</div>
+                        <div><i data-lucide="compass" style="width: 16px; color: #34d399;"></i> อาจารย์ที่ปรึกษา: อาจารย์ประจำภาควิชาฯ</div>
+                        <div><i data-lucide="calendar" style="width: 16px; color: #fbbf24;"></i> ปีการศึกษา 2568 - 2569</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: Problem Statement -->
+            <section class="slide" data-slide="2" data-notes="ปัญหาสำคัญคือระบบกลาง UBU SAC ปิดกั้น API เพื่อความปลอดภัย ทำให้ภาระงานคีย์มือทั้งหมดตกอยู่ที่เจ้าหน้าที่ทะเบียนครับ เจ้าหน้าที่ต้องคอยแกะลายมือ จัดไฟล์ Excel และตอบคำถามซ้ำเดิม โครงงานนี้จึงสร้างขึ้นมาเป็นเครื่องมือช่วยเจ้าหน้าที่เตรียมและตรวจสอบข้อมูลให้ถูกต้อง 100% ก่อนส่งเข้าสู่ระบบกลางครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="alert-circle" style="width: 14px;"></i> Problem Statement</div>
+                    <h2 class="slide-title">ที่มาและความสำคัญ & ปัญหาของระบบเดิม</h2>
+                    <p class="slide-subtitle">วิเคราะห์ข้อจำกัดของกระบวนการทะเบียนกิจกรรมและภาระงานในปัจจุบัน</p>
+                </div>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon rose"><i data-lucide="file-spreadsheet" style="width: 20px;"></i></div>
+                            <div class="card-title">1. UBU SAC ไม่มี API (ต้องคีย์มือ)</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>ระบบส่วนกลาง <strong>UBU SAC</strong> ปิดกั้น API ภายนอกเพื่อความปลอดภัย</li>
+                                <li>เจ้าหน้าที่ทะเบียนต้องจัดคอลัมน์และพิมพ์ข้อมูลลง Excel ด้วยมือ เสี่ยงต่อการจัดฟอร์แมตผิดพลาด</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon amber"><i data-lucide="signature" style="width: 20px;"></i></div>
+                            <div class="card-title">2. เช็คอินกระดาษอ่านไม่ออก & โกงง่าย</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>เซ็นชื่อบนกระดาษอ่านเลขรหัสผิดบ่อยครั้ง (เช่น เลข 1/4/7/9)</li>
+                                <li>มีการเซ็นชื่อแทนกันหน้างาน ไม่สามารถตรวจสอบว่าตัวจริงมาหรือไม่</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon purple"><i data-lucide="hourglass" style="width: 20px;"></i></div>
+                            <div class="card-title">3. จิตอาสานอกสะสมไม่ทัน & ตรวจยาก</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>กฎขอเปิดกิจกรรมล่วงหน้า 45 วัน ทำให้จิตอาสานอกสะสมชั่วโมงไม่ทัน</li>
+                                <li>ส่งเอกสารผ่าน Google Form ไม่มีระบบตัดเพดาน 9 ชม./วัน และไม่ล็อกโควตารายปี</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="phone-call" style="width: 20px;"></i></div>
+                            <div class="card-title">4. โทรศัพท์ถามซ้ำตลอดวัน</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>เจ้าหน้าที่เสียเวลาส่วนใหญ่กับการรับโทรศัพท์ตอบคำถามซ้ำเรื่องชั่วโมง กยศ. คงเหลือ</li>
+                                <li>ไม่มีช่องทางค้นหาข้อมูลระเบียบและเบอร์ติดต่อที่แม่นยำตลอด 24 ชั่วโมง</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Objectives & Scope -->
+            <section class="slide" data-slide="3" data-notes="เราตั้งเป้าหมายไว้ 5 ข้อเพื่อแก้ Pain Points ทั้งหมด โดยกำหนดขอบเขตชัดเจนว่าจะใช้ภายในคณะวิทยาศาสตร์ ข้อมูล AI รันแบบ Local ไม่รั่วไหล และเชื่อมต่อกับ UBU SAC ผ่านการ Export Excel ที่ถูกต้องตามมาตรฐานครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="target" style="width: 14px;"></i> Project Purpose</div>
+                    <h2 class="slide-title">วัตถุประสงค์ & ขอบเขตของโครงงาน</h2>
+                    <p class="slide-subtitle">เป้าหมายหลัก 5 ประการและขอบเขตการทำงานของระบบ SciU-Regis</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="check-circle-2" style="width: 20px;"></i></div>
+                            <div class="card-title">5 วัตถุประสงค์หลัก (Core Objectives)</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>1. สร้างไฟล์ Excel ตรงตามฟอร์แมต UBU SAC:</strong> ส่งออกข้อมูลพร้อมนำเข้าทันที ไม่ต้องจัดคอลัมน์ใหม่</li>
+                                <li><strong>2. เช็คอินปลอดภัยหลายชั้น:</strong> ตรวจสอบพิกัด GPS จริง + ภาพถ่ายใบหน้าสดหน้างาน + รหัสสำรองฉุกเฉิน</li>
+                                <li><strong>3. บริหารจิตอาสานอกคณะ:</strong> ใช้ AI สแกนตารางรายชื่อกลุ่ม + ล็อกโควตา 12 หน่วยกิจกรรม/ปี</li>
+                                <li><strong>4. แชทบอทตอบคำถาม 24 ชม. (SciU-Buddy):</strong> ผู้ช่วยตอบระเบียบ กยศ. และกิจกรรม ปลอดภัยด้วย AI ภายในคณะ</li>
+                                <li><strong>5. แจ้งเตือนอัตโนมัติ:</strong> ส่งข้อความเตือนเจ้าหน้าที่ผ่าน Slack DM และแจ้งเตือนนักศึกษาผ่าน LINE</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="shield-check" style="width: 20px;"></i></div>
+                            <div class="card-title">ขอบเขตโครงงาน (Project Scope)</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>กลุ่มผู้ใช้งาน:</strong> นักศึกษาและบุคลากร คณะวิทยาศาสตร์ มหาวิทยาลัยอุบลราชธานี</li>
+                                <li><strong>การเชื่อมต่อ UBU SAC:</strong> เชื่อมต่อผ่านการส่งออกไฟล์ Excel มาตรฐาน (ไม่มีการต่อฐานข้อมูลตรง)</li>
+                                <li><strong>ความปลอดภัยข้อมูล (Local AI):</strong> รันโมเดล AI และ OCR บนเครื่องเซิร์ฟเวอร์คณะ ข้อมูลไม่ส่งออกภายนอก</li>
+                                <li><strong>การแยกสิทธิ์:</strong> แยกสิทธิ์ Admin (ตั้งค่าระบบ) ออกจาก Registrar (งานทะเบียน) เพื่อความปลอดภัย</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: System Architecture -->
+            <section class="slide" data-slide="4" data-notes="สถาปัตยกรรมของเราเป็นแบบ 3 ส่วน แยกส่วนหน้าเว็บ Next.js 15, หลังบ้าน FastAPI, ฐานข้อมูล PostgreSQL 15 พร้อม PostGIS และ pgvector และมีบริการ Local AI Server สองโมเดลผ่าน llama.cpp ครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="cpu" style="width: 14px;"></i> System Architecture</div>
+                    <h2 class="slide-title">สถาปัตยกรรมระบบ & เทคโนโลยีที่ใช้</h2>
+                    <p class="slide-subtitle">การออกแบบโครงสร้างโปรแกรมและการผสานบริการ Local AI ภายในระบบ</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="layers" style="width: 20px;"></i></div>
+                            <div class="card-title">Technology Stack</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>หน้าเว็บ (Frontend):</strong> Next.js 15, React, TypeScript, Tailwind CSS</li>
+                                <li><strong>หลังบ้าน (Backend):</strong> FastAPI (Python 3.11+) ทำงานรวดเร็ว Asynchronous REST API</li>
+                                <li><strong>ฐานข้อมูล (Database):</strong> PostgreSQL 15 + <code>PostGIS</code> (คำนวณพิกัด GPS) + <code>pgvector</code> (ค้นหา RAG)</li>
+                                <li><strong>โมเดล AI ภายในองค์กร:</strong> <code>typhoon2.5-qwen3-4b</code> (ตอบคำถาม) และ <code>Typhoon-OCR-1.5-2B</code> (อ่านตารางกลุ่ม)</li>
+                                <li><strong>ระบบแจ้งเตือน:</strong> Slack API (DM เจ้าหน้าที่), LINE Messaging API, openpyxl</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card" style="justify-content: center; align-items: center; background: #0b1120;">
+                        <div class="code-box" style="width: 100%; font-size: 11px;">
+[หน้าเว็บ Next.js 15] <─── JSON REST API ───> [เซิร์ฟเวอร์หลัก FastAPI]
+                                                      │
+       ┌───────────────────┬──────────────────────────┼───────────────────┐
+       ▼                   ▼                          ▼                   ▼
+[PostgreSQL 15]   [Local LLM 4B]             [Local OCR 2B]       [Slack / LINE]
+ - PostGIS (GPS)   (typhoon2.5-qwen3)         (Typhoon-OCR)        - เตือนงานค้าง
+ - pgvector (FAQ)  (llama.cpp 8001)           (llama.cpp 8002)     - แจ้งสถานะนักศึกษา
+                        │
+                        ▼
+                [ตัวนำทางคำถาม] ───> [สร้างไฟล์ Excel] ───> ไฟล์นำเข้า UBU SAC
+                        </div>
+                        <p style="font-size: 12px; color: #94a3b8; margin-top: 8px; text-align: center;">
+                            * นำเข้า UBU SAC ผ่านไฟล์ Excel ด้วยมือ เจ้าหน้าที่เป็นผู้ตรวจสอบความถูกต้อง
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Use Case Diagram -->
+            <section class="slide" data-slide="5" data-notes="Use Case ของเรามีผู้ใช้ 6 กลุ่ม ออกแบบตามหลักสิทธิ์อย่างเคร่งครัด แยกสิทธิ์แอดมินออกจากทะเบียน และมีข้อกำหนดว่าก่อนส่งออกไฟล์ Excel ต้องผ่านการล็อกโควตา 12 หน่วยกิตก่อนเสมอครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="git-branch" style="width: 14px;"></i> System Modeling</div>
+                    <h2 class="slide-title">แบบจำลองยูสเคส (Use Case Diagram & 6 บทบาทผู้ใช้)</h2>
+                    <p class="slide-subtitle">การจำแนก 6 บทบาทผู้ใช้และความสัมพันธ์ตามมาตรฐานวิศวกรรมซอฟต์แวร์</p>
+                </div>
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="users" style="width: 20px;"></i></div>
+                            <div class="card-title">นักศึกษา & ผู้ใช้ทั่วไป</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><code>ผู้ใช้ทั่วไป:</code> ดูรายการกิจกรรม, โหลดระเบียบ, คุยกับบอท</li>
+                                <li><code>นักศึกษา:</code> เช็คอิน (GPS+กล้องสด), ส่งจิตอาสานอก, กรอกรหัสสำรอง, ดูชั่วโมงตนเอง</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon amber"><i data-lucide="user-cog" style="width: 20px;"></i></div>
+                            <div class="card-title">ผู้จัดงาน & สตาฟหน้างาน</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><code>ผู้จัดกิจกรรม:</code> สร้างกิจกรรม, กำหนดรัศมี GPS, ตรวจรูปภาพหน้างาน</li>
+                                <li><code>สตาฟหน้างาน:</code> สิทธิ์ชั่วคราวเฉพาะกิจกรรม ออกรหัสสำรองฉุกเฉิน (อายุ 5-15 นาที)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="shield" style="width: 20px;"></i></div>
+                            <div class="card-title">ทะเบียน & แอดมิน</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><code>เจ้าหน้าที่ทะเบียน:</code> ส่งออก Excel UBU SAC, ตรวจจิตอาสานอก, ปรับแก้แต้ม, รีเซ็ตปี</li>
+                                <li><code>ผู้ดูแลระบบ:</code> จัดการบัญชี, จัดการ FAQ, ดูประวัติความปลอดภัย Audit</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 14px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 18px; font-size: 13px; color: #93c5fd; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="info" style="width: 18px; flex-shrink: 0;"></i>
+                    <span><strong>ความสัมพันธ์สำคัญ:</strong> <code>ส่งออกไฟล์ SAC</code> <em>(ต้องทำเสมอ - include)</em> <code>ล็อกโควตา 12 หน่วยกิต</code> และ <code>เช็คอิน</code> <em>(ทำเฉพาะเมื่อมีปัญหา - extend)</em> <code>กรอกรหัสสำรอง Master Code</code></span>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Database ERD (22 Tables) -->
+            <section class="slide" data-slide="6" data-notes="ฐานข้อมูลของเรามีทั้งหมด 22 ตารางหลัก (24 ตารางรวม Log) แบ่งออกเป็น 6 กลุ่มโมดูลชัดเจน เช่น กลุ่มคุมโควตา 12 หน่วยกิต กลุ่มเก็บพิกัด PostGIS และกลุ่มแชทบอทเวกเตอร์ pgvector ครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="database" style="width: 14px;"></i> Database Design</div>
+                    <h2 class="slide-title">การออกแบบฐานข้อมูล (ER Diagram 22 ตารางหลัก)</h2>
+                    <p class="slide-subtitle">โครงสร้าง 22 ตารางหลัก (24 ตารางรวม Log) รองรับพิกัดภูมิศาสตร์ PostGIS และเวกเตอร์ RAG</p>
+                </div>
+                <div class="grid-6-tables">
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #60a5fa; font-size: 13.5px; margin-bottom: 6px;">1. บัญชีและยืนยันสิทธิ์ (5)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>users</code>, <code>students</code>, <code>staff</code>, <code>user_roles</code>, <code>student_verification_requests</code>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #34d399; font-size: 13.5px; margin-bottom: 6px;">2. กิจกรรม & เช็คอิน (5)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>events</code>, <code>registrations</code>, <code>event_field_staff</code>, <code>check_ins</code>, <code>event_credit_adjustments</code>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #fbbf24; font-size: 13.5px; margin-bottom: 6px;">3. จิตอาสานอก & โควตา (5)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>off_campus_volunteer_proofs</code>, <code>proof_items</code>, <code>roster_entries</code>, <code>open_category_credit_ledgers</code>, <code>academic_year_cycles</code>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #f472b6; font-size: 13.5px; margin-bottom: 6px;">4. ส่งออก UBU SAC (1)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>sac_export_batches</code> (ประวัติส่งออกและยืนยันนำเข้า)
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #a78bfa; font-size: 13.5px; margin-bottom: 6px;">5. แชทบอท & ฐานความรู้ (4)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>knowledge_faqs</code>, <code>faculty_contacts</code>, <code>chat_sessions</code>, <code>chat_messages</code>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 14px;">
+                        <div style="font-weight: 600; color: #94a3b8; font-size: 13.5px; margin-bottom: 6px;">6. ระบบ & บันทึก Log (4)</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                            <code>system_configs</code>, <code>audit_logs</code>, <code>staff_notification_logs</code>, <code>line_notification_logs</code>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 12.5px; color: #38bdf8; text-align: right;">
+                    * รวม 22 ตารางการทำงานหลัก + 2 ตารางบันทึกการส่งแจ้งเตือน (รวมทั้งสิ้น 24 ตาราง)
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Check-in Security 4 Layers -->
+            <section class="slide" data-slide="7" data-notes="หัวใจสำคัญด้านความปลอดภัยคือการป้องกัน 4 ชั้นซ้อนกันครับ เพราะเว็บแอปอาจโดนจำลองพิกัด Fake GPS ได้ เราจึงบังคับเปิดกล้องสดห้ามเลือกรูปจากอัลบั้ม และมีระบบรหัสสำรองหน้างานที่มีอายุสั้นครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="shield-alert" style="width: 14px;"></i> Security Architecture</div>
+                    <h2 class="slide-title">สถาปัตยกรรมความปลอดภัยระบบเช็คอิน (การป้องกัน 4 ชั้นซ้อนกัน)</h2>
+                    <p class="slide-subtitle">การป้องกันหลายชั้น (Defence-in-Depth) รับมือกับข้อจำกัดของ Web Application</p>
+                </div>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="map-pin" style="width: 20px;"></i></div>
+                            <div class="card-title">ชั้นที่ 1: ตรวจพิกัด GPS จริง</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>คำนวณระยะพิกัดจริงด้วย PostGIS <code>ST_DWithin</code> (เช่น รัศมี 30 ม.)</li>
+                                <li>ระบบตรวจจับพิกัดปลอม 4 ข้อ (Noise, พิกัดซ้ำ, เวลาค้าง, ความเร็วเกินจริง)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="camera" style="width: 20px;"></i></div>
+                            <div class="card-title">ชั้นที่ 2: ภาพถ่ายใบหน้าสด</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>บังคับเปิดกล้องสดเท่านั้น</strong> (ห้ามเลือกรูปจากอัลบั้มหรือ Gallery)</li>
+                                <li>ส่งเข้าระบบให้ผู้จัดงาน/ทะเบียนตรวจเทียบใบหน้าจริงด้วยตาก่อนอนุมัติ</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon amber"><i data-lucide="key-round" style="width: 20px;"></i></div>
+                            <div class="card-title">ชั้นที่ 3: รหัสสำรองฉุกเฉิน</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>ออกโดยสตาฟหน้างานเท่านั้น สำหรับนักศึกษาที่มือถือมีปัญหาหรือ GPS ไม่ติด</li>
+                                <li>รหัสมีอายุสั้นเพียง <strong>5-15 นาที</strong> + บันทึกรหัสสตาฟผู้ออกรหัส</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon purple"><i data-lucide="lock" style="width: 20px;"></i></div>
+                            <div class="card-title">ชั้นที่ 4: ความปลอดภัย & PDPA</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>เข้ารหัสกุญแจความลับ API ด้วย <strong>AES-256-GCM</strong></li>
+                                <li>ระบบลบภาพถ่ายใบหน้าทิ้งอัตโนมัติหลัง <strong>90 วัน</strong> ตามกฎหมาย PDPA</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: GPS Anti-Spoofing Deep Dive -->
+            <section class="slide" data-slide="8" data-notes="ระบบตรวจจับ Fake GPS ของเราใช้ 4 สัญญาณ เช่น การตรวจพิกัดซ้ำกันถึงทศนิยมตำแหน่งที่ 6 ซึ่งในธรรมชาติ GPS จริงจะมี Noise เสมอ ถ้าตรงกันเป๊ะแสดงว่ามีการแชร์พิกัดปลอมชุดเดียวกัน ระบบจะติดป้ายเตือนให้เจ้าหน้าที่พิจารณาในหน้าจออนุมัติครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="crosshair" style="width: 14px;"></i> Anti-Spoofing In-Depth</div>
+                    <h2 class="slide-title">เจาะลึกการตรวจจับการโกงพิกัด (Fake GPS Detection)</h2>
+                    <p class="slide-subtitle">4 สัญญาณความเสี่ยงตรวจจับการปลอมพิกัดและการตรวจสอบด้วยตา</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon rose"><i data-lucide="radar" style="width: 20px;"></i></div>
+                            <div class="card-title">4 สัญญาณจับพิกัดผิดปกติ</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><span class="badge badge-warning">ตรวจความแกว่งสัญญาณ</span> สัญญาณ GPS จริงต้องแกว่ง 5-65 ม. ถ้าส่งค่า 0 หรือตัวเลขกลมเป๊ะ ➡️ ติดป้ายเตือน</li>
+                                <li><span class="badge badge-danger">ตรวจพิกัดซ้ำกันเป๊ะ</span> พิกัดทศนิยมตำแหน่งที่ 6 ซ้ำกันข้ามคนในเวลาใกล้กัน ➡️ ติดป้ายพิกัดซ้ำ (แชร์พิกัดปลอม)</li>
+                                <li><span class="badge badge-warning">ตรวจเวลาค้าง</span> เวลาของ GPS กับเวลาที่ระบบได้รับต่างกันเกิน 60 วิ ➡️ ติดป้ายพิกัดเก่า</li>
+                                <li><span class="badge badge-danger">ตรวจความเร็วเกินจริง</span> เดินทางเร็วกว่า 120 กม./ชม. จากจุดเดิม ➡️ ติดป้ายความเร็วผิดปกติ</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="eye" style="width: 20px;"></i></div>
+                            <div class="card-title">ตรวจด้วยตา (ไม่ตัดสิทธิ์อัตโนมัติ)</div>
+                        </div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 12px; font-size: 13px; color: #cbd5e1;">
+                                เพื่อไม่ให้ตัดสิทธิ์นักศึกษาที่มาเรียนจริงแต่สัญญาณเพี้ยนเพราะอยู่ในตึกคอนกรีตหนา ระบบจะไม่บล็อกทันที แต่จะส่งเข้าหน้าจออนุมัติให้ตรวจเทียบรูปถ่าย:
+                            </p>
+                            <div style="background: #090d16; border-radius: 8px; padding: 12px; border: 1px solid #1e293b;">
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                                    <span>รูปโปรไฟล์ในระบบ</span>
+                                    <span>รูปถ่ายสดหน้างาน</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span class="badge badge-danger">⚠️ พิกัดซ้ำกับ นาย B</span>
+                                    <span class="badge badge-warning">⚠️ ค่าพิกัดผิดปกติ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: Open Category & OCR -->
+            <section class="slide" data-slide="9" data-notes="ระบบรองรับเอกสาร 2 แบบ คือ สมุดบันทึกกิจกรรมจิตอาสา และตารางรายชื่อกลุ่มที่ใช้ Typhoon-OCR ดึงรหัสนักศึกษาอัตโนมัติ โดยระบบจะตัดเพดานไม่เกิน 9 ชั่วโมงต่อวัน และล็อกโควตา 12 หน่วยกิตต่อปีโดยอัตโนมัติครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="scan-line" style="width: 14px;"></i> Open Category & OCR</div>
+                    <h2 class="slide-title">จิตอาสานอกคณะ & AI สแกนตารางกลุ่ม (OCR)</h2>
+                    <p class="slide-subtitle">การจัดการเอกสารจิตอาสานอกมหาวิทยาลัยและโมเดล Typhoon-OCR ภายในองค์กร</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="file-text" style="width: 20px;"></i></div>
+                            <div class="card-title">2 รูปแบบเอกสารที่รองรับ</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>1. สมุดบันทึกจิตอาสา (เดี่ยว):</strong> นักศึกษากรอกเอง 1-4 แถว + ดึงข้อมูลชื่อ/รหัสอัตโนมัติ แสดงคู่กับรูปเอกสารเพื่อตรวจด้วยตา</li>
+                                <li><strong>2. แบบบันทึกกลุ่ม (ตารางรายชื่อ):</strong> กรอกข้อมูลโครงการครั้งเดียว และส่งรูปตารางรายชื่อเข้า <strong>Typhoon-OCR</strong> ดึงรหัสนักศึกษา/ชื่อ-สกุล</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon amber"><i data-lucide="scale" style="width: 20px;"></i></div>
+                            <div class="card-title">กฎและข้อจำกัดการอนุมัติหน่วยกิต</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>ตัดเพดานรายวัน:</strong> รวมทุกกิจกรรมในวันเดียวกันได้ <strong>ไม่เกิน 9 ชม./วัน (3 หน่วยกิต)</strong></li>
+                                <li><strong>ล็อกโควตารายปี:</strong> ระบบล็อกยอดสะสมอัตโนมัติเมื่อครบ <strong>12 หน่วยกิจกรรม/ปี</strong></li>
+                                <li><strong>แก้ไขตัวสะกดได้:</strong> เจ้าหน้าที่สามารถแก้ไขตัวอักษรที่ AI อ่านผิดได้ในหน้าจอก่อนกดอนุมัติ</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 10: SciU-Buddy Local AI -->
+            <section class="slide" data-slide="10" data-notes="SciU-Buddy ถ้าถามเบอร์โทรหรือกิจกรรมจะดึงข้อมูลจริงจากฐานข้อมูลตรงๆ เพื่อความถูกต้อง 100% ไม่หลอน ถ้าถามระเบียบ กยศ. จะค้นหาความหมายจาก FAQ และถ้าตอบไม่ได้จะส่งสัญญาณเตือนไปที่ Slack ของเจ้าหน้าที่ทะเบียนทันทีครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="bot" style="width: 14px;"></i> Intelligent Assistant</div>
+                    <h2 class="slide-title">แชทบอท SciU-Buddy & การแจ้งเตือนเจ้าหน้าที่</h2>
+                    <p class="slide-subtitle">ตอบคำถามตรงจากฐานข้อมูล ป้องกัน AI ตอบมั่ว และส่งสัญญาณเตือนเจ้าหน้าที่ผ่าน Slack DM</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="sparkles" style="width: 20px;"></i></div>
+                            <div class="card-title">SciU-Buddy Local AI ในคณะ</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>ดึงข้อมูลจริงตรงจากฐานข้อมูล (SQL Search):</strong> ถามเบอร์โทร หรือวันที่กิจกรรม ได้ข้อมูลเป๊ะ 100% ป้องกัน AI ตอบมั่ว</li>
+                                <li><strong>ค้นหาตามความหมาย (Semantic Search):</strong> ค้นหาระเบียบ กยศ. จากคลังคำถาม FAQ ผ่าน <code>pgvector</code></li>
+                                <li><strong>เรียบเรียงภาษาไทยสุภาพ:</strong> ใช้โมเดล <code>typhoon2.5-qwen3-4b</code> ตอบด้วยสรรพนาม "ผม / คุณนิสิต"</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon purple"><i data-lucide="send" style="width: 20px;"></i></div>
+                            <div class="card-title">ระบบเตือนเจ้าหน้าที่ (Slack DM Alert)</div>
+                        </div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 10px; font-size: 13px; color: #cbd5e1;">
+                                เมื่อระบบค้นหาไม่พบคำตอบสำหรับคำถามของนักศึกษา:
+                            </p>
+                            <ul>
+                                <li>บอทจะตอบอย่างสุภาพว่าไม่ทราบข้อมูล พร้อมแสดงอีเมลติดต่อเจ้าหน้าที่ทะเบียน</li>
+                                <li>ส่งสัญญาณแจ้งเตือน <strong>Slack DM</strong> หาเจ้าหน้าที่ทันที เพื่อให้ทราบเรื่องและเข้ามาอัปเดตคำตอบในระบบ</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: Current Progress -->
+            <section class="slide" data-slide="11" data-notes="ปัจจุบันเราทำเอกสารข้อกำหนด SRS ครบ 54 ข้อ ออกแบบ Use Case 23 ตัว ER Diagram 22 ตารางหลัก และทำหน้าจอระบบเสมือนจริงครบทั้ง 14 หน้าจอ พร้อมทดสอบโมเดล AI ภายในเซิร์ฟเวอร์เรียบร้อยแล้วครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="check-square" style="width: 14px;"></i> Project Status</div>
+                    <h2 class="slide-title">ความคืบหน้าการดำเนินงานปัจจุบัน</h2>
+                    <p class="slide-subtitle">ผลงานที่พัฒนาเสร็จสมบูรณ์แล้วตามมาตรฐานวิศวกรรมซอฟต์แวร์</p>
+                </div>
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="file-check" style="width: 20px;"></i></div>
+                            <div class="card-title">เอกสาร & สเปกระบบ</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>ข้อกำหนดระบบครบ 6 หมวด (54 ข้อ)</li>
+                                <li>Use Case ละเอียดครบ 23 ยูสเคส</li>
+                                <li><strong>ER Diagram 22 ตารางหลัก (24 ตารางระบบ)</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="layout" style="width: 20px;"></i></div>
+                            <div class="card-title">หน้าจอระบบเสมือนจริง</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>หน้าจอสมบูรณ์ 14+ หน้าจอ (HTML/CSS/JS)</li>
+                                <li>รองรับทั้ง ทะเบียน, นักศึกษา, ผู้จัดงาน, สตาฟหน้างาน, และแอดมิน</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon amber"><i data-lucide="cpu" style="width: 20px;"></i></div>
+                            <div class="card-title">AI & ความปลอดภัย</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li>ทดสอบโมเดล Typhoon LLM & OCR สำเร็จ</li>
+                                <li>ออกแบบระบบป้องกันพิกัดปลอม & PDPA 90 วัน</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 12: Next Steps & Q&A -->
+            <section class="slide" data-slide="12" data-notes="ขั้นตอนต่อไปเราจะเริ่มจากติดตั้งฐานข้อมูลและหลังบ้านหลัก จากนั้นทำหน้าเว็บล็อกอินและตรวจเช็คข้อมูลนักศึกษาเป็นสเต็ปแรก แล้วทำการทดสอบประเมินโมเดล OCR และ AI แชทบอท ก่อนจะต่อยอดไปพัฒนา Business Logic และหน้าจอส่วนที่เหลือให้ครบถ้วนครับ">
+                <div class="slide-title-wrap">
+                    <div class="slide-category"><i data-lucide="flag" style="width: 14px;"></i> Roadmap & Defense</div>
+                    <h2 class="slide-title">แผนงานขั้นต่อไป & เตรียมพร้อมตอบคำถาม (Q&A)</h2>
+                    <p class="slide-subtitle">ลำดับขั้นตอนการพัฒนาและแนวทางการตอบข้อซักถามของอาจารย์</p>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="calendar-clock" style="width: 20px;"></i></div>
+                            <div class="card-title">4 ขั้นตอนการพัฒนาที่จะทำต่อไป</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>1. ติดตั้งฐานข้อมูล & หลังบ้านหลัก:</strong> สร้างฐานข้อมูล PostgreSQL/PostGIS จริง และวางโครงสร้าง FastAPI Core</li>
+                                <li><strong>2. หน้าเว็บล็อกอิน & ยืนยันตัวตนนักศึกษา:</strong> เชื่อมต่อ Google OAuth หน้าบ้าน-หลังบ้าน และระบบตรวจเช็คข้อมูลทะเบียนนักศึกษา</li>
+                                <li><strong>3. ทดสอบประเมินโมเดล OCR & AI Bot:</strong> ทดสอบประสิทธิภาพ Typhoon-OCR สแกนตารางกลุ่ม และความแม่นยำของแชทบอท SciU-Buddy</li>
+                                <li><strong>4. พัฒนา Logic & หน้าบ้านส่วนที่เหลือ:</strong> ระบบเช็คอิน GPS/กล้องสด, โควตา 12 หน่วยกิต, ส่งออก UBU SAC, แจ้งเตือน Slack/LINE</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon emerald"><i data-lucide="help-circle" style="width: 20px;"></i></div>
+                            <div class="card-title">แนวทางตอบคำถามอาจารย์ (Q&A Strategy)</div>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                <li><strong>Q: ทำไมไม่ตัดสิทธิ์คนที่ GPS แปลกอัตโนมัติ?</strong><br>
+                                    <span style="color: #94a3b8; font-size: 12.5px;">A: ในตึกคอนกรีตสัญญาณอาจสะท้อน เราใช้ป้ายเตือนร่วมกับตรวจรูปใบหน้าสดเพื่อไม่ให้ตัดสิทธิ์คนมาจริง</span></li>
+                                <li><strong>Q: ทำไมใช้ Local AI แทน Cloud API?</strong><br>
+                                    <span style="color: #94a3b8; font-size: 12.5px;">A: รักษาความเป็นส่วนตัวข้อมูลนักศึกษาตาม PDPA และประหยัดค่าใช้จ่ายระยะยาวของคณะ</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Footer & Controls -->
+        <footer class="slide-footer">
+            <div class="controls-group">
+                <button class="btn-nav" id="btn-prev"><i data-lucide="chevron-left" style="width: 16px;"></i> ก่อนหน้า (←)</button>
+                <button class="btn-nav primary" id="btn-next">ถัดไป (→) <i data-lucide="chevron-right" style="width: 16px;"></i></button>
+            </div>
+
+            <div class="controls-group">
+                <button class="btn-nav" id="btn-notes"><i data-lucide="message-square" style="width: 16px;"></i> บทพูดผู้นำเสนอ (N)</button>
+                <button class="btn-nav" id="btn-fullscreen"><i data-lucide="maximize" style="width: 16px;"></i> เต็มจอ (F11)</button>
+            </div>
+        </footer>
+
+        <!-- Speaker Notes Drawer -->
+        <div id="notes-drawer">
+            <div class="notes-header">
+                <span><i data-lucide="mic" style="width: 14px; display: inline-block; vertical-align: middle;"></i> Speaker Notes (สำหรับซ้อมพูดนำเสนออาจารย์)</span>
+                <span style="font-family: var(--font-mono); font-size: 12px; color: #94a3b8;">กดปุ่ม 'N' เพื่อเปิด/ปิด</span>
+            </div>
+            <div class="notes-text" id="notes-content">
+                กราบเรียนอาจารย์ที่ปรึกษา วันนี้กลุ่มของพวกเราขอรายงานความคืบหน้าโครงงานระบบ SciU-Regis ครับ...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lucide Icons Initialization
+        lucide.createIcons();
+
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        const slides = document.querySelectorAll('.slide');
+        const progressIndicator = document.getElementById('progress-indicator');
+        const notesDrawer = document.getElementById('notes-drawer');
+        const notesContent = document.getElementById('notes-content');
+
+        function updateSlide(newSlide) {
+            if (newSlide < 1 || newSlide > totalSlides) return;
+
+            slides.forEach((slide, index) => {
+                const slideNum = index + 1;
+                slide.classList.remove('active', 'prev');
+                if (slideNum === newSlide) {
+                    slide.classList.add('active');
+                    // Update notes
+                    notesContent.textContent = slide.getAttribute('data-notes') || 'ไม่มีบันทึกสำหรับสไลด์นี้';
+                } else if (slideNum < newSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            currentSlide = newSlide;
+            progressIndicator.textContent = `${currentSlide} / ${totalSlides}`;
+        }
+
+        // Event Listeners
+        document.getElementById('btn-next').addEventListener('click', () => updateSlide(currentSlide + 1));
+        document.getElementById('btn-prev').addEventListener('click', () => updateSlide(currentSlide - 1));
+
+        document.getElementById('btn-notes').addEventListener('click', () => {
+            notesDrawer.classList.toggle('open');
+        });
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Keyboard Navigation
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                updateSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+                e.preventDefault();
+                updateSlide(currentSlide - 1);
+            } else if (e.key === 'n' || e.key === 'N') {
+                notesDrawer.classList.toggle('open');
+            } else if (e.key === 'Home') {
+                updateSlide(1);
+            } else if (e.key === 'End') {
+                updateSlide(totalSlides);
+            }
+        });
+
+        // Initial setup
+        updateSlide(1);
+    </script>
+</body>
+</html>
