@@ -688,6 +688,11 @@ function initEventFormPage() {
     if (openEnabled && !acceptIndividual && !acceptProject) {
       errors.push('กิจกรรมเปิดกว้างต้องเลือกรับหลักฐานอย่างน้อย 1 แบบ (รายบุคคล หรือ ระดับโครงการ)');
     }
+    // ให้ตรงกับกฎฝั่ง backend: registration_deadline ต้องไม่เลยวันเริ่มกิจกรรม (ไม่งั้น API คืน 422)
+    const deadlineVal = document.getElementById('ev-deadline').value;
+    if (dateVal && deadlineVal && deadlineVal > dateVal) {
+      errors.push('วันสิ้นสุดการลงทะเบียนต้องไม่เลยวันจัดกิจกรรม — กรุณาแก้วันใดวันหนึ่งก่อนบันทึก');
+    }
     const staffLimit = Number(staffLimitInput.value) || 3;
     if (formStaffIds.length > staffLimit) {
       errors.push(`มีสตาฟที่เพิ่มไว้ (${formStaffIds.length} คน) เกินจำนวนจำกัด (${staffLimit} คน) — กรุณาลบออกหรือเพิ่มจำนวนจำกัด`);
@@ -752,6 +757,14 @@ function initEventFormPage() {
     appendAudit('event_created', `สร้างกิจกรรม "${name}"${open ? ' (เปิดกว้าง)' : ''}`);
     showToast(`บันทึกกิจกรรม "${name}" แล้ว${open ? ' — ติดธงกิจกรรมเปิดกว้าง' : ''}`);
     renderRecentEvents();
+
+    // Wk14 (Create): ส่งข้อมูลเข้าฐานข้อมูลจริงผ่าน POST /api/v1/events
+    // ถ้า backend ไม่ได้เปิดอยู่ หน้าจอยังทำงานได้ตามเดิมด้วยข้อมูลจำลอง
+    createEventOnServer({
+      name, dateVal, daysVal, creditsVal, open, gpsEnabled, latVal, lngVal, radiusVal,
+      selfie, masterCode, objectives, description, schedule, subcategory,
+      eligible_participants, location, registration_deadline, contact_info,
+    });
     e.target.reset();
     clearImage();
     gpsFields.classList.add('hidden');
@@ -759,6 +772,64 @@ function initEventFormPage() {
     refreshStaffChips();
   });
   renderRecentEvents();
+}
+
+/* Wk14 (Create): ส่งกิจกรรมที่เพิ่งกรอกเข้าตาราง events ของ PostgreSQL จริง
+ *
+ * หมายเหตุการ map ฟิลด์ (อ้างอิงคอลัมน์จริงใน database/init.sql):
+ *   - ฟอร์มเก็บ "วันที่เริ่ม + จำนวนวัน" ส่วน DB เก็บ start_date/end_date จึงต้องคำนวณวันสิ้นสุด
+ *   - ไม่ส่ง image_url เพราะ mockup เก็บรูปเป็น base64 data URL ซึ่งยาวเกินคอลัมน์ VARCHAR(500)
+ *   - staffIds / staffLimit / acceptedDocTypes ยังไม่ส่ง เพราะอยู่คนละตาราง (event_field_staff)
+ *     ซึ่งอยู่นอกขอบเขตงานสัปดาห์ที่ 14
+ */
+async function createEventOnServer(f) {
+  const orNull = (v) => (v && String(v).trim() ? String(v).trim() : null);
+  const startISO = new Date(`${f.dateVal}T09:00:00`).toISOString();
+  const endDate = new Date(`${f.dateVal}T16:00:00`);
+  endDate.setDate(endDate.getDate() + Math.max(0, (Number(f.daysVal) || 1) - 1));
+
+  const payload = {
+    title: f.name,
+    objectives: orNull(f.objectives),
+    description: orNull(f.description),
+    schedule: orNull(f.schedule),
+    event_type: f.open ? 'open_category' : 'general',
+    subcategory: orNull(f.subcategory),
+    is_open_category: !!f.open,
+    max_credits: Number(f.creditsVal),
+    start_date: startISO,
+    end_date: endDate.toISOString(),
+    registration_deadline: f.registration_deadline
+      ? new Date(`${f.registration_deadline}T23:59:00`).toISOString()
+      : null,
+    location: orNull(f.location),
+    contact_info: orNull(f.contact_info),
+    eligible_participants: orNull(f.eligible_participants),
+    gps_enabled: !!f.gpsEnabled,
+    gps_lat: f.gpsEnabled ? Number(f.latVal) : null,
+    gps_lng: f.gpsEnabled ? Number(f.lngVal) : null,
+    gps_radius_m: Number(f.radiusVal) || 30,
+    selfie_enabled: !!f.selfie,
+    master_code_enabled: !!f.masterCode,
+    status: 'open',
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`HTTP ${res.status} — ${detail.slice(0, 200)}`);
+    }
+    const saved = await res.json();
+    showToast(`บันทึกลงฐานข้อมูลจริงแล้ว (id: ${String(saved.id).slice(0, 8)}…)`);
+  } catch (err) {
+    console.warn('บันทึกลงฐานข้อมูลจริงไม่สำเร็จ:', err.message);
+    showToast('บันทึกในเครื่องแล้ว แต่ยังต่อฐานข้อมูลจริงไม่ได้ — ตรวจว่ารัน docker compose up -d หรือยัง');
+  }
 }
 
 function renderRecentEvents() {

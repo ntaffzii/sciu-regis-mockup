@@ -117,8 +117,26 @@
     { id: 6, name: 'ปลูกป่าชายเลนเฉลิมพระเกียรติ (เปิดกว้าง)', date: '2026-07-08', days: 1, credits: 2.0, open: true, gps: false, participants: 40, checkedIn: 36, exportStatus: 'none', subcategory: 'บำเพ็ญประโยชน์/สิ่งแวดล้อม', eligible_participants: 'ทุกชั้นปี (กิจกรรมนอกสถานที่)', location: 'ศูนย์เรียนรู้ป่าชายเลน จ.สมุทรสงคราม', contact_info: 'สโมสรนักศึกษา โทร. 089-xxx-xxxx', objectives: 'เพื่อฟื้นฟูธรรมชาติชายฝั่ง ทัศนศึกษาป่าชายเลน และทำกิจกรรมปลูกป่าทดแทน', registration_deadline: '2026-06-25', description: 'กิจกรรมปลูกป่าชายเลนเพื่อเฉลิมพระเกียรติฯ เป็นกิจกรรมเปิดกว้างที่เปิดรับนิสิตทุกคณะร่วมฟื้นฟูระบบนิเวศชายฝั่ง พร้อมเรียนรู้ระบบนิเวศป่าชายเลนอย่างใกล้ชิด', schedule: '06:00 - พร้อมกันหน้าคณะ และเริ่มเดินทาง\n10:30 - ถึงจุดปลูกป่าและฟังบรรยาย\n11:00 - 14:00 - ปลูกป่าชายเลนและเดินศึกษาธรรมชาติ\n15:00 - เดินทางกลับ UBU' }
   ];
 
-  // Get active database list
-  const dbEvents = DEFAULT_EVENTS;
+  // Get active database list — เริ่มจากข้อมูลจำลองไว้ก่อน แล้วแทนที่ด้วยข้อมูลจริงจาก API
+  let dbEvents = DEFAULT_EVENTS;
+  let dataSourceLabel = 'ข้อมูลจำลอง';
+
+  // Wk14 (Read): ดึงรายการกิจกรรมจริงจาก GET /api/v1/events
+  async function loadEventsFromApi() {
+    try {
+      const res = await fetch(`${API_BASE}/events`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = await res.json();
+      if (Array.isArray(rows)) {
+        dbEvents = rows.map(mapApiEvent);
+        dataSourceLabel = 'ฐานข้อมูลจริง (PostgreSQL)';
+      }
+    } catch (err) {
+      // ไม่ได้เปิด backend ก็ยังเปิดหน้าดูได้ด้วยข้อมูลจำลองเหมือนเดิม
+      console.warn('เชื่อมต่อ API ไม่ได้ — ใช้ข้อมูลจำลองแทน:', err.message);
+    }
+    filterEvents();
+  }
 
   // กิจกรรมที่นักศึกษา "ลงทะเบียนไว้แล้ว" (ตรงกับ myRegisteredEvents() ใน js/student.js — id 2, 5)
   const MY_REGISTERED_IDS = [2, 5];
@@ -181,7 +199,8 @@
 
   function renderEvents(list) {
     const grid = document.getElementById('events-grid');
-    document.getElementById('results-count').textContent = `พบรายการกิจกรรมทั้งหมด ${list.length} รายการ`;
+    document.getElementById('results-count').textContent =
+      `พบรายการกิจกรรมทั้งหมด ${list.length} รายการ • แหล่งข้อมูล: ${dataSourceLabel}`;
 
     if (!list.length) {
       grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-sm">ไม่พบกิจกรรมที่สอดคล้องกับเงื่อนไขการค้นหา</div>`;
@@ -229,8 +248,9 @@
     showToast(`ลงทะเบียนเข้าร่วมกิจกรรม "${name}" เรียบร้อยแล้ว (จำลอง)`);
   }
 
-  // Initial render
+  // Initial render — วาดข้อมูลจำลองก่อน แล้วค่อยแทนที่ด้วยข้อมูลจาก API เมื่อโหลดเสร็จ
   filterEvents();
+  loadEventsFromApi();
 </script>
 </body>
 </html>

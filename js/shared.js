@@ -4,6 +4,52 @@
  * อ้างอิง: docs/09_DESIGN.md, docs/10_LAYOUT_NAVIGATION.md, AGENTS.md §9
  * ========================================================================= */
 
+/* ---------------- Backend API (Wk14: Create & Read ตาราง events) ---------
+ * Backend รันที่พอร์ต 8001 (พอร์ต 8000 ถูกใช้โดยบริการอื่นบนเครื่องพัฒนา)
+ * ถ้ายังไม่ได้เปิด backend (docker compose up -d) หน้าจอจะถอยไปใช้ข้อมูลจำลองเอง
+ * ------------------------------------------------------------------------- */
+const API_BASE = 'http://localhost:8001/api/v1';
+
+/* แปลงข้อมูลกิจกรรมจาก API (คอลัมน์จริงตาม database/init.sql)
+ * ให้อยู่ในรูปแบบเดียวกับข้อมูลจำลองที่หน้าจอเดิมใช้อยู่ */
+function mapApiEvent(e) {
+  const start = e.start_date ? e.start_date.slice(0, 10) : '';
+  const end = e.end_date ? e.end_date.slice(0, 10) : start;
+  let days = 1;
+  if (start && end) {
+    const diff = Math.round((new Date(end) - new Date(start)) / 86400000);
+    days = Math.max(1, diff + 1);
+  }
+  return {
+    id: e.id,
+    name: e.title,
+    date: start,
+    days,
+    credits: Number(e.max_credits) || 0,
+    open: !!e.is_open_category,
+    gps: !!e.gps_enabled,
+    lat: e.gps_lat,
+    lng: e.gps_lng,
+    radius: e.gps_radius_m,
+    participants: e.max_participants || 0,
+    checkedIn: 0,
+    exportStatus: 'none',
+    rosterOverdue: false,
+    staffIds: [],
+    staffLimit: 3,
+    subcategory: e.subcategory || '',
+    eligible_participants: e.eligible_participants || '',
+    location: e.location || '',
+    contact_info: e.contact_info || '',
+    objectives: e.objectives || '',
+    description: e.description || '',
+    schedule: e.schedule || '',
+    registration_deadline: e.registration_deadline ? e.registration_deadline.slice(0, 10) : '',
+    image_url: e.image_url || null,
+    _fromApi: true,
+  };
+}
+
 /* ---------------- Icon Library (SVG inner markup, 24x24 stroke-based) ---- */
 const ICONS = {
   info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',

@@ -55,16 +55,46 @@
 
   var EVENTS = Store.get('events', DEFAULT_EVENTS);
 
-  function loadDetail() {
+  /* อ่านรหัสกิจกรรมจาก URL หรือ Store
+   * รองรับทั้ง id ตัวเลข (ข้อมูลจำลอง) และ UUID (ข้อมูลจริงจากฐานข้อมูล)
+   * ของเดิมใช้ /[?&]id=(\d+)/ + parseInt ซึ่งพัง 2 แบบเมื่อเจอ UUID:
+   *   1) regex ไม่แมตช์ UUID เลย
+   *   2) parseInt('2db60c25-fe65-...') คืนค่า 2 → เปิดกิจกรรมผิดตัวโดยไม่แจ้ง error */
+  function currentEventId() {
     var q = window.location.search + window.location.hash;
-    var match = q.match(/[?&]id=(\d+)/);
-    var id = match ? parseInt(match[1], 10) : parseInt(Store.get('eventId', 0), 10);
+    var match = q.match(/[?&]id=([^&#]+)/);
+    if (match) return decodeURIComponent(match[1]);
+    var stored = Store.get('eventId', '');
+    return stored ? String(stored) : '';
+  }
+
+  /* เทียบ id แบบ string เสมอ — กัน UUID กับตัวเลขปนกัน */
+  function findEventById(list, id) {
+    for (var i = 0; i < list.length; i++) {
+      if (String(list[i].id) === String(id)) return list[i];
+    }
+    return null;
+  }
+
+  async function loadDetail() {
+    var id = currentEventId();
     if (!id) { showError('ไม่พบรหัสกิจกรรม'); return; }
 
-    var ev = null;
-    for (var i = 0; i < EVENTS.length; i++) {
-      if (EVENTS[i].id === id) { ev = EVENTS[i]; break; }
+    // 1) ลองดึงจากฐานข้อมูลจริงก่อน (GET /api/v1/events)
+    //    Wk15 เมื่อมี GET /api/v1/events/{id} แล้ว เปลี่ยนมาเรียกเส้นนั้นตรง ๆ ได้
+    try {
+      var res = await fetch(API_BASE + '/events');
+      if (res.ok) {
+        var rows = await res.json();
+        var apiEvent = findEventById(rows.map(mapApiEvent), id);
+        if (apiEvent) { render(apiEvent); return; }
+      }
+    } catch (err) {
+      console.warn('ดึงข้อมูลจาก API ไม่ได้ — ใช้ข้อมูลจำลองแทน:', err.message);
     }
+
+    // 2) ถอยไปใช้ข้อมูลจำลองเหมือนเดิม (เปิดหน้าดูได้แม้ยังไม่ได้รัน backend)
+    var ev = findEventById(EVENTS, id);
     if (!ev) { showError('ไม่พบข้อมูลกิจกรรม'); return; }
 
     render(ev);
@@ -112,7 +142,7 @@
               '<select id="detail-staff-add" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"></select>' +
             '</div>' +
             '<div id="detail-staff-chips" class="flex flex-wrap gap-1.5"></div>' +
-            '<button onclick="assignStaffFromDetail(' + ev.id + ')" class="w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-semibold transition block text-center">บันทึกแต่งตั้งสตาฟ</button>' +
+            '<button onclick="assignStaffFromDetail(\'' + ev.id + '\')" class="w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-semibold transition block text-center">บันทึกแต่งตั้งสตาฟ</button>' +
           '</div>' +
         '</div>';
     }
@@ -298,7 +328,13 @@
     }
 
     const evs = Store.get('events', DEFAULT_EVENTS);
-    const evIndex = evs.findIndex(function(e) { return e.id === eventId; });
+    // เทียบแบบ string — id ของข้อมูลจริงเป็น UUID ส่วนข้อมูลจำลองเป็นตัวเลข
+    const evIndex = evs.findIndex(function(e) { return String(e.id) === String(eventId); });
+    if (evIndex === -1) {
+      // กิจกรรมจากฐานข้อมูลจริงยังไม่รองรับการแต่งตั้งสตาฟ (ตาราง event_field_staff — แผนเทอม 2)
+      showToast('กิจกรรมนี้มาจากฐานข้อมูลจริง — การแต่งตั้งสตาฟจะเปิดใช้งานในเฟสถัดไป');
+      return;
+    }
     if (evIndex !== -1) {
       evs[evIndex].staffIds = detailStaffIds.slice();
       evs[evIndex].staffLimit = limit;
