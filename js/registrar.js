@@ -833,14 +833,38 @@ async function createEventOnServer(f) {
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(`HTTP ${res.status} — ${detail.slice(0, 200)}`);
+      // ดึงสาเหตุจริงจาก API ออกมาแสดง (422 = ข้อมูลไม่ผ่านการตรวจ)
+      let reason = `HTTP ${res.status}`;
+      try {
+        const body = await res.json();
+        if (Array.isArray(body.detail)) {
+          reason = body.detail
+            .map((d) => String(d.msg || '').replace(/^Value error, /, ''))
+            .join(' / ');
+        } else if (body.detail) {
+          reason = String(body.detail);
+        }
+      } catch (parseErr) {
+        reason = `HTTP ${res.status}`;
+      }
+      throw new Error(reason);
     }
     const saved = await res.json();
     showToast(`บันทึกลงฐานข้อมูลจริงแล้ว (id: ${String(saved.id).slice(0, 8)}…)`);
   } catch (err) {
     console.warn('บันทึกลงฐานข้อมูลจริงไม่สำเร็จ:', err.message);
-    showToast('บันทึกในเครื่องแล้ว แต่ยังต่อฐานข้อมูลจริงไม่ได้ — ตรวจว่ารัน docker compose up -d หรือยัง');
+    const offline = err instanceof TypeError; // fetch ยิงไม่ถึง = backend ไม่ได้เปิด
+    showConfirmDialog({
+      title: offline
+        ? 'ยังไม่ได้บันทึกลงฐานข้อมูลจริง — ต่อ backend ไม่ได้'
+        : 'ยังไม่ได้บันทึกลงฐานข้อมูลจริง — ข้อมูลไม่ผ่านการตรวจ',
+      tone: 'danger',
+      cancelText: 'ปิด',
+      confirmText: 'รับทราบ',
+      bullets: offline
+        ? ['ตรวจว่ารัน docker compose up -d แล้วหรือยัง', 'กิจกรรมถูกบันทึกไว้ในเครื่องชั่วคราวเท่านั้น']
+        : [err.message, 'กิจกรรมถูกบันทึกไว้ในเครื่องชั่วคราวเท่านั้น กรุณาแก้ข้อมูลแล้วบันทึกใหม่'],
+    });
   }
 }
 
