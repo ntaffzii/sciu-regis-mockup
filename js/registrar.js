@@ -1433,18 +1433,106 @@ function openLedgerAdjustDialog(code) {
 }
 
 /* ---------------- Screen 6: จัดการรอบปีการศึกษา --------------------------- */
+/* รอบปีการศึกษามาตรฐานตามปฏิทินมหาวิทยาลัยอุบลราชธานี: 1 มิถุนายน – 31 พฤษภาคม ของปีถัดไป
+ * (ข้อเสนอแนะอาจารย์ที่ปรึกษา ประเด็นที่ 1 — docs/22_ADVISOR_FEEDBACK_LOG.md และ UC-R10 ข้อ 2)
+ * ระบบ "แนะนำ" เท่านั้น การกดยืนยันยังเป็นสิทธิ์ของ Registrar เสมอ (ไม่รีเซ็ตอัตโนมัติ) */
+const CYCLE_START_MONTH = 6;   // มิถุนายน
+const CYCLE_START_DAY = 1;
+
+/* ปีการศึกษา พ.ศ. -> ช่วงวันที่มาตรฐาน (ค.ศ. สำหรับ input type=date) */
+function standardCycleRange(buddhistYear) {
+  const startCE = buddhistYear - 543;
+  const pad = (n) => String(n).padStart(2, '0');
+  return {
+    start: `${startCE}-${pad(CYCLE_START_MONTH)}-${pad(CYCLE_START_DAY)}`,
+    end: `${startCE + 1}-05-31`,
+  };
+}
+
+function renderCycleSuggestion() {
+  const box = document.getElementById('cycle-suggestion');
+  if (!box) return;
+  const nextYear = Number(document.getElementById('cycle-year').value) || (RegDB.cycles[0].year + 1);
+  const range = standardCycleRange(nextYear);
+  box.innerHTML = `
+    <p class="text-xs font-semibold text-blue-900">ช่วงรอบปีการศึกษามาตรฐานตามปฏิทินมหาวิทยาลัย</p>
+    <p class="text-sm text-blue-800 mt-1">
+      ปีการศึกษา <span class="font-mono font-bold">${nextYear}</span> =
+      <span class="font-semibold">${thDate(range.start)} – ${thDate(range.end)}</span>
+      <span class="text-blue-600">(1 มิถุนายน ถึง 31 พฤษภาคมของปีถัดไป)</span>
+    </p>
+    <p class="text-xs text-blue-700 mt-1.5">ระบบเติมวันที่มาตรฐานให้แล้ว — หากมหาวิทยาลัยประกาศวันเปิดภาคเรียนจริงไม่ตรงกัน Registrar แก้วันที่ได้เอง</p>`;
+}
+
+/* เตือน (ไม่บล็อก) เมื่อวันที่ที่เลือกไม่ตรงกับวันมาตรฐาน */
+function checkCycleDateDeviation() {
+  const note = document.getElementById('cycle-date-note');
+  const dateVal = document.getElementById('cycle-date').value;
+  const nextYear = Number(document.getElementById('cycle-year').value) || (RegDB.cycles[0].year + 1);
+  if (!note) return;
+  const std = standardCycleRange(nextYear).start;
+  if (dateVal && dateVal !== std) {
+    note.textContent = `หมายเหตุ: วันที่เลือกไม่ตรงกับวันมาตรฐาน (${thDate(std)}) — ยืนยันได้ถ้าตรงกับประกาศจริงของมหาวิทยาลัย`;
+    note.className = 'text-xs text-amber-600';
+  } else {
+    note.textContent = 'ใช้วันมาตรฐานตามปฏิทินมหาวิทยาลัย — แก้ได้ตามประกาศจริง';
+    note.className = 'text-xs text-slate-400';
+  }
+}
+
+/* UC-R10 ข้อ 2: ยอดสรุปนักศึกษาที่สะสมโควตาในปีปัจจุบัน (ก่อนกดรีเซ็ต) */
+function renderCycleQuotaSummary() {
+  const box = document.getElementById('cycle-quota-summary');
+  if (!box) return;
+  const rows = RegDB.ledger;
+  const withUnits = rows.filter((l) => (l.units || 0) > 0);
+  const locked = rows.filter((l) => l.locked || (l.units || 0) >= QUOTA_MAX);
+  const totalUnits = rows.reduce((sum, l) => sum + (l.units || 0), 0);
+  const tile = (label, value, cls) => `
+    <div class="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
+      <p class="text-[11px] text-slate-500">${label}</p>
+      <p class="text-lg font-bold font-mono mt-0.5 ${cls}">${value}</p>
+    </div>`;
+  box.innerHTML =
+    tile('นักศึกษาในสมุดบัญชี', rows.length + ' คน', 'text-slate-800') +
+    tile('มียอดสะสมปีนี้', withUnits.length + ' คน', 'text-blue-600') +
+    tile(`ครบเพดาน ${QUOTA_MAX} หน่วย`, locked.length + ' คน', 'text-purple-600') +
+    tile('หน่วยกิตรวมที่จะถูก archive', totalUnits.toFixed(1), 'text-amber-600');
+}
+
 function initCyclesPage() {
   renderCycles();
+
+  // เติมปีการศึกษาถัดไปและวันที่มาตรฐานให้เป็นค่าแนะนำ (UC-R10 ข้อ 2-3)
+  const yearInput = document.getElementById('cycle-year');
+  const dateInput = document.getElementById('cycle-date');
+  yearInput.value = RegDB.cycles[0].year + 1;
+  dateInput.value = standardCycleRange(Number(yearInput.value)).start;
+  renderCycleSuggestion();
+  renderCycleQuotaSummary();
+  checkCycleDateDeviation();
+
+  yearInput.addEventListener('change', () => {
+    dateInput.value = standardCycleRange(Number(yearInput.value)).start;
+    renderCycleSuggestion();
+    checkCycleDateDeviation();
+  });
+  dateInput.addEventListener('change', checkCycleDateDeviation);
+
   document.getElementById('btn-new-cycle').addEventListener('click', () => {
     const dateVal = document.getElementById('cycle-date').value;
     if (!dateVal) { showToast('กรุณาเลือกวันที่เริ่มปีการศึกษาใหม่ก่อน', 'error'); return; }
-    const newYear = RegDB.cycles[0].year + 1;
+    const newYear = Number(yearInput.value) || (RegDB.cycles[0].year + 1);
+    if (newYear <= RegDB.cycles[0].year) {
+      showToast(`ปีการศึกษาใหม่ต้องมากกว่าปีปัจจุบัน (${RegDB.cycles[0].year})`, 'error');
+      return;
+    }
     showConfirmDialog({
       title: `ยืนยันเปิดรอบปีการศึกษา ${newYear}`,
       bullets: [
         'รีเซ็ตยอดสะสมกิจกรรมเปิดกว้างของนักศึกษาทุกคนเป็น 0',
         `ย้ายข้อมูลปี ${RegDB.cycles[0].year} ไปยังประวัติ (ยังเรียกดูย้อนหลังได้)`,
-        `เริ่มนับหน่วยกิตใหม่สำหรับปีการศึกษา ${newYear} ตั้งแต่ ${thDate(dateVal)}`,
+        `เริ่มนับหน่วยกิตใหม่สำหรับปีการศึกษา ${newYear} ตั้งแต่ ${thDate(dateVal)} ถึง ${thDate(standardCycleRange(newYear).end)}`,
       ],
       tone: 'danger',
       confirmText: `ยืนยัน เปิดรอบปี ${newYear}`,
@@ -1459,6 +1547,11 @@ function initCyclesPage() {
         appendAudit('cycle_opened', `เปิดรอบปีการศึกษา ${newYear} (เริ่ม ${dateVal}) — archive ยอดสะสมปี ${oldYear} (${RegDB.archivedLedgers[oldYear].length} รายชื่อ) แล้วรีเซ็ตยอดสะสมทุกคนสำหรับปีใหม่`);
         showToast(`เปิดรอบปีการศึกษา ${newYear} แล้ว — ยอดสะสมปี ${oldYear} ถูก archive ไว้ครบ ${RegDB.archivedLedgers[oldYear].length} รายชื่อ`);
         renderCycles();
+        yearInput.value = newYear + 1;
+        dateInput.value = standardCycleRange(newYear + 1).start;
+        renderCycleSuggestion();
+        renderCycleQuotaSummary();
+        checkCycleDateDeviation();
       },
     });
   });

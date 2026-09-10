@@ -38,10 +38,25 @@
       <!-- เปิดรอบใหม่ -->
       <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
         <h2 class="text-base font-semibold text-slate-800">เปิดรอบปีการศึกษาใหม่</h2>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="cycle-date">วันที่เริ่มปีการศึกษาใหม่ <span class="text-red-500">*</span></label>
-          <input id="cycle-date" type="date" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-          <p class="text-xs text-slate-400">ไม่มีค่า default — เลือกตามประกาศปฏิทินการศึกษาของมหาวิทยาลัย</p>
+
+        <!-- UC-R10 ข้อ 2: ระบบต้องแสดงคำแนะนำช่วงรอบปีมาตรฐานตามปฏิทิน ม.อุบลฯ
+             (ข้อเสนอแนะอาจารย์ที่ปรึกษา ประเด็นที่ 1 — docs/22_ADVISOR_FEEDBACK_LOG.md) -->
+        <div id="cycle-suggestion" class="border-l-4 border-blue-500 bg-blue-50 p-3.5 rounded-r-xl"></div>
+
+        <!-- UC-R10 ข้อ 2 (ท้ายข้อ): แสดงยอดสรุปนักศึกษาที่สะสมโควตาในปีปัจจุบัน -->
+        <div id="cycle-quota-summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700" for="cycle-year">ปีการศึกษาใหม่ <span class="text-red-500">*</span></label>
+            <input id="cycle-year" type="number" min="2500" max="2700" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            <p class="text-xs text-slate-400">ระบบเติมปีถัดไปให้ แก้ได้ตามประกาศจริง</p>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-slate-700" for="cycle-date">วันที่เริ่มปีการศึกษาใหม่ <span class="text-red-500">*</span></label>
+            <input id="cycle-date" type="date" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            <p id="cycle-date-note" class="text-xs text-slate-400">ระบบแนะนำวันมาตรฐานให้ — Registrar แก้ได้ตามประกาศปฏิทินการศึกษาของมหาวิทยาลัย</p>
+          </div>
         </div>
         <div class="border-l-4 border-amber-400 bg-amber-50 p-3.5 rounded-r-xl flex items-start gap-2.5">
           <span class="text-amber-600 shrink-0 mt-0.5" id="warn-icon"></span>
