@@ -68,12 +68,17 @@
         </div>
       </div>
 
-      <!-- Fallback email -->
+      <!-- Fallback contact channels -->
       <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2"><span id="ic-mail"></span> อีเมลติดต่อเจ้าหน้าที่ (Fallback)</h2>
+        <h2 class="text-base font-semibold text-slate-800 flex items-center gap-2"><span id="ic-mail"></span> ช่องทางติดต่อเจ้าหน้าที่ (Fallback)</h2>
+        <p class="text-xs text-slate-400 -mt-2">แสดงให้ผู้ใช้เห็นทั้งคู่เมื่อแชทบอทตอบไม่ได้ (FR-D6) — ไม่มีการแจ้งเตือน Registrar อัตโนมัติ ผู้ใช้เป็นฝ่ายกดติดต่อเอง</p>
         <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="set-email">อีเมลที่แสดงเมื่อแชทบอทตอบไม่ได้ (FR-D6)</label>
+          <label class="text-sm font-medium text-slate-700" for="set-email">อีเมลที่แสดงเมื่อแชทบอทตอบไม่ได้</label>
           <input id="set-email" type="email" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium text-slate-700" for="set-slack-link">ลิงก์ Slack ที่แสดงเมื่อแชทบอทตอบไม่ได้</label>
+          <input id="set-slack-link" type="url" placeholder="https://sciubu.slack.com/archives/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
       </div>
 

@@ -137,10 +137,15 @@ const Store = {
   },
 };
 
-/* FR-D6: อีเมลติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
- * ห้าม hardcode ในโค้ดของแต่ละหน้าจอ — ทุกจุดที่ต้องแสดงอีเมลติดต่อให้เรียกฟังก์ชันนี้ */
+/* FR-D6: ช่องทางติดต่อเจ้าหน้าที่ที่แสดงให้ผู้ใช้เห็นต้องอ่านจากค่าที่ Admin ตั้งไว้ (FR-F4)
+ * ห้าม hardcode ในโค้ดของแต่ละหน้าจอ — ทุกจุดที่ต้องแสดงช่องทางติดต่อให้เรียกฟังก์ชันเหล่านี้
+ * FR-D6 กำหนดให้ต้องมีทั้งอีเมลและลิงก์ Slack คู่กันเสมอ ไม่ใช่แค่อย่างใดอย่างหนึ่ง */
 function getContactEmail() {
   return Store.get('adm-settings', { email: 'registrar@sci.ubu.ac.th' }).email || 'registrar@sci.ubu.ac.th';
+}
+
+function getContactSlackLink() {
+  return Store.get('adm-settings', { slackContactLink: 'https://sciubu.slack.com/archives/C0REGISTRAR' }).slackContactLink || 'https://sciubu.slack.com/archives/C0REGISTRAR';
 }
 
 const MOCK_USERS = {
@@ -148,7 +153,7 @@ const MOCK_USERS = {
   student: { name: 'สมชาย ใจดี', studentCode: '66114400123', roleLabel: 'นักศึกษา', roles: ['student'] },
   admin: { name: 'ธนกร ระบบดี', roleLabel: 'ผู้ดูแลระบบ (IT)', roles: ['admin'] },
   'lead-org': { name: 'อาจารย์วิชัย จัดกิจกรรม', roleLabel: 'Lead Org (ผู้จัดกิจกรรม)', roles: ['lead_org'] },
-  'field-staff': { name: 'น้องเก่ง สตาฟดี', roleLabel: 'Field Staff (สตาฟหน้างาน)', roles: ['field_staff'] },
+  'field-staff': { name: 'น้องเก่ง สตาฟดี', studentCode: '67114540141', roleLabel: 'Field Staff (นักศึกษาที่ได้รับแต่งตั้งรายกิจกรรม)', roles: ['student'] },
   guest: { name: 'ผู้เยี่ยมชม', roleLabel: 'Guest', roles: [] },
 };
 
@@ -179,7 +184,7 @@ const NAV_MENUS = {
     { label: 'หน้าแรก', icon: 'home', href: 'registrar-home.html' },
     { label: 'กิจกรรม', icon: 'calendar', href: 'registrar-event-form.html' },
     { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-verify-review.html' },
-    { label: 'ตรวจเช็คอิน', icon: 'camera', href: 'checkin-review.html' },
+    { label: 'ตรวจเช็คอิน', icon: 'map-pin', href: 'checkin-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'รอบปี', icon: 'calendar', href: 'registrar-cycles.html' },
@@ -204,6 +209,7 @@ const NAV_MENUS = {
     { label: 'หน้าแรก', icon: 'home', href: 'lead-org-home.html' },
     { label: 'กิจกรรมของฉัน', icon: 'calendar', href: 'lead-org-my-events.html' },
     { label: 'สร้างกิจกรรม', icon: 'plus', href: 'registrar-event-form.html' },
+    { label: 'ตรวจสอบการเช็คอิน', icon: 'map-pin', href: 'checkin-review.html' },
     { label: 'ยืนยันรายชื่อ', icon: 'check-circle', href: 'lead-org-rosters.html' },
     { label: 'ตรวจเช็คอิน', icon: 'camera', href: 'checkin-review.html' },
   ],

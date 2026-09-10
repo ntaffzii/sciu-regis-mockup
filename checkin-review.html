@@ -13,408 +13,78 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=20260910">
+  <link rel="stylesheet" href="css/custom.css">
 </head>
-<body class="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50/30">
+<body class="min-h-screen flex flex-col font-sans text-slate-900">
 
 <main class="flex-1 pt-14 lg:pt-16 pb-20 lg:pb-8">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <nav class="flex items-center gap-2 text-sm text-slate-400" aria-label="breadcrumb">
-      <a href="lead-org-home.html" class="hover:text-blue-600 transition inline-flex items-center gap-1" id="bc-home">หน้าแรก</a>
+      <a href="#" id="bc-home" class="hover:text-blue-600 transition inline-flex items-center gap-1">หน้าแรก</a>
       <span class="text-slate-300">/</span>
       <span class="text-slate-600 font-medium">ตรวจสอบการเช็คอิน</span>
     </nav>
 
-    <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตรวจสอบการเช็คอินและอนุมัติ Selfie</h1>
-        <p class="text-sm text-slate-500 mt-1">
-          ดูหลักฐานการเช็คอินย้อนหลังได้ทุกวิธี — อนุมัติ/ปฏิเสธเฉพาะรายการ Selfie ที่รอตรวจ
-          ส่วน GPS และ Master Code ระบบอนุมัติอัตโนมัติไปแล้ว แสดงไว้เพื่อความโปร่งใส
-        </p>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">ตรวจสอบการเช็คอิน</h1>
+        <p class="text-sm text-slate-500 mt-1">ดูรายละเอียดหลักฐานเช็คอินทุกวิธี (GPS / Selfie / Master Code) และอนุมัติรูปเซลฟี่ที่ค้างตรวจ (FR-B8, UC-R23)</p>
       </div>
-      <span id="scope-badge"></span>
     </div>
 
     <!-- เลือกกิจกรรม -->
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2 space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="event-select">เลือกกิจกรรม</label>
-          <select id="event-select" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></select>
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700" for="method-filter">กรองตามวิธีเช็คอิน</label>
-          <select id="method-filter" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
-            <option value="">ทุกวิธี</option>
-            <option value="pending-selfie">เฉพาะที่รอตรวจ Selfie</option>
-            <option value="gps">GPS</option>
-            <option value="selfie">Selfie</option>
-            <option value="master_code">Master Code</option>
-          </select>
-        </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-slate-700" for="cr-event">เลือกกิจกรรม</label>
+        <select id="cr-event" class="w-full sm:w-96 px-4 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <option value="">-- กรุณาเลือกกิจกรรม --</option>
+        </select>
       </div>
-      <div id="summary-tiles" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
     </div>
 
-    <!-- รายชื่อ + รายละเอียด -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-
-      <!-- คิวรายชื่อ -->
-      <div class="lg:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-          <h2 class="text-sm font-bold text-slate-800">รายชื่อที่เช็คอินแล้ว</h2>
-          <span id="list-count" class="text-xs text-slate-400"></span>
-        </div>
-        <div id="checkin-list" class="divide-y divide-slate-100 max-h-[32rem] overflow-y-auto"></div>
+    <div id="cr-empty-start" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="py-12 text-center">
+        <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-300" id="ic-empty-start"></div>
+        <p class="text-sm text-slate-400">เลือกกิจกรรมจาก dropdown ด้านบนเพื่อดูรายชื่อที่เช็คอิน</p>
       </div>
-
-      <!-- แผงรายละเอียด -->
-      <div class="lg:col-span-3 rounded-2xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-20">
-        <div id="detail-panel" class="p-5"></div>
-      </div>
-
     </div>
 
+    <div id="cr-body" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- คิวซ้าย: รายชื่อทั้งหมดที่เช็คอิน -->
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden h-fit">
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-slate-700">รายชื่อที่เช็คอิน</h2>
+          <span id="cr-queue-count"></span>
+        </div>
+        <div id="cr-queue" class="divide-y divide-slate-50 max-h-[560px] overflow-y-auto"></div>
+      </div>
+
+      <!-- รายละเอียดขวา -->
+      <div class="lg:col-span-3">
+        <div id="cr-detail" class="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-5">
+          <div class="text-center py-12 text-sm text-slate-400">เลือกรายชื่อทางซ้ายเพื่อดูรายละเอียด</div>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
-<script src="js/shared.js?v=20260910"></script>
-<script src="js/registrar.js?v=20260910"></script>
+<script src="js/shared.js"></script>
+<script src="js/registrar.js"></script>
 <script>
-  renderShell({ active: 'checkin-review.html', title: 'ตรวจสอบการเช็คอิน' });
-  document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
-
-  /* UC-R23 — ตรวจสอบรายละเอียดหลักฐานเช็คอินและอนุมัติ Selfie (FR-B6, B7, B8)
-   * Actor: Lead Org (เห็นเฉพาะกิจกรรมของตัวเอง) หรือ Registrar (เห็นทุกกิจกรรม)
-   *
-   * ขอบเขตตามสเปก:
-   *   - GPS / Master Code = ดูอย่างเดียว (ระบบอนุมัติอัตโนมัติไปแล้วตาม FR-B3) ไม่มีปุ่มอนุมัติซ้ำ
-   *   - Selfie สถานะ pending เท่านั้นที่กดอนุมัติ/ปฏิเสธได้ และต้องบันทึกผู้ตรวจ+เวลาลง audit log
-   */
-
   const role = getSessionRole();
-  const isRegistrar = role === 'registrar' || role === 'admin';
-  const MY_LEAD_ORG_EVENT_IDS = [1, 5]; // กิจกรรมที่ผู้ใช้คนนี้เป็นผู้จัด (จำลอง)
-
-  document.getElementById('scope-badge').innerHTML = isRegistrar
-    ? statusBadge('info', 'สิทธิ์ Registrar — เห็นทุกกิจกรรม')
-    : statusBadge('open', 'สิทธิ์ Lead Org — เห็นเฉพาะกิจกรรมของฉัน');
-
-  /* ---------------- ข้อมูลจำลองการเช็คอิน ----------------
-   * completionPath: 'gps' | 'selfie' | 'master_code' (ตรงกับ check_ins.completion_path)
-   * selfieReviewStatus: 'pending' | 'approved' | 'rejected' | null */
-  const DEFAULT_CHECKINS = [
-    {
-      id: 1, eventId: 1, name: 'สมชาย ใจดี', code: '66114400123', at: '2026-06-20 09:12',
-      completionPath: 'gps', selfieReviewStatus: null,
-      lat: 15.11835, lng: 104.90562, distance: 12.4, radius: 30, credits: 3.0,
-    },
-    {
-      id: 2, eventId: 1, name: 'สมหญิง รักเรียน', code: '66114400124', at: '2026-06-20 09:20',
-      completionPath: 'selfie', selfieReviewStatus: 'pending',
-      photo: 'selfie_somying_20260620.jpg', credits: 3.0,
-    },
-    {
-      id: 3, eventId: 1, name: 'วิชัย เก่งกล้า', code: '66114400125', at: '2026-06-20 09:31',
-      completionPath: 'master_code', selfieReviewStatus: null,
-      masterCode: 'K7P2QX', issuedBy: 'ธนกร รุ่งเรือง (สตาฟหน้างาน)', issuedAt: '2026-06-20 09:30', credits: 3.0,
-    },
-    {
-      id: 4, eventId: 1, name: 'มานี มีนา', code: '66114400126', at: '2026-06-20 09:44',
-      completionPath: 'selfie', selfieReviewStatus: 'pending',
-      photo: 'selfie_manee_20260620.jpg', credits: 3.0,
-    },
-    {
-      id: 5, eventId: 1, name: 'ปิติ ยินดี', code: '66114400127', at: '2026-06-20 10:02',
-      completionPath: 'selfie', selfieReviewStatus: 'approved',
-      photo: 'selfie_piti_20260620.jpg', reviewedBy: 'ผู้จัดกิจกรรม', reviewedAt: '2026-06-20 11:15', credits: 3.0,
-    },
-    {
-      id: 6, eventId: 5, name: 'ชูใจ ใจงาม', code: '66114400128', at: '2026-07-02 09:05',
-      completionPath: 'gps', selfieReviewStatus: null,
-      lat: 15.11975, lng: 104.90781, distance: 8.1, radius: 40, credits: 2.0,
-    },
-    {
-      id: 7, eventId: 5, name: 'ดวงเดือน ศรีสุข', code: '66114400129', at: '2026-07-02 09:18',
-      completionPath: 'selfie', selfieReviewStatus: 'rejected',
-      photo: 'selfie_duangduean_20260702.jpg', reviewedBy: 'ผู้จัดกิจกรรม', reviewedAt: '2026-07-02 13:40',
-      rejectReason: 'รูปเบลอมาก ตรวจไม่ได้ว่าถ่ายที่สถานที่จัดงานจริง', credits: 2.0,
-    },
-    {
-      id: 8, eventId: 2, name: 'อนันต์ พากเพียร', code: '66114400130', at: '2026-07-15 09:02',
-      completionPath: 'gps', selfieReviewStatus: null,
-      lat: 15.12148, lng: 104.91012, distance: 21.7, radius: 50, credits: 1.5,
-    },
-  ];
-
-  const CheckinDB = {
-    items: Store.getSeeded ? Store.getSeeded('checkins', DEFAULT_CHECKINS) : Store.get('checkins', DEFAULT_CHECKINS),
-    save() { Store.set('checkins', this.items); },
-  };
-
-  let selectedId = null;
-
-  /* กิจกรรมที่ผู้ใช้มีสิทธิ์เห็น */
-  function visibleEvents() {
-    const all = Store.get('events', typeof DEFAULT_EVENTS !== 'undefined' ? DEFAULT_EVENTS : []);
-    const withCheckins = all.filter((ev) => CheckinDB.items.some((c) => c.eventId === ev.id));
-    return isRegistrar ? withCheckins : withCheckins.filter((ev) => MY_LEAD_ORG_EVENT_IDS.includes(ev.id));
+  // เข้าถึงได้เฉพาะ Lead Org (กิจกรรมตัวเอง) และ Registrar (ทุกกิจกรรม) ตาม FR-B8/UC-R23
+  if (role !== 'lead-org' && role !== 'registrar') {
+    const homeRedirects = { student: 'student-home.html', admin: 'admin-home.html', 'field-staff': 'field-staff-home.html', guest: 'login.html' };
+    window.location.href = homeRedirects[role] || 'login.html';
+  } else {
+    renderShell({ role: role, active: 'checkin-review.html', title: 'ตรวจสอบการเช็คอิน' });
+    document.getElementById('bc-home').href = role === 'registrar' ? 'registrar-home.html' : 'lead-org-home.html';
+    document.getElementById('bc-home').insertAdjacentHTML('afterbegin', icon('home', 'w-4 h-4'));
+    document.getElementById('ic-empty-start').innerHTML = icon('users', 'w-7 h-7');
+    initCheckinReviewPage();
   }
-
-  function currentEventId() {
-    return Number(document.getElementById('event-select').value) || 0;
-  }
-
-  function rowsForCurrentEvent() {
-    const eventId = currentEventId();
-    const filter = document.getElementById('method-filter').value;
-    return CheckinDB.items.filter((c) => {
-      if (c.eventId !== eventId) return false;
-      if (filter === 'pending-selfie') return c.completionPath === 'selfie' && c.selfieReviewStatus === 'pending';
-      if (filter) return c.completionPath === filter;
-      return true;
-    });
-  }
-
-  function methodBadge(c) {
-    if (c.completionPath === 'gps') return statusBadge('ready', 'GPS');
-    if (c.completionPath === 'master_code') return statusBadge('info', 'Master Code');
-    if (c.selfieReviewStatus === 'pending') return statusBadge('pending', 'Selfie — รอตรวจ');
-    if (c.selfieReviewStatus === 'approved') return statusBadge('ready', 'Selfie — อนุมัติแล้ว');
-    return statusBadge('rejected', 'Selfie — ปฏิเสธ');
-  }
-
-  function renderSummary() {
-    const rows = CheckinDB.items.filter((c) => c.eventId === currentEventId());
-    const pending = rows.filter((c) => c.completionPath === 'selfie' && c.selfieReviewStatus === 'pending').length;
-    const bypass = rows.filter((c) => c.completionPath === 'master_code').length;
-    const done = rows.filter((c) => c.completionPath !== 'selfie' || c.selfieReviewStatus === 'approved').length;
-    const tile = (label, value, cls) => `
-      <div class="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
-        <p class="text-[11px] text-slate-500">${label}</p>
-        <p class="text-xl font-bold mt-0.5 ${cls}">${value}</p>
-      </div>`;
-    document.getElementById('summary-tiles').innerHTML =
-      tile('เช็คอินทั้งหมด', rows.length + ' คน', 'text-slate-800') +
-      tile('รอตรวจ Selfie', pending + ' คน', pending ? 'text-amber-600' : 'text-slate-800') +
-      tile('บายพาส Master Code', bypass + ' คน', 'text-blue-600') +
-      tile('เสร็จสมบูรณ์', done + ' คน', 'text-emerald-700');
-  }
-
-  function renderList() {
-    const rows = rowsForCurrentEvent();
-    document.getElementById('list-count').textContent = `${rows.length} รายการ`;
-    const box = document.getElementById('checkin-list');
-
-    if (!rows.length) {
-      box.innerHTML = `<div class="py-14 text-center text-slate-400 text-sm">ไม่พบรายการเช็คอินตามเงื่อนไขที่เลือก</div>`;
-      return;
-    }
-
-    box.innerHTML = rows.map((c) => `
-      <button type="button" onclick="selectCheckin(${c.id})" class="w-full text-left px-5 py-3.5 hover:bg-slate-50 transition flex items-start justify-between gap-3 ${selectedId === c.id ? 'bg-blue-50/60' : ''}">
-        <div class="min-w-0">
-          <p class="text-sm font-medium text-slate-800 truncate">${c.name}</p>
-          <p class="text-xs text-slate-400 font-mono mt-0.5">${c.code} • ${c.at} น.</p>
-        </div>
-        <div class="shrink-0">${methodBadge(c)}</div>
-      </button>`).join('');
-  }
-
-  function detailRow(label, value) {
-    return `<div class="flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-0">
-      <span class="text-xs text-slate-500 shrink-0">${label}</span>
-      <span class="text-sm text-slate-800 text-right break-words">${value}</span>
-    </div>`;
-  }
-
-  function renderDetail() {
-    const panel = document.getElementById('detail-panel');
-    const c = CheckinDB.items.find((x) => x.id === selectedId);
-
-    if (!c) {
-      panel.innerHTML = `<div class="py-20 text-center text-slate-400 text-sm">
-        ${icon('eye', 'w-10 h-10 mx-auto mb-3 text-slate-300')}
-        เลือกรายชื่อทางซ้ายเพื่อดูรายละเอียดหลักฐานการเช็คอิน
-      </div>`;
-      return;
-    }
-
-    let evidence = '';
-
-    if (c.completionPath === 'gps') {
-      // แผนที่จำลอง — ระบบจริงคำนวณด้วย PostGIS ST_DWithin
-      const inRange = c.distance <= c.radius;
-      evidence = `
-        <div class="rounded-xl border border-slate-200 overflow-hidden">
-          <div class="relative h-48 bg-gradient-to-br from-blue-50 to-emerald-50">
-            <div class="absolute rounded-full border-2 border-blue-400 border-dashed bg-blue-500/10" style="width:150px;height:150px;left:50%;top:50%;transform:translate(-50%,-50%)"></div>
-            <div class="absolute text-blue-600" style="left:50%;top:50%;transform:translate(-50%,-100%)">${icon('map-pin', 'w-7 h-7')}</div>
-            <div class="absolute text-red-600" style="left:${50 + Math.min(28, c.distance / c.radius * 28)}%;top:44%;transform:translate(-50%,-100%)">${icon('user', 'w-6 h-6')}</div>
-            <span class="absolute bottom-2 left-2 text-[10px] text-slate-500 bg-white/80 px-2 py-0.5 rounded">แผนที่จำลอง — ระบบจริงใช้ PostGIS ST_DWithin</span>
-          </div>
-        </div>
-        <div class="mt-3">
-          ${detailRow('พิกัดที่เช็คอิน', `<span class="font-mono">${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}</span>`)}
-          ${detailRow('ระยะห่างจากจุดกิจกรรม', `<span class="font-mono ${inRange ? 'text-emerald-700' : 'text-red-600'}">${c.distance} ม.</span> <span class="text-slate-400">(รัศมีที่กำหนด ${c.radius} ม.)</span>`)}
-          ${detailRow('ผลการตรวจพิกัด', inRange ? statusBadge('ready', 'อยู่ในพื้นที่') : statusBadge('rejected', 'นอกพื้นที่'))}
-        </div>
-        <div class="mt-3 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-500">
-          ระบบอนุมัติการเช็คอินด้วย GPS อัตโนมัติแล้วตาม FR-B3 — หน้านี้แสดงไว้เพื่อตรวจสอบย้อนหลังเท่านั้น
-        </div>`;
-    }
-
-    if (c.completionPath === 'master_code') {
-      evidence = `
-        <div class="rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-5 text-center">
-          <p class="text-xs text-slate-500">รหัสฉุกเฉินที่ใช้</p>
-          <p class="text-3xl font-mono font-bold tracking-[0.3em] text-blue-700 mt-1">${c.masterCode}</p>
-        </div>
-        <div class="mt-3">
-          ${detailRow('ผู้ออกรหัส', c.issuedBy)}
-          ${detailRow('เวลาที่ออกรหัส', `<span class="font-mono">${c.issuedAt} น.</span>`)}
-          ${detailRow('เวลาที่นักศึกษาใช้', `<span class="font-mono">${c.at} น.</span>`)}
-        </div>
-        <div class="mt-3 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-500">
-          เช็คอินด้วย Master Code ได้รับหน่วยกิตไปแล้วตาม UC-R21 — ไม่มีรายการให้อนุมัติ แสดงไว้เพื่อตรวจสอบย้อนหลัง
-        </div>`;
-    }
-
-    if (c.completionPath === 'selfie') {
-      const reviewed = c.selfieReviewStatus !== 'pending';
-      evidence = `
-        <div class="rounded-xl border border-slate-200 bg-slate-100 h-56 flex flex-col items-center justify-center text-slate-400">
-          ${icon('camera', 'w-12 h-12 mb-2')}
-          <p class="text-xs font-mono">${c.photo}</p>
-          <p class="text-[10px] mt-1">(รูปจำลอง — ระบบจริงแสดงภาพถ่ายเต็ม)</p>
-        </div>
-        <div class="mt-3">
-          ${detailRow('ชื่อ-รหัสนักศึกษา', `${c.name} <span class="font-mono text-slate-400">(${c.code})</span>`)}
-          ${detailRow('เวลาที่ถ่าย', `<span class="font-mono">${c.at} น.</span>`)}
-          ${reviewed ? detailRow('ผู้ตรวจ', `${c.reviewedBy} <span class="text-slate-400">— ${c.reviewedAt} น.</span>`) : ''}
-          ${c.rejectReason ? detailRow('เหตุผลที่ปฏิเสธ', `<span class="text-red-600">${c.rejectReason}</span>`) : ''}
-        </div>`;
-
-      if (!reviewed) {
-        evidence += `
-          <div class="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800 flex items-start gap-2">
-            ${icon('alert-triangle', 'w-4 h-4 shrink-0 mt-0.5')}
-            <span>เทียบพื้นหลังในภาพกับสถานที่จัดกิจกรรมจริงด้วยตาก่อนตัดสินใจ — ถ้าภาพเบลอหรือตรวจไม่ออกว่าถ่ายที่ไหน ให้ปฏิเสธได้ตามดุลยพินิจ (ไม่มีการอนุมัติอัตโนมัติ)</span>
-          </div>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <button onclick="approveSelfie(${c.id})" class="py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition inline-flex items-center justify-center gap-2">
-              ${icon('check-circle', 'w-4 h-4')}อนุมัติ (แจก ${c.credits} หน่วยกิต)
-            </button>
-            <button onclick="rejectSelfie(${c.id})" class="py-2.5 border border-red-300 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-50 transition inline-flex items-center justify-center gap-2">
-              ${icon('x-circle', 'w-4 h-4')}ปฏิเสธ
-            </button>
-          </div>`;
-      } else {
-        evidence += `<div class="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-500">
-          รายการนี้ตรวจแล้ว — บันทึกผู้ตรวจและเวลาไว้ใน Audit Log เรียบร้อย
-        </div>`;
-      }
-    }
-
-    panel.innerHTML = `
-      <div class="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
-        <div>
-          <h2 class="text-base font-bold text-slate-800">${c.name}</h2>
-          <p class="text-xs text-slate-400 font-mono mt-0.5">${c.code}</p>
-        </div>
-        ${methodBadge(c)}
-      </div>
-      <div class="pt-4">${evidence}</div>`;
-  }
-
-  function selectCheckin(id) {
-    selectedId = id;
-    renderList();
-    renderDetail();
-  }
-
-  function approveSelfie(id) {
-    const c = CheckinDB.items.find((x) => x.id === id);
-    showConfirmDialog({
-      title: `อนุมัติ Selfie ของ ${c.name}?`,
-      bullets: [
-        `นักศึกษาจะได้รับ ${c.credits} หน่วยกิตทันที ถ้าขั้นตอนอื่นที่กิจกรรมกำหนดครบแล้ว`,
-        'ระบบจะบันทึกชื่อผู้ตรวจและเวลาลง Audit Log',
-      ],
-      confirmText: 'อนุมัติ',
-      onConfirm: () => {
-        c.selfieReviewStatus = 'approved';
-        c.reviewedBy = currentUser(role).name || 'ผู้จัดกิจกรรม';
-        c.reviewedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
-        CheckinDB.save();
-        if (typeof appendAudit === 'function') {
-          appendAudit('selfie_approved', `อนุมัติ Selfie เช็คอินของ ${c.name} (${c.code}) — แจก ${c.credits} หน่วยกิต`);
-        }
-        showToast(`อนุมัติ Selfie ของ ${c.name} แล้ว`);
-        renderSummary();
-        renderList();
-        renderDetail();
-      },
-    });
-  }
-
-  function rejectSelfie(id) {
-    const c = CheckinDB.items.find((x) => x.id === id);
-    showConfirmDialog({
-      title: `ปฏิเสธ Selfie ของ ${c.name}?`,
-      tone: 'danger',
-      bullets: ['การเช็คอินชุดนี้จะไม่ได้รับหน่วยกิต', 'ระบบจะบันทึกเหตุผลและผู้ตรวจลง Audit Log'],
-      requireReason: true,
-      reasonLabel: 'เหตุผลที่ปฏิเสธ',
-      confirmText: 'ปฏิเสธ',
-      onConfirm: (reason) => {
-        c.selfieReviewStatus = 'rejected';
-        c.rejectReason = reason || 'ไม่ระบุเหตุผล';
-        c.reviewedBy = currentUser(role).name || 'ผู้จัดกิจกรรม';
-        c.reviewedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
-        CheckinDB.save();
-        if (typeof appendAudit === 'function') {
-          appendAudit('selfie_rejected', `ปฏิเสธ Selfie เช็คอินของ ${c.name} (${c.code}) — เหตุผล: ${c.rejectReason}`);
-        }
-        showToast(`ปฏิเสธ Selfie ของ ${c.name} แล้ว`, 'warning');
-        renderSummary();
-        renderList();
-        renderDetail();
-      },
-    });
-  }
-
-  function refreshAll() {
-    selectedId = null;
-    renderSummary();
-    renderList();
-    renderDetail();
-  }
-
-  /* ---------------- เริ่มต้นหน้า ---------------- */
-  (function init() {
-    const events = visibleEvents();
-    const select = document.getElementById('event-select');
-
-    if (!events.length) {
-      select.innerHTML = '<option>ยังไม่มีกิจกรรมที่มีการเช็คอิน</option>';
-      select.disabled = true;
-      document.getElementById('summary-tiles').innerHTML = '';
-      document.getElementById('checkin-list').innerHTML =
-        '<div class="py-14 text-center text-slate-400 text-sm">ยังไม่มีข้อมูลการเช็คอิน</div>';
-      renderDetail();
-      return;
-    }
-
-    select.innerHTML = events.map((ev) => `<option value="${ev.id}">${ev.name} — ${thDate(ev.date)}</option>`).join('');
-    select.addEventListener('change', refreshAll);
-    document.getElementById('method-filter').addEventListener('change', () => { selectedId = null; renderList(); renderDetail(); });
-
-    refreshAll();
-  })();
 </script>
 </body>
 </html>

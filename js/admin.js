@@ -31,7 +31,6 @@ const ROLE_LABELS = {
   admin: { text: 'Admin', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
   registrar: { text: 'Registrar', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
   lead_org: { text: 'Lead Org', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  field_staff: { text: 'Field Staff', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   student: { text: 'Student', cls: 'bg-slate-50 text-slate-600 border-slate-200' },
 };
 
@@ -39,7 +38,7 @@ const DEFAULT_USERS = [
   { id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true },
   { id: 2, username: 'registrar.sombat', name: 'สมบัติ วงศ์ทะเบียน', email: 'sombat.w@ubu.ac.th', roles: ['registrar', 'lead_org'], active: true },
   { id: 3, username: 'wichai.lead', name: 'วิชัย จัดกิจกรรม', email: 'wichai.j@ubu.ac.th', roles: ['lead_org'], active: true },
-  { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['student'], active: true },
+  { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['student'], fieldStaff: true, active: true },
   { id: 5, username: 'somchai.ja', name: 'สมชาย ใจดี', email: 'somchai.ja@ubu.ac.th', roles: ['student'], active: true },
   { id: 6, username: 'old.staff', name: 'บุคลากรเก่า ลาออกแล้ว', email: 'old.s@ubu.ac.th', roles: ['student'], active: false },
 ];
@@ -52,13 +51,13 @@ const DEFAULT_WHITELIST = [
 ];
 
 const DEFAULT_AUDIT = [
-  { time: '2026-07-10 10:23', user: 'admin.thanakorn', role: 'admin', action: 'user_created', detail: 'สร้างบัญชี keng.staff (Field Staff)' },
+  { time: '2026-07-10 10:23', user: 'admin.thanakorn', role: 'admin', action: 'user_created', detail: 'สร้างบัญชี keng.staff (นักศึกษา — แต่งตั้งสตาฟหน้างานรายกิจกรรมโดย Lead Org)' },
   { time: '2026-07-10 09:45', user: 'registrar.sombat', role: 'registrar', action: 'credit_adjusted', detail: 'แก้หน่วยกิต วิชัย เก่งกล้า 3.0 -> 2.0 เหตุผล: มาไม่ครบวันที่ 3' },
   { time: '2026-07-10 09:12', user: 'registrar.sombat', role: 'registrar', action: 'sac_export', detail: 'Export Excel กิจกรรม "อบรมปฐมพยาบาลเบื้องต้น CPR"' },
   { time: '2026-07-09 16:30', user: 'wichai.lead', role: 'lead_org', action: 'event_created', detail: 'สร้างกิจกรรม "ปลูกป่าชายเลนเฉลิมพระเกียรติ" (เปิดกว้าง)' },
   { time: '2026-07-09 14:02', user: 'registrar.sombat', role: 'registrar', action: 'proof_approved', detail: 'อนุมัติหลักฐาน "บริจาคโลหิต" ของ สมหญิง รักเรียน (+1.0 หน่วย)' },
   { time: '2026-07-09 11:47', user: 'admin.thanakorn', role: 'admin', action: 'faq_updated', detail: 'แก้ไขคำตอบ FAQ หมวด "หน่วยกิตกิจกรรม" เรื่องเพดาน 9 ชม./วัน' },
-  { time: '2026-07-08 15:20', user: 'keng.staff', role: 'field_staff', action: 'master_code_issued', detail: 'ออก Master Code A7K2M9 กิจกรรม "จิตอาสาพัฒนาคณะวิทยาศาสตร์"' },
+  { time: '2026-07-08 15:20', user: 'keng.staff', role: 'student', action: 'master_code_issued', detail: 'ออก Master Code A7K2M9 กิจกรรม "จิตอาสาพัฒนาคณะวิทยาศาสตร์" (สตาฟหน้างานรายกิจกรรม)' },
   { time: '2026-07-08 10:05', user: 'registrar.sombat', role: 'registrar', action: 'quota_locked', detail: 'ล็อกโควต้า สมหญิง รักเรียน (12/12 หน่วย)' },
   { time: '2026-07-07 09:00', user: 'admin.thanakorn', role: 'admin', action: 'contact_added', detail: 'เพิ่มช่องทางติดต่อ ดร.วิชัย งานวิชาการ (อาจารย์ที่ปรึกษาสโมสรนักศึกษา)' },
 ];
@@ -308,9 +307,10 @@ function openUserModal(id) {
 
 /* ---------------- Screen 12: ตั้งค่าเทคนิค -------------------------------- */
 function initSettingsPage() {
-  const s = Store.get('adm-settings', { slackToken: '', email: 'registrar@sci.ubu.ac.th' });
+  const s = Store.get('adm-settings', { slackToken: '', email: 'registrar@sci.ubu.ac.th', slackContactLink: 'https://sciubu.slack.com/archives/C0REGISTRAR' });
   document.getElementById('set-token').value = s.slackToken ? '••••••••••••' + s.slackToken.slice(-4) : '';
   document.getElementById('set-email').value = s.email;
+  document.getElementById('set-slack-link').value = s.slackContactLink || 'https://sciubu.slack.com/archives/C0REGISTRAR';
 
   const templateKey = 'excel-template';
   const defaultTemplate = {
@@ -343,6 +343,7 @@ function initSettingsPage() {
     Store.set('adm-settings', {
       slackToken: token.startsWith('•') ? s.slackToken : token,
       email: document.getElementById('set-email').value.trim(),
+      slackContactLink: document.getElementById('set-slack-link').value.trim(),
     });
 
     const columnsStr = document.getElementById('set-template-columns').value;
@@ -834,7 +835,6 @@ function openWhitelistModal(id) {
               <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="lead_org" ${w && w.roles && w.roles.includes('lead_org') ? 'checked' : ''}>
               <span class="text-xs font-medium text-slate-700">Lead Org</span>
             </label>
-            
             <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
               <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="admin" ${w && w.roles && w.roles.includes('admin') ? 'checked' : ''}>
               <span class="text-xs font-medium text-slate-700">Admin</span>
@@ -1292,10 +1292,7 @@ function openImportModal() {
           if (r.includes('admin') || r.includes('แอดมิน')) return 'admin';
           if (r.includes('regist') || r.includes('ทะเบียน') || r.includes('งานทะเบียน')) return 'registrar';
           if (r.includes('lead') || r.includes('ผู้จัด') || r.includes('ผู้รับผิดชอบ')) return 'lead_org';
-          if (r.includes('student') || r.includes('นักศึกษา') || r.includes('นิสิต')) return 'student';
-          // คำว่า "สตาฟ/ผู้ช่วย" ไม่ใช่บทบาทของบัญชี (มติ B2) — สตาฟหน้างานเป็นการแต่งตั้ง
-          // รายกิจกรรมผ่าน event_field_staff จึงนำเข้าเป็นบัญชีนักศึกษาธรรมดา
-          if (r.includes('staff') || r.includes('สตาฟ') || r.includes('ผู้ช่วย')) return 'student';
+          if (r.includes('student') || r.includes('นักศึกษา') || r.includes('นิสิต') || r.includes('staff') || r.includes('สตาฟ') || r.includes('ผู้ช่วย')) return 'student'; // มติ B2: field staff = นักศึกษาที่ได้รับแต่งตั้งรายกิจกรรม
           return 'lead_org';
         });
         if (roles.includes('admin')) {
