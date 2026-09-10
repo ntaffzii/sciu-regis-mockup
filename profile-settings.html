@@ -67,29 +67,29 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-prefix">คำนำหน้าชื่อ</label>
-              <input id="prof-prefix" type="text" placeholder="เช่น นาย, นางสาว, ดร." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="prof-prefix" type="text" maxlength="20" placeholder="เช่น นาย, นางสาว, ดร." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-phone">เบอร์โทรศัพท์ติดต่อ</label>
-              <input id="prof-phone" type="text" placeholder="เช่น 081-234-xxxx" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="prof-phone" type="tel" maxlength="20" placeholder="เช่น 081-234-xxxx" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-name">ชื่อจริง</label>
-              <input id="prof-name" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="prof-name" type="text" maxlength="100" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-lastname">นามสกุล</label>
-              <input id="prof-lastname" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="prof-lastname" type="text" maxlength="100" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-email">อีเมลสำรองสำหรับติดต่อ</label>
-              <input id="prof-email" type="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="prof-email" type="email" maxlength="255" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
             <div id="student-major-box" class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="prof-major">สาขาวิชา</label>

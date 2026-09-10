@@ -17,6 +17,16 @@ const SCIENCE_MAJORS = [
   'นวัตกรรมเทคโนโลยีวัสดุ',
 ];
 
+/* บทบาทของบัญชีที่กำหนดให้ผู้ใช้ได้จริง — ต้องตรงกับ CHECK constraint ใน database/init.sql
+ * users.role / user_roles.role IN ('admin','registrar','lead_org','student')
+ *
+ * ไม่มี 'field_staff' โดยเจตนา (มติ B2 ใน AGENTS.md §7.1):
+ * สตาฟหน้างานไม่ใช่บทบาทถาวรของบัญชี แต่เป็นการแต่งตั้งรายกิจกรรมผ่านตาราง
+ * event_field_staff โดย Lead Org — ถ้าเผลอให้ติ๊กเป็นบทบาทบัญชี ฐานข้อมูลจริงจะปฏิเสธ */
+const ACCOUNT_ROLES = ['admin', 'registrar', 'lead_org', 'student'];
+
+/* ป้ายแสดงผล — มี field_staff ไว้แสดงผลใน Audit Log และป้ายสตาฟรายกิจกรรมเท่านั้น
+ * ห้ามนำ map นี้ไปสร้างตัวเลือกบทบาทของบัญชี ให้ใช้ ACCOUNT_ROLES แทน */
 const ROLE_LABELS = {
   admin: { text: 'Admin', cls: 'bg-purple-50 text-purple-700 border-purple-200' },
   registrar: { text: 'Registrar', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -29,9 +39,9 @@ const DEFAULT_USERS = [
   { id: 1, username: 'admin.thanakorn', name: 'ธนกร ระบบดี', email: 'thanakorn.r@ubu.ac.th', roles: ['admin'], active: true },
   { id: 2, username: 'registrar.sombat', name: 'สมบัติ วงศ์ทะเบียน', email: 'sombat.w@ubu.ac.th', roles: ['registrar', 'lead_org'], active: true },
   { id: 3, username: 'wichai.lead', name: 'วิชัย จัดกิจกรรม', email: 'wichai.j@ubu.ac.th', roles: ['lead_org'], active: true },
-  { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['field_staff'], active: true },
+  { id: 4, username: 'keng.staff', name: 'เก่ง สตาฟดี', email: 'keng.s@ubu.ac.th', roles: ['student'], active: true },
   { id: 5, username: 'somchai.ja', name: 'สมชาย ใจดี', email: 'somchai.ja@ubu.ac.th', roles: ['student'], active: true },
-  { id: 6, username: 'old.staff', name: 'บุคลากรเก่า ลาออกแล้ว', email: 'old.s@ubu.ac.th', roles: ['field_staff'], active: false },
+  { id: 6, username: 'old.staff', name: 'บุคลากรเก่า ลาออกแล้ว', email: 'old.s@ubu.ac.th', roles: ['student'], active: false },
 ];
 
 const DEFAULT_WHITELIST = [
@@ -239,16 +249,16 @@ function openUserModal(id) {
       <h3 class="text-lg font-semibold text-slate-900">${u ? 'แก้ไขบัญชี ' + u.username : 'สร้างบัญชีใหม่'}</h3>
       <div class="space-y-1.5">
         <label class="text-sm font-medium text-slate-700" for="um-name">ชื่อ-นามสกุล</label>
-        <input id="um-name" value="${u ? u.name : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="um-name" type="text" maxlength="200" value="${u ? u.name : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="space-y-1.5">
         <label class="text-sm font-medium text-slate-700" for="um-email">อีเมล</label>
-        <input id="um-email" type="email" value="${u ? u.email : ''}" placeholder="name@ubu.ac.th" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="um-email" type="email" maxlength="255" value="${u ? u.email : ''}" placeholder="name@ubu.ac.th" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="space-y-1.5">
         <p class="text-sm font-medium text-slate-700">บทบาท (เลือกได้มากกว่า 1 — บทบาทคือสิทธิ์ ไม่ใช่ 1 บัญชี : 1 บทบาท)</p>
         <div class="grid grid-cols-2 gap-2">
-          ${Object.entries(ROLE_LABELS).map(([k, v]) => `
+          ${ACCOUNT_ROLES.map((k) => [k, ROLE_LABELS[k]]).map(([k, v]) => `
             <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
               <input type="checkbox" class="um-role rounded border-slate-300" value="${k}" ${u && u.roles.includes(k) ? 'checked' : ''}>
               <span class="text-sm text-slate-700">${v.text}</span>
@@ -516,7 +526,7 @@ function openFaqModal(id) {
       </div>
       <div class="space-y-1.5">
         <label class="text-xs font-semibold text-slate-700" for="fm-question">คำถาม</label>
-        <input id="fm-question" value="${f ? f.question : ''}" placeholder="เช่น หนึ่งวันได้หน่วยกิตสูงสุดกี่หน่วย?" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="fm-question" type="text" value="${f ? f.question : ''}" placeholder="เช่น หนึ่งวันได้หน่วยกิตสูงสุดกี่หน่วย?" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="space-y-1.5">
         <label class="text-xs font-semibold text-slate-700" for="fm-answer">คำตอบ</label>
@@ -627,30 +637,30 @@ function openContactModal(id) {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5">
           <label class="text-xs font-semibold text-slate-700" for="cm-name">ชื่อ-นามสกุล</label>
-          <input id="cm-name" value="${c ? c.name : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <input id="cm-name" type="text" maxlength="200" value="${c ? c.name : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-semibold text-slate-700" for="cm-position">ตำแหน่ง</label>
-          <input id="cm-position" value="${c ? c.position : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <input id="cm-position" type="text" maxlength="200" value="${c ? c.position : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
       </div>
       <div class="space-y-1.5">
         <label class="text-xs font-semibold text-slate-700" for="cm-department">หน่วยงาน</label>
-        <input id="cm-department" value="${c ? c.department : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="cm-department" type="text" maxlength="200" value="${c ? c.department : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5">
           <label class="text-xs font-semibold text-slate-700" for="cm-phone">เบอร์โทร</label>
-          <input id="cm-phone" value="${c ? c.phone || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <input id="cm-phone" type="tel" maxlength="20" value="${c ? c.phone || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-semibold text-slate-700" for="cm-email">อีเมล</label>
-          <input id="cm-email" value="${c ? c.email || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <input id="cm-email" type="email" maxlength="255" value="${c ? c.email || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
       </div>
       <div class="space-y-1.5">
         <label class="text-xs font-semibold text-slate-700" for="cm-office">ห้องทำงาน/อาคาร</label>
-        <input id="cm-office" value="${c ? c.office || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+        <input id="cm-office" type="text" maxlength="255" value="${c ? c.office || '' : ''}" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
       </div>
       <div class="flex gap-3 pt-2">
         <button id="cm-cancel" class="flex-1 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition text-sm">ยกเลิก</button>
@@ -787,7 +797,7 @@ function openWhitelistModal(id) {
       <div id="wm-student-fields" class="space-y-4">
         <div class="space-y-1.5">
           <label class="text-xs font-semibold text-slate-700" for="wm-code">รหัสนักศึกษา (11 หลัก)</label>
-          <input id="wm-code" value="${w ? w.studentCode || '' : ''}" placeholder="66114400123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+          <input id="wm-code" type="text" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" value="${w ? w.studentCode || '' : ''}" placeholder="66114400123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5 relative">
@@ -824,10 +834,7 @@ function openWhitelistModal(id) {
               <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="lead_org" ${w && w.roles && w.roles.includes('lead_org') ? 'checked' : ''}>
               <span class="text-xs font-medium text-slate-700">Lead Org</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
-              <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="field_staff" ${w && w.roles && w.roles.includes('field_staff') ? 'checked' : ''}>
-              <span class="text-xs font-medium text-slate-700">Field Staff</span>
-            </label>
+            
             <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
               <input type="checkbox" class="wm-role rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="admin" ${w && w.roles && w.roles.includes('admin') ? 'checked' : ''}>
               <span class="text-xs font-medium text-slate-700">Admin</span>
@@ -1285,7 +1292,10 @@ function openImportModal() {
           if (r.includes('admin') || r.includes('แอดมิน')) return 'admin';
           if (r.includes('regist') || r.includes('ทะเบียน') || r.includes('งานทะเบียน')) return 'registrar';
           if (r.includes('lead') || r.includes('ผู้จัด') || r.includes('ผู้รับผิดชอบ')) return 'lead_org';
-          if (r.includes('staff') || r.includes('สตาฟ') || r.includes('ผู้ช่วย')) return 'field_staff';
+          if (r.includes('student') || r.includes('นักศึกษา') || r.includes('นิสิต')) return 'student';
+          // คำว่า "สตาฟ/ผู้ช่วย" ไม่ใช่บทบาทของบัญชี (มติ B2) — สตาฟหน้างานเป็นการแต่งตั้ง
+          // รายกิจกรรมผ่าน event_field_staff จึงนำเข้าเป็นบัญชีนักศึกษาธรรมดา
+          if (r.includes('staff') || r.includes('สตาฟ') || r.includes('ผู้ช่วย')) return 'student';
           return 'lead_org';
         });
         if (roles.includes('admin')) {
@@ -1428,7 +1438,7 @@ function downloadImportTemplateXlsx(type) {
     filename = 'Student_Roster_Template.xlsx';
   } else {
     data = [
-      { 'อีเมล': 'somkiat.y@ubu.ac.th', 'ชื่อ-นามสกุล': 'ดร.สมเกียรติ เก่งวิทย์', 'บทบาท': 'lead_org, field_staff' },
+      { 'อีเมล': 'somkiat.y@ubu.ac.th', 'ชื่อ-นามสกุล': 'ดร.สมเกียรติ เก่งวิทย์', 'บทบาท': 'lead_org, registrar' },
       { 'อีเมล': 'director.science@ubu.ac.th', 'ชื่อ-นามสกุล': 'ผศ.ดร.กิตติเดช ปัญญาดี', 'บทบาท': 'registrar' }
     ];
     filename = 'Staff_Whitelist_Template.xlsx';
@@ -1452,7 +1462,7 @@ function downloadImportTemplateCSV(type) {
     csvContent = "รหัสนักศึกษา,ชื่อ-นามสกุล,สาขาวิชา,ชั้นปี\n66114400111,นายวันชัย ใจดี,วิทยาการคอมพิวเตอร์,2\n66114400222,นางสาวดรุณี เรียนเก่ง,เทคโนโลยีสารสนเทศ,3\n66114400333,นายอุดม พรดี,ฟิสิกส์,1\n";
     filename = 'Student_Roster_Template.csv';
   } else {
-    csvContent = "อีเมล,ชื่อ-นามสกุล,บทบาท\nsomkiat.y@ubu.ac.th,ดร.สมเกียรติ เก่งวิทย์,\"lead_org, field_staff\"\ndirector.science@ubu.ac.th,ผศ.ดร.กิตติเดช ปัญญาดี,registrar\n";
+    csvContent = "อีเมล,ชื่อ-นามสกุล,บทบาท\nsomkiat.y@ubu.ac.th,ดร.สมเกียรติ เก่งวิทย์,\"lead_org, registrar\"\ndirector.science@ubu.ac.th,ผศ.ดร.กิตติเดช ปัญญาดี,registrar\n";
     filename = 'Staff_Whitelist_Template.csv';
   }
   

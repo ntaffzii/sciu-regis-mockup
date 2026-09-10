@@ -189,11 +189,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="space-y-1.5">
                 <label class="text-sm font-medium text-slate-700" for="ev-lat">Latitude</label>
-                <input id="ev-lat" type="text" value="15.118300" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+                <input id="ev-lat" type="number" step="0.0000001" min="-90" max="90" value="15.118300" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
               </div>
               <div class="space-y-1.5">
                 <label class="text-sm font-medium text-slate-700" for="ev-lng">Longitude</label>
-                <input id="ev-lng" type="text" value="104.905700" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+                <input id="ev-lng" type="number" step="0.0000001" min="-180" max="180" value="104.905700" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
               </div>
               <div class="space-y-1.5">
                 <label class="text-sm font-medium text-slate-700" for="ev-radius">รัศมี: <span id="ev-radius-val" class="font-mono font-semibold text-blue-700">30</span> เมตร</label>

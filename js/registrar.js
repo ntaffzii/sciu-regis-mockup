@@ -1018,9 +1018,9 @@ function renderItemDetail(row) {
     ${ocrRow('ชื่อโครงการ/กิจกรรม', `<input id="pf-title" value="${it.activityName}" class="ocr-input">`)}
     ${ocrRow('สถานที่', `<input id="pf-location" value="${it.location || ''}" class="ocr-input">`)}
     ${ocrRow('วันที่ทำกิจกรรม', `<input id="pf-date" type="date" value="${it.activityDate}" class="ocr-input">`)}
-    ${ocrRow('จำนวนชั่วโมงที่แจ้ง', `<input id="pf-hours" type="number" value="${it.hours}" class="ocr-input font-mono w-24 text-right">`)}
+    ${ocrRow('จำนวนชั่วโมงที่แจ้ง', `<input id="pf-hours" type="number" step="0.5" min="0.5" max="24" value="${it.hours}" class="ocr-input font-mono w-24 text-right">`)}
     ${ocrRow('ผู้รับรอง', `<span class="text-sm font-semibold text-slate-800 text-right">${it.approverName}${it.approverPosition ? ' (' + it.approverPosition + ')' : ''}</span>`)}
-    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" value="${defaultApprovedHours(p.submittedBy.code, it.activityDate, it.hours)}" class="ocr-input font-mono w-24 text-right text-emerald-700">`)}`;
+    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" min="0" max="9" value="${defaultApprovedHours(p.submittedBy.code, it.activityDate, it.hours)}" class="ocr-input font-mono w-24 text-right text-emerald-700">`)}`;
   document.querySelectorAll('.ocr-input').forEach((el) => {
     el.className += ' text-sm font-semibold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none text-right';
   });
@@ -1057,10 +1057,10 @@ function renderRosterDetail(row) {
   document.getElementById('ocr-fields').innerHTML = `
     ${ocrRow('ชื่อ (OCR)', `<input id="pf-first" value="${en.ocrFirstName}" class="ocr-input">`)}
     ${ocrRow('นามสกุล (OCR)', `<input id="pf-last" value="${en.ocrLastName}" class="ocr-input">`)}
-    ${ocrRow('รหัสนักศึกษา (OCR)', `<input id="pf-code" value="${en.ocrStudentCode}" class="ocr-input font-mono">`)}
+    ${ocrRow('รหัสนักศึกษา (OCR)', `<input id="pf-code" type="text" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" value="${en.ocrStudentCode}" class="ocr-input font-mono">`)}
     ${ocrRow('คณะ (OCR)', `<input id="pf-faculty" value="${en.ocrFaculty || ''}" class="ocr-input">`)}
     ${ocrRow('ลายมือชื่อ', en.signaturePresent ? statusBadge('ready', 'มีลายเซ็น') : statusBadge('rejected', 'ไม่พบลายเซ็น'))}
-    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" value="${en.matchedCode ? defaultApprovedHours(en.matchedCode, p.groupActivity.date, p.groupActivity.hours) : 0}" class="ocr-input font-mono w-24 text-right text-emerald-700" ${en.matchedCode ? '' : 'disabled'}>`)}`;
+    ${ocrRow('ชั่วโมงที่จะอนุมัติ', `<input id="pf-approved-hours" type="number" step="0.5" min="0" max="9" value="${en.matchedCode ? defaultApprovedHours(en.matchedCode, p.groupActivity.date, p.groupActivity.hours) : 0}" class="ocr-input font-mono w-24 text-right text-emerald-700" ${en.matchedCode ? '' : 'disabled'}>`)}`;
   document.querySelectorAll('.ocr-input').forEach((el) => {
     el.className += ' text-sm font-semibold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none text-right';
   });
