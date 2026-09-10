@@ -54,6 +54,16 @@
               <input id="ev-credits" type="number" step="0.5" min="0.5" max="6" value="1.5" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
           </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="ev-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
+              <input id="ev-participants" type="number" min="1" placeholder="เช่น 100" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-slate-700" for="ev-hours">ชั่วโมงกิจกรรมรวม</label>
+              <input id="ev-hours" type="number" step="0.5" min="0.5" placeholder="เช่น 6" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+            </div>
+          </div>
           <div class="space-y-1.5">
             <label class="text-sm font-medium text-slate-700" for="ev-objectives">วัตถุประสงค์ของกิจกรรม</label>
             <textarea id="ev-objectives" rows="2" placeholder="ระบุวัตถุประสงค์โครงการหรือเป้าหมายกิจกรรม..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"></textarea>
@@ -92,7 +102,7 @@
             </div>
             <div class="space-y-1.5">
               <label class="text-sm font-medium text-slate-700" for="ev-deadline">วันสิ้นสุดการลงทะเบียน</label>
-              <input id="ev-deadline" type="date" value="2026-07-31" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
+              <input id="ev-deadline" type="date" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600">
             </div>
           </div>
 

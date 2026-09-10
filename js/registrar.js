@@ -690,6 +690,14 @@ function initEventFormPage() {
     }
     // ให้ตรงกับกฎฝั่ง backend: registration_deadline ต้องไม่เลยวันเริ่มกิจกรรม (ไม่งั้น API คืน 422)
     const deadlineVal = document.getElementById('ev-deadline').value;
+    const participantsRaw = document.getElementById('ev-participants').value;
+    const hoursRaw = document.getElementById('ev-hours').value;
+    if (participantsRaw && Number(participantsRaw) <= 0) {
+      errors.push('จำนวนผู้เข้าร่วมสูงสุดต้องมากกว่า 0 (เว้นว่างได้ถ้าไม่จำกัด)');
+    }
+    if (hoursRaw && Number(hoursRaw) <= 0) {
+      errors.push('ชั่วโมงกิจกรรมรวมต้องมากกว่า 0 (เว้นว่างได้)');
+    }
     if (dateVal && deadlineVal && deadlineVal > dateVal) {
       errors.push('วันสิ้นสุดการลงทะเบียนต้องไม่เลยวันจัดกิจกรรม — กรุณาแก้วันใดวันหนึ่งก่อนบันทึก');
     }
@@ -739,7 +747,8 @@ function initEventFormPage() {
       masterCode,
       staffIds: formStaffIds.slice(),
       staffLimit,
-      participants: 0,
+      participants: participantsRaw ? Number(participantsRaw) : 0,
+      hours: hoursRaw ? Number(hoursRaw) : null,
       checkedIn: 0,
       exportStatus: 'none',
       rosterOverdue: false,
@@ -764,6 +773,7 @@ function initEventFormPage() {
       name, dateVal, daysVal, creditsVal, open, gpsEnabled, latVal, lngVal, radiusVal,
       selfie, masterCode, objectives, description, schedule, subcategory,
       eligible_participants, location, registration_deadline, contact_info,
+      participantsRaw, hoursRaw,
     });
     e.target.reset();
     clearImage();
@@ -802,6 +812,8 @@ async function createEventOnServer(f) {
     registration_deadline: f.registration_deadline
       ? new Date(`${f.registration_deadline}T23:59:00`).toISOString()
       : null,
+    max_participants: f.participantsRaw ? Number(f.participantsRaw) : null,
+    max_hours: f.hoursRaw ? Number(f.hoursRaw) : null,
     location: orNull(f.location),
     contact_info: orNull(f.contact_info),
     eligible_participants: orNull(f.eligible_participants),
