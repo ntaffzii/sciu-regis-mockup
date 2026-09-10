@@ -179,6 +179,7 @@ const NAV_MENUS = {
     { label: 'หน้าแรก', icon: 'home', href: 'registrar-home.html' },
     { label: 'กิจกรรม', icon: 'calendar', href: 'registrar-event-form.html' },
     { label: 'ตรวจหลักฐาน', icon: 'file-text', href: 'registrar-verify-review.html' },
+    { label: 'ตรวจเช็คอิน', icon: 'camera', href: 'checkin-review.html' },
     { label: 'โควต้า', icon: 'lock', href: 'registrar-quotas.html' },
     { label: 'Export', icon: 'download', href: 'registrar-export.html' },
     { label: 'รอบปี', icon: 'calendar', href: 'registrar-cycles.html' },
@@ -204,6 +205,7 @@ const NAV_MENUS = {
     { label: 'กิจกรรมของฉัน', icon: 'calendar', href: 'lead-org-my-events.html' },
     { label: 'สร้างกิจกรรม', icon: 'plus', href: 'registrar-event-form.html' },
     { label: 'ยืนยันรายชื่อ', icon: 'check-circle', href: 'lead-org-rosters.html' },
+    { label: 'ตรวจเช็คอิน', icon: 'camera', href: 'checkin-review.html' },
   ],
   'field-staff': [
     { label: 'หน้าแรก', icon: 'home', href: 'field-staff-home.html' },
