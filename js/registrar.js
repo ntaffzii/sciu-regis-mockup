@@ -554,7 +554,108 @@ function openAdjustDialog(codes) {
 }
 
 /* ---------------- Screen 3: สร้าง/แก้ไขกิจกรรม ---------------------------- */
+/* ตัวเลือกกลุ่มเป้าหมาย (UC-R3)
+ * เก็บลง events.eligible_participants ซึ่งเป็น VARCHAR(255) จึงรวมเป็นข้อความคั่นด้วย ", "
+ * และคุมความยาวไม่ให้เกิน 255 ตัวอักษร */
+const TARGET_GROUP_OPTIONS = [
+  { group: 'ชั้นปี', items: ['ทุกชั้นปี', 'ชั้นปีที่ 1', 'ชั้นปีที่ 2', 'ชั้นปีที่ 3', 'ชั้นปีที่ 4'] },
+  { group: 'ขอบเขตคณะ', items: ['เฉพาะคณะวิทยาศาสตร์', 'ทุกคณะในมหาวิทยาลัย', 'บุคคลภายนอก'] },
+  { group: 'เงื่อนไขเฉพาะ', items: ['เฉพาะผู้กู้ยืม กยศ.', 'เฉพาะสตาฟหน้างาน', 'เฉพาะผู้ลงทะเบียนล่วงหน้า'] },
+];
+
+const TARGET_MAX_LEN = 255;
+
+function initTargetGroupPicker() {
+  const box = document.getElementById('ev-target-options');
+  const hidden = document.getElementById('ev-target');
+  if (!box || !hidden) return;
+
+  box.innerHTML = TARGET_GROUP_OPTIONS.map((g) => `
+    <div class="w-full">
+      <p class="text-[11px] text-slate-400 mb-1">${g.group}</p>
+      <div class="flex flex-wrap gap-2">
+        ${g.items.map((label) => `
+          <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-sm">
+            <input type="checkbox" class="ev-target-opt rounded border-slate-300 text-blue-600 focus:ring-blue-500" value="${label}">
+            <span class="text-slate-700">${label}</span>
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+
+  box.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('ev-target-opt')) return;
+    // "ทุกชั้นปี" กับการเลือกรายชั้นปี ขัดแย้งกันเอง — เลือกอย่างใดอย่างหนึ่ง
+    const boxes = [...box.querySelectorAll('.ev-target-opt')];
+    const perYear = ['ชั้นปีที่ 1', 'ชั้นปีที่ 2', 'ชั้นปีที่ 3', 'ชั้นปีที่ 4'];
+    if (e.target.value === 'ทุกชั้นปี' && e.target.checked) {
+      boxes.filter((b) => perYear.includes(b.value)).forEach((b) => { b.checked = false; });
+    } else if (perYear.includes(e.target.value) && e.target.checked) {
+      const all = boxes.find((b) => b.value === 'ทุกชั้นปี');
+      if (all) all.checked = false;
+    }
+    syncTargetGroup();
+  });
+
+  syncTargetGroup();
+}
+
+function selectedTargetGroups() {
+  return [...document.querySelectorAll('.ev-target-opt:checked')].map((c) => c.value);
+}
+
+function syncTargetGroup() {
+  const hidden = document.getElementById('ev-target');
+  const preview = document.getElementById('ev-target-preview');
+  const counter = document.getElementById('ev-target-count');
+  if (!hidden) return;
+  const text = selectedTargetGroups().join(', ');
+  hidden.value = text;
+  if (preview) {
+    preview.textContent = text || 'ยังไม่ได้เลือกกลุ่มเป้าหมาย';
+    preview.className = 'text-xs truncate ' + (text.length > TARGET_MAX_LEN ? 'text-red-600' : 'text-slate-500');
+  }
+  if (counter) {
+    counter.textContent = `${text.length}/${TARGET_MAX_LEN}`;
+    counter.className = 'text-[11px] font-mono shrink-0 ' + (text.length > TARGET_MAX_LEN ? 'text-red-600' : 'text-slate-400');
+  }
+}
+
+/* คำนวณจำนวนวันจากช่วงวันที่ (ฐานข้อมูลเก็บ start_date/end_date ไม่ได้เก็บจำนวนวัน) */
+function eventDayCount(startVal, endVal) {
+  if (!startVal || !endVal) return 1;
+  const diff = Math.round((new Date(endVal) - new Date(startVal)) / 86400000);
+  return Math.max(1, diff + 1);
+}
+
+function syncEventDuration() {
+  const el = document.getElementById('ev-duration');
+  if (!el) return;
+  const startVal = document.getElementById('ev-date').value;
+  const endVal = document.getElementById('ev-end-date').value;
+  if (!startVal || !endVal) { el.textContent = '—'; return; }
+  if (new Date(endVal) < new Date(startVal)) {
+    el.textContent = 'วันสิ้นสุดอยู่ก่อนวันเริ่ม';
+    el.className = 'w-full px-4 py-2.5 rounded-xl border border-red-300 bg-red-50 text-sm text-red-600';
+    return;
+  }
+  el.textContent = `${eventDayCount(startVal, endVal)} วัน`;
+  el.className = 'w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-600';
+}
+
 function initEventFormPage() {
+  initTargetGroupPicker();
+  ['ev-date', 'ev-end-date'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => {
+      // ถ้าเลือกวันเริ่มหลังวันสิ้นสุด ให้ดันวันสิ้นสุดตามไปด้วย
+      const st = document.getElementById('ev-date').value;
+      const en = document.getElementById('ev-end-date');
+      if (id === 'ev-date' && en && (!en.value || new Date(en.value) < new Date(st))) en.value = st;
+      syncEventDuration();
+    });
+  });
+  syncEventDuration();
+
   const gpsToggle = document.getElementById('ev-gps');
   const gpsFields = document.getElementById('gps-fields');
   gpsToggle.addEventListener('change', () => gpsFields.classList.toggle('hidden', !gpsToggle.checked));
@@ -666,7 +767,10 @@ function initEventFormPage() {
     // UC-R3 exception: กรอกฟิลด์บังคับไม่ครบหรือวันที่/ตัวเลขคลาดเคลื่อน -> แสดงข้อผิดพลาดและระงับการบันทึกทั้งหมด
     const name = document.getElementById('ev-name').value.trim();
     const dateVal = document.getElementById('ev-date').value;
-    const daysVal = Number(document.getElementById('ev-days').value);
+    const endDateVal = document.getElementById('ev-end-date').value;
+    const startTimeVal = document.getElementById('ev-start-time').value || '09:00';
+    const endTimeVal = document.getElementById('ev-end-time').value || '16:00';
+    const daysVal = eventDayCount(dateVal, endDateVal);
     const creditsVal = parseFloat(document.getElementById('ev-credits').value);
     const gpsEnabled = gpsToggle.checked;
     const latVal = parseFloat(document.getElementById('ev-lat').value);
@@ -678,8 +782,18 @@ function initEventFormPage() {
 
     const errors = [];
     if (!name) errors.push('กรุณากรอกชื่อกิจกรรม');
-    if (!dateVal) errors.push('กรุณาเลือกวันที่จัดกิจกรรม');
-    if (!Number.isFinite(daysVal) || daysVal < 1) errors.push('จำนวนวันจัดกิจกรรมต้องเป็นตัวเลขตั้งแต่ 1 วันขึ้นไป');
+    if (!dateVal) errors.push('กรุณาเลือกวันเริ่มกิจกรรม');
+    if (!endDateVal) errors.push('กรุณาเลือกวันสิ้นสุดกิจกรรม');
+    if (dateVal && endDateVal && new Date(endDateVal) < new Date(dateVal)) {
+      errors.push('วันสิ้นสุดกิจกรรมต้องไม่อยู่ก่อนวันเริ่มกิจกรรม');
+    }
+    if (dateVal && endDateVal && dateVal === endDateVal && startTimeVal && endTimeVal && endTimeVal <= startTimeVal) {
+      errors.push('กิจกรรมวันเดียว เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม');
+    }
+    const targetText = document.getElementById('ev-target').value;
+    if (targetText.length > TARGET_MAX_LEN) {
+      errors.push('กลุ่มเป้าหมายที่เลือกรวมกันยาวเกิน ' + TARGET_MAX_LEN + ' ตัวอักษร — กรุณาลดจำนวนตัวเลือก');
+    }
     if (!Number.isFinite(creditsVal) || creditsVal <= 0) errors.push('หน่วยกิตที่ได้รับต้องมากกว่า 0');
     if (gpsEnabled) {
       if (!Number.isFinite(latVal) || !Number.isFinite(lngVal)) errors.push('เปิดใช้ GPS แล้วต้องปักหมุดพิกัดบนแผนที่ก่อนบันทึก');
@@ -770,7 +884,8 @@ function initEventFormPage() {
     // Wk14 (Create): ส่งข้อมูลเข้าฐานข้อมูลจริงผ่าน POST /api/v1/events
     // ถ้า backend ไม่ได้เปิดอยู่ หน้าจอยังทำงานได้ตามเดิมด้วยข้อมูลจำลอง
     createEventOnServer({
-      name, dateVal, daysVal, creditsVal, open, gpsEnabled, latVal, lngVal, radiusVal,
+      name, dateVal, endDateVal, startTimeVal, endTimeVal, daysVal,
+      creditsVal, open, gpsEnabled, latVal, lngVal, radiusVal,
       selfie, masterCode, objectives, description, schedule, subcategory,
       eligible_participants, location, registration_deadline, contact_info,
       participantsRaw, hoursRaw,
@@ -780,6 +895,9 @@ function initEventFormPage() {
     gpsFields.classList.add('hidden');
     formStaffIds = [];
     refreshStaffChips();
+    document.querySelectorAll('.ev-target-opt').forEach((c) => { c.checked = false; });
+    syncTargetGroup();
+    syncEventDuration();
   });
   renderRecentEvents();
 }
@@ -794,9 +912,9 @@ function initEventFormPage() {
  */
 async function createEventOnServer(f) {
   const orNull = (v) => (v && String(v).trim() ? String(v).trim() : null);
-  const startISO = new Date(`${f.dateVal}T09:00:00`).toISOString();
-  const endDate = new Date(`${f.dateVal}T16:00:00`);
-  endDate.setDate(endDate.getDate() + Math.max(0, (Number(f.daysVal) || 1) - 1));
+  // ใช้วันและเวลาที่ผู้ใช้กรอกจริง (เดิมฮาร์ดโค้ด 09:00-16:00 เพราะฟอร์มไม่มีช่องเวลา)
+  const startISO = new Date(`${f.dateVal}T${f.startTimeVal || '09:00'}:00`).toISOString();
+  const endDate = new Date(`${f.endDateVal || f.dateVal}T${f.endTimeVal || '16:00'}:00`);
 
   const payload = {
     title: f.name,
