@@ -1192,7 +1192,7 @@ function renderRosterDetail(row) {
   const { proof: p, entry: en } = row;
   const docSeqVal = en.docSequenceNo || en.rowIndex;
   const docSeqBadge = en.isSequenceInferred
-    ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">✨ Auto-Inferred</span>`
+    ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">${icon('robot', 'w-3.5 h-3.5')} Auto-Inferred</span>`
     : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">เลขตามเอกสาร</span>`;
 
   document.getElementById('proof-panel-title').textContent = 'รายชื่อที่ OCR สกัดได้ — แก้ไขได้ก่อนอนุมัติ';

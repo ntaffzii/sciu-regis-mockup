@@ -1002,11 +1002,11 @@ function renderChannelSwitch() {
   if (simChannel === 'web') {
     note.textContent = 'หน้าเว็บ: ใช้งานได้ทุกคนเสมอ ทั้งผู้ใช้ทั่วไปและนักศึกษา (FR-D12)';
   } else if (simLineState === 'unlinked') {
-    note.innerHTML = '⚠️ <strong>ยังไม่เชื่อมบัญชี LINE</strong> — ข้อความที่ส่งเข้ามาจะไม่ถูกส่งให้ AI ประมวลผล ระบบจะตอบอัตโนมัติแนะนำวิธีเชื่อมบัญชีเท่านั้น (FR-D10)';
+    note.innerHTML = icon('alert-triangle', 'w-4 h-4 inline-block align-[-3px]') + ' <strong>ยังไม่เชื่อมบัญชี LINE</strong> — ข้อความที่ส่งเข้ามาจะไม่ถูกส่งให้ AI ประมวลผล ระบบจะตอบอัตโนมัติแนะนำวิธีเชื่อมบัญชีเท่านั้น (FR-D10)';
   } else if (simLineState === 'linked_disabled') {
-    note.innerHTML = '⚠️ เชื่อมบัญชีแล้ว แต่ <strong>ยังไม่เปิดสวิตช์แชทบอท</strong> (`line_chat_enabled = false`) — ข้อความจะไม่ถูกส่งให้ AI ประมวลผลเช่นกัน ระบบจะแนะนำวิธีเปิดใช้งานที่หน้าเว็บ (FR-D10)';
+    note.innerHTML = icon('alert-triangle', 'w-4 h-4 inline-block align-[-3px]') + ' เชื่อมบัญชีแล้ว แต่ <strong>ยังไม่เปิดสวิตช์แชทบอท</strong> (`line_chat_enabled = false`) — ข้อความจะไม่ถูกส่งให้ AI ประมวลผลเช่นกัน ระบบจะแนะนำวิธีเปิดใช้งานที่หน้าเว็บ (FR-D10)';
   } else {
-    note.innerHTML = '✅ เชื่อมบัญชีและเปิดใช้งานแชทบอทแล้ว — ข้อความจาก LINE จะถูกประมวลผลด้วย backend เดียวกับหน้าเว็บทุกประการ (FR-D11)';
+    note.innerHTML = icon('check-circle', 'w-4 h-4 inline-block align-[-3px]') + ' เชื่อมบัญชีและเปิดใช้งานแชทบอทแล้ว — ข้อความจาก LINE จะถูกประมวลผลด้วย backend เดียวกับหน้าเว็บทุกประการ (FR-D11)';
   }
 }
 
